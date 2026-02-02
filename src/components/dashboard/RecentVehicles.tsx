@@ -3,7 +3,7 @@ import { Car, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
-export function RecentVehicles() {
+export function TopVehiclesByCount() {
   const getStatusBadge = (status: string) => {
     const styles = {
       ordered: 'badge-info',
@@ -24,19 +24,36 @@ export function RecentVehicles() {
     );
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
+  // Group vehicles by brand+model and count them
+  const vehicleCounts = vehicles.reduce((acc, vehicle) => {
+    const key = `${vehicle.brand} ${vehicle.model}`;
+    if (!acc[key]) {
+      acc[key] = { 
+        name: key, 
+        brand: vehicle.brand,
+        model: vehicle.model,
+        count: 0, 
+        statuses: [] as string[],
+        lastStatus: vehicle.status
+      };
+    }
+    acc[key].count++;
+    acc[key].statuses.push(vehicle.status);
+    acc[key].lastStatus = vehicle.status;
+    return acc;
+  }, {} as Record<string, { name: string; brand: string; model: string; count: number; statuses: string[]; lastStatus: string }>);
+
+  // Sort by count descending and take top 4
+  const topVehicles = Object.values(vehicleCounts)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 4);
 
   return (
     <div className="bg-card rounded-xl border border-border p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Véhicules récents</h3>
-          <p className="text-sm text-muted-foreground">Dernières activités d'importation</p>
+          <h3 className="text-lg font-semibold text-foreground">Top véhicules</h3>
+          <p className="text-sm text-muted-foreground">Par nombre d'unités importées</p>
         </div>
         <Link
           to="/vehicles"
@@ -47,9 +64,9 @@ export function RecentVehicles() {
         </Link>
       </div>
       <div className="space-y-3">
-        {vehicles.slice(0, 4).map((vehicle) => (
+        {topVehicles.map((vehicle, index) => (
           <div
-            key={vehicle.id}
+            key={vehicle.name}
             className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/30 transition-colors"
           >
             <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
@@ -58,19 +75,19 @@ export function RecentVehicles() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <p className="font-medium text-foreground truncate">
-                  {vehicle.brand} {vehicle.model}
+                  {vehicle.name}
                 </p>
-                {getStatusBadge(vehicle.status)}
+                {getStatusBadge(vehicle.lastStatus)}
               </div>
-              <p className="text-sm text-muted-foreground truncate">
-                {vehicle.client} • {vehicle.containerId}
+              <p className="text-sm text-muted-foreground">
+                #{index + 1} en volume d'importation
               </p>
             </div>
             <div className="text-right">
-              <p className="font-medium text-success">
-                {formatCurrency(vehicle.profit)}
+              <p className="font-medium text-primary text-lg">
+                {vehicle.count}
               </p>
-              <p className="text-xs text-muted-foreground">profit</p>
+              <p className="text-xs text-muted-foreground">unités</p>
             </div>
           </div>
         ))}
