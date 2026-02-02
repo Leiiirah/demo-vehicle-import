@@ -46,13 +46,19 @@ export function AppSidebar() {
       <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <Ship className="h-8 w-8 text-sidebar-primary" />
-            <span className="text-lg font-semibold text-sidebar-accent-foreground">
-              AutoImport
+            <div className="h-9 w-9 rounded-lg bg-sidebar-primary flex items-center justify-center">
+              <span className="text-lg font-bold text-sidebar-primary-foreground">N</span>
+            </div>
+            <span className="text-lg font-bold text-sidebar-accent-foreground tracking-tight">
+              NGB
             </span>
           </div>
         )}
-        {collapsed && <Ship className="h-8 w-8 text-sidebar-primary mx-auto" />}
+        {collapsed && (
+          <div className="h-9 w-9 rounded-lg bg-sidebar-primary flex items-center justify-center mx-auto">
+            <span className="text-lg font-bold text-sidebar-primary-foreground">N</span>
+          </div>
+        )}
       </div>
 
       {/* Main Navigation */}
