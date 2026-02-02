@@ -21,47 +21,47 @@ const ClientsPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Page Header */}
+        {/* En-tête de page */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Clients</h1>
             <p className="text-muted-foreground">
-              Manage your import clients and track their profitability
+              Gérez vos clients d'importation et suivez leur rentabilité
             </p>
           </div>
           <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
             <UserCircle className="h-4 w-4 mr-2" />
-            Add Client
+            Ajouter client
           </Button>
         </div>
 
-        {/* Summary Cards */}
+        {/* Cartes récapitulatives */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="kpi-card">
-            <p className="kpi-label">Total Clients</p>
+            <p className="kpi-label">Total clients</p>
             <p className="kpi-value">{clients.length}</p>
           </div>
           <div className="kpi-card">
-            <p className="kpi-label">Active Clients</p>
+            <p className="kpi-label">Clients actifs</p>
             <p className="kpi-value text-success">
               {clients.filter((c) => c.status === 'active').length}
             </p>
           </div>
           <div className="kpi-card border-l-4 border-l-success">
-            <p className="kpi-label">Total Profit Generated</p>
+            <p className="kpi-label">Profit total généré</p>
             <p className="kpi-value text-success">
               {formatCurrency(clients.reduce((sum, c) => sum + c.totalProfit, 0))}
             </p>
           </div>
           <div className="kpi-card">
-            <p className="kpi-label">Avg. Margin</p>
-            <p className="kpi-value text-info">
+            <p className="kpi-label">Marge moyenne</p>
+            <p className="kpi-value text-primary">
               {(clients.reduce((sum, c) => sum + c.marginPercentage, 0) / clients.length).toFixed(1)}%
             </p>
           </div>
         </div>
 
-        {/* Clients Table */}
+        {/* Tableau clients */}
         <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="data-table">
@@ -69,10 +69,10 @@ const ClientsPage = () => {
                 <tr>
                   <th>Client</th>
                   <th>Contact</th>
-                  <th>Vehicles Imported</th>
-                  <th>Total Profit</th>
-                  <th>Margin %</th>
-                  <th>Status</th>
+                  <th>Véhicules importés</th>
+                  <th>Profit total</th>
+                  <th>Marge %</th>
+                  <th>Statut</th>
                   <th></th>
                 </tr>
               </thead>
@@ -124,7 +124,7 @@ const ClientsPage = () => {
                             : 'bg-muted text-muted-foreground'
                         )}
                       >
-                        {client.status === 'active' ? 'Active' : 'Inactive'}
+                        {client.status === 'active' ? 'Actif' : 'Inactif'}
                       </span>
                     </td>
                     <td>
@@ -137,11 +137,11 @@ const ClientsPage = () => {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>
                             <Eye className="h-4 w-4 mr-2" />
-                            View Profile
+                            Voir le profil
                           </DropdownMenuItem>
                           <DropdownMenuItem>
                             <FileText className="h-4 w-4 mr-2" />
-                            Vehicle History
+                            Historique véhicules
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

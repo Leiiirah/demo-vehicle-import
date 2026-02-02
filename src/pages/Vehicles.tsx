@@ -41,26 +41,16 @@ const VehiclesPage = () => {
       sold: 'bg-muted text-muted-foreground',
     };
     const labels = {
-      ordered: 'Ordered',
-      in_transit: 'In Transit',
-      arrived: 'Arrived',
-      sold: 'Sold',
+      ordered: 'Commandé',
+      in_transit: 'En transit',
+      arrived: 'Arrivé',
+      sold: 'Vendu',
     };
     return (
       <span className={cn('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', styles[status as keyof typeof styles])}>
         {labels[status as keyof typeof labels]}
       </span>
     );
-  };
-
-  const getStatusDot = (status: string) => {
-    const colors = {
-      ordered: 'status-ordered',
-      in_transit: 'status-transit',
-      arrived: 'status-arrived',
-      sold: 'status-sold',
-    };
-    return <span className={cn('status-dot', colors[status as keyof typeof colors])} />;
   };
 
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
@@ -91,26 +81,26 @@ const VehiclesPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Page Header */}
+        {/* En-tête de page */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">Vehicles</h1>
+            <h1 className="text-2xl font-semibold text-foreground">Véhicules</h1>
             <p className="text-muted-foreground">
-              Manage your vehicle imports and track their status
+              Gérez vos importations et suivez leur statut
             </p>
           </div>
           <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
             <Car className="h-4 w-4 mr-2" />
-            Add Vehicle
+            Ajouter un véhicule
           </Button>
         </div>
 
-        {/* Filters */}
+        {/* Filtres */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search vehicles, clients, containers..."
+              placeholder="Rechercher véhicules, clients, conteneurs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -119,14 +109,14 @@ const VehiclesPage = () => {
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[180px]">
               <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder="Filtrer par statut" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="ordered">Ordered</SelectItem>
-              <SelectItem value="in_transit">In Transit</SelectItem>
-              <SelectItem value="arrived">Arrived</SelectItem>
-              <SelectItem value="sold">Sold</SelectItem>
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              <SelectItem value="ordered">Commandé</SelectItem>
+              <SelectItem value="in_transit">En transit</SelectItem>
+              <SelectItem value="arrived">Arrivé</SelectItem>
+              <SelectItem value="sold">Vendu</SelectItem>
             </SelectContent>
           </Select>
           <div className="flex items-center border border-border rounded-lg p-1">
@@ -149,19 +139,19 @@ const VehiclesPage = () => {
           </div>
         </div>
 
-        {/* Table View */}
+        {/* Vue tableau */}
         {viewMode === 'table' && (
           <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Vehicle</th>
+                    <th>Véhicule</th>
                     <th>Client</th>
-                    <th>Supplier</th>
-                    <th>Container</th>
-                    <th>Status</th>
-                    <th>Total Cost</th>
+                    <th>Fournisseur</th>
+                    <th>Conteneur</th>
+                    <th>Statut</th>
+                    <th>Coût total</th>
                     <th>Profit</th>
                     <th></th>
                   </tr>
@@ -213,11 +203,11 @@ const VehiclesPage = () => {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem>
                               <Eye className="h-4 w-4 mr-2" />
-                              View Details
+                              Voir les détails
                             </DropdownMenuItem>
                             <DropdownMenuItem>
                               <Edit className="h-4 w-4 mr-2" />
-                              Edit
+                              Modifier
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -230,7 +220,7 @@ const VehiclesPage = () => {
           </div>
         )}
 
-        {/* Cards View */}
+        {/* Vue cartes */}
         {viewMode === 'cards' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredVehicles.map((vehicle) => (
@@ -261,13 +251,13 @@ const VehiclesPage = () => {
                     <span className="text-foreground font-medium">{vehicle.client}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Container</span>
+                    <span className="text-muted-foreground">Conteneur</span>
                     <code className="text-xs bg-muted px-2 py-0.5 rounded">
                       {vehicle.containerId}
                     </code>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Cost</span>
+                    <span className="text-muted-foreground">Coût total</span>
                     <span className="text-foreground font-medium">
                       {formatCurrency(vehicle.totalCost)}
                     </span>
@@ -281,7 +271,7 @@ const VehiclesPage = () => {
                       {formatCurrency(vehicle.profit)}
                     </p>
                   </div>
-                  <span className="badge-profit text-sm">{vehicle.margin}% margin</span>
+                  <span className="badge-profit text-sm">{vehicle.margin}% marge</span>
                 </div>
               </div>
             ))}

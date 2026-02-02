@@ -289,16 +289,16 @@ export const profitHistory = [
   { month: 'Sep', profit: 280000 },
   { month: 'Oct', profit: 350000 },
   { month: 'Nov', profit: 420000 },
-  { month: 'Dec', profit: 380000 },
+  { month: 'Déc', profit: 380000 },
   { month: 'Jan', profit: 520000 },
-  { month: 'Feb', profit: 385000 },
+  { month: 'Fév', profit: 385000 },
 ];
 
 export const vehiclesByStatus = [
-  { name: 'Ordered', value: 8, color: 'hsl(217, 91%, 60%)' },
-  { name: 'In Transit', value: 12, color: 'hsl(38, 92%, 50%)' },
-  { name: 'Arrived', value: 8, color: 'hsl(142, 71%, 45%)' },
-  { name: 'Sold', value: 45, color: 'hsl(215, 16%, 47%)' },
+  { name: 'Commandé', value: 8, color: 'hsl(0, 72%, 50%)' },
+  { name: 'En transit', value: 12, color: 'hsl(38, 92%, 50%)' },
+  { name: 'Arrivé', value: 8, color: 'hsl(142, 71%, 45%)' },
+  { name: 'Vendu', value: 45, color: 'hsl(0, 0%, 45%)' },
 ];
 
 export const topVehicles = [

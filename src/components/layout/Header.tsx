@@ -33,7 +33,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="flex h-full items-center justify-between px-6">
-        {/* Exchange Rate */}
+        {/* Taux de change */}
         <div className="flex items-center gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -41,32 +41,32 @@ export function Header() {
                 <RefreshCw className="h-4 w-4 text-muted-foreground" />
                 <div className="text-sm">
                   <span className="font-medium text-foreground">1 USD = </span>
-                  <span className="font-semibold text-info">{exchangeRate.USD_DZD} DZD</span>
+                  <span className="font-semibold text-primary">{exchangeRate.USD_DZD} DZD</span>
                 </div>
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Last updated: {exchangeRate.lastUpdated}</p>
+              <p>Dernière mise à jour : {exchangeRate.lastUpdated}</p>
             </TooltipContent>
           </Tooltip>
         </div>
 
-        {/* Quick Stats & User */}
+        {/* Stats rapides & Utilisateur */}
         <div className="flex items-center gap-4">
-          {/* Global Balance */}
+          {/* Solde global */}
           <div className="hidden md:flex items-center gap-4 mr-4">
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-2">
                   <Wallet className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Balance:</span>
+                  <span className="text-sm text-muted-foreground">Solde :</span>
                   <span className="font-semibold text-success">
                     {formatCurrency(kpiData.totalProfit)}
                   </span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Total profit across all operations</p>
+                <p>Profit total sur toutes les opérations</p>
               </TooltipContent>
             </Tooltip>
 
@@ -75,14 +75,14 @@ export function Header() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Debts:</span>
+                  <span className="text-sm text-muted-foreground">Dettes :</span>
                   <span className="font-semibold text-danger">
                     {formatCurrency(kpiData.outstandingDebts, 'USD')}
                   </span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Outstanding supplier debts</p>
+                <p>Dettes fournisseurs en cours</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -95,7 +95,7 @@ export function Header() {
             </span>
           </Button>
 
-          {/* User Menu */}
+          {/* Menu utilisateur */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-2">
@@ -103,17 +103,17 @@ export function Header() {
                   <User className="h-4 w-4 text-primary-foreground" />
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium">Admin User</p>
-                  <p className="text-xs text-muted-foreground">Full Access</p>
+                  <p className="text-sm font-medium">Administrateur</p>
+                  <p className="text-xs text-muted-foreground">Accès complet</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
-                Profile
+                Profil
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell className="mr-2 h-4 w-4" />
@@ -122,7 +122,7 @@ export function Header() {
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-danger">
                 <LogOut className="mr-2 h-4 w-4" />
-                Log out
+                Déconnexion
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

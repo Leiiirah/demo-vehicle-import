@@ -5,8 +5,8 @@ export function StatusDonutChart() {
   return (
     <div className="bg-card rounded-xl border border-border p-5 shadow-sm">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-foreground">Vehicles by Status</h3>
-        <p className="text-sm text-muted-foreground">Current inventory breakdown</p>
+        <h3 className="text-lg font-semibold text-foreground">Véhicules par statut</h3>
+        <p className="text-sm text-muted-foreground">Répartition de l'inventaire actuel</p>
       </div>
       <div className="h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
@@ -27,11 +27,11 @@ export function StatusDonutChart() {
             <Tooltip
               contentStyle={{
                 backgroundColor: 'hsl(0, 0%, 100%)',
-                border: '1px solid hsl(215, 25%, 90%)',
+                border: '1px solid hsl(0, 5%, 90%)',
                 borderRadius: '8px',
                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}
-              formatter={(value: number) => [value, 'Vehicles']}
+              formatter={(value: number) => [value, 'Véhicules']}
             />
             <Legend
               verticalAlign="bottom"

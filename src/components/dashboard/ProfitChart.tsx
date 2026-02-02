@@ -20,8 +20,8 @@ export function ProfitChart() {
   return (
     <div className="bg-card rounded-xl border border-border p-5 shadow-sm">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-foreground">Profit Evolution</h3>
-        <p className="text-sm text-muted-foreground">Last 6 months performance</p>
+        <h3 className="text-lg font-semibold text-foreground">Évolution des profits</h3>
+        <p className="text-sm text-muted-foreground">Performance des 6 derniers mois</p>
       </div>
       <div className="h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
@@ -34,19 +34,19 @@ export function ProfitChart() {
             </defs>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="hsl(215, 25%, 90%)"
+              stroke="hsl(0, 5%, 90%)"
               vertical={false}
             />
             <XAxis
               dataKey="month"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: 'hsl(215, 16%, 47%)', fontSize: 12 }}
+              tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fill: 'hsl(215, 16%, 47%)', fontSize: 12 }}
+              tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
               tickFormatter={(value) =>
                 new Intl.NumberFormat('fr-DZ', {
                   notation: 'compact',
@@ -57,7 +57,7 @@ export function ProfitChart() {
             <Tooltip
               contentStyle={{
                 backgroundColor: 'hsl(0, 0%, 100%)',
-                border: '1px solid hsl(215, 25%, 90%)',
+                border: '1px solid hsl(0, 5%, 90%)',
                 borderRadius: '8px',
                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}
