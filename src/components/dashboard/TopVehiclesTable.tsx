@@ -13,8 +13,8 @@ export function TopVehiclesTable() {
     <div className="bg-card rounded-xl border border-border p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Top Profitable Vehicles</h3>
-          <p className="text-sm text-muted-foreground">Best performing imports</p>
+          <h3 className="text-lg font-semibold text-foreground">Top véhicules rentables</h3>
+          <p className="text-sm text-muted-foreground">Meilleures importations</p>
         </div>
         <TrendingUp className="h-5 w-5 text-success" />
       </div>
@@ -23,13 +23,13 @@ export function TopVehiclesTable() {
           <thead>
             <tr className="border-b border-border">
               <th className="text-left py-3 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Vehicle
+                Véhicule
               </th>
               <th className="text-right py-3 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Profit
               </th>
               <th className="text-right py-3 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Margin
+                Marge
               </th>
             </tr>
           </thead>

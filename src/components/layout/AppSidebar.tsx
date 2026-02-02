@@ -17,18 +17,18 @@ import {
 import { cn } from '@/lib/utils';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Vehicles', href: '/vehicles', icon: Car },
-  { name: 'Cost Calculator', href: '/calculator', icon: Calculator },
-  { name: 'Suppliers', href: '/suppliers', icon: Building2 },
+  { name: 'Tableau de bord', href: '/', icon: LayoutDashboard },
+  { name: 'Véhicules', href: '/vehicles', icon: Car },
+  { name: 'Calculateur', href: '/calculator', icon: Calculator },
+  { name: 'Fournisseurs', href: '/suppliers', icon: Building2 },
   { name: 'Clients', href: '/clients', icon: UserCircle },
-  { name: 'Sales & Margins', href: '/sales', icon: TrendingUp },
-  { name: 'Reports', href: '/reports', icon: FileText },
+  { name: 'Ventes & Marges', href: '/sales', icon: TrendingUp },
+  { name: 'Rapports', href: '/reports', icon: FileText },
 ];
 
 const secondaryNav = [
-  { name: 'Users & Access', href: '/users', icon: Users },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Utilisateurs', href: '/users', icon: Users },
+  { name: 'Paramètres', href: '/settings', icon: Settings },
 ];
 
 export function AppSidebar() {

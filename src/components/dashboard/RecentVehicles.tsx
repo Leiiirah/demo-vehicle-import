@@ -12,10 +12,10 @@ export function RecentVehicles() {
       sold: 'bg-muted text-muted-foreground',
     };
     const labels = {
-      ordered: 'Ordered',
-      in_transit: 'In Transit',
-      arrived: 'Arrived',
-      sold: 'Sold',
+      ordered: 'Commandé',
+      in_transit: 'En transit',
+      arrived: 'Arrivé',
+      sold: 'Vendu',
     };
     return (
       <span className={cn('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', styles[status as keyof typeof styles])}>
@@ -35,14 +35,14 @@ export function RecentVehicles() {
     <div className="bg-card rounded-xl border border-border p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Recent Vehicles</h3>
-          <p className="text-sm text-muted-foreground">Latest import activities</p>
+          <h3 className="text-lg font-semibold text-foreground">Véhicules récents</h3>
+          <p className="text-sm text-muted-foreground">Dernières activités d'importation</p>
         </div>
         <Link
           to="/vehicles"
-          className="flex items-center gap-1 text-sm font-medium text-info hover:text-info/80 transition-colors"
+          className="flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
         >
-          View all
+          Voir tout
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>

@@ -17,7 +17,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
 
 interface Payment {
   id: string;
@@ -31,8 +30,8 @@ const CostCalculatorPage = () => {
   const [transportCost, setTransportCost] = useState<number>(2500);
   const [localFees, setLocalFees] = useState<number>(350000);
   const [payments, setPayments] = useState<Payment[]>([
-    { id: '1', amount: 20000, exchangeRate: 134.50, description: 'Initial deposit' },
-    { id: '2', amount: 25000, exchangeRate: 135.20, description: 'Final payment' },
+    { id: '1', amount: 20000, exchangeRate: 134.50, description: 'Acompte initial' },
+    { id: '2', amount: 25000, exchangeRate: 135.20, description: 'Paiement final' },
   ]);
 
   const addPayment = () => {
@@ -60,29 +59,23 @@ const CostCalculatorPage = () => {
   };
 
   const calculations = useMemo(() => {
-    // Calculate total paid using individual exchange rates
     const totalPaidDZD = payments.reduce(
       (sum, p) => sum + p.amount * p.exchangeRate,
       0
     );
 
-    // Calculate total USD costs
     const totalUSDCosts = purchasePrice + transportCost;
     
-    // Weighted average exchange rate
     const totalUSDPayments = payments.reduce((sum, p) => sum + p.amount, 0);
     const weightedAvgRate = totalUSDPayments > 0
       ? totalPaidDZD / totalUSDPayments
       : exchangeRate.USD_DZD;
 
-    // Total cost in DZD
     const totalCostDZD = totalPaidDZD + localFees;
 
-    // Remaining to pay (if payments don't cover full amount)
     const remainingUSD = totalUSDCosts - totalUSDPayments;
     const remainingDZD = remainingUSD * exchangeRate.USD_DZD;
 
-    // Final cost including any remaining balance at current rate
     const finalCostDZD = totalCostDZD + (remainingUSD > 0 ? remainingDZD : 0);
 
     return {
@@ -114,29 +107,29 @@ const CostCalculatorPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Page Header */}
+        {/* En-tête de page */}
         <div>
           <h1 className="text-2xl font-semibold text-foreground">
-            Dynamic Cost Calculator
+            Calculateur de coût
           </h1>
           <p className="text-muted-foreground">
-            Calculate accurate vehicle costs with multiple payments and exchange rates
+            Calculez le coût précis des véhicules avec plusieurs paiements et taux de change
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Input Section */}
+          {/* Section entrées */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Base Costs */}
+            {/* Coûts de base */}
             <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-info" />
-                Base Costs (USD)
+                <DollarSign className="h-5 w-5 text-primary" />
+                Coûts de base (USD)
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="purchasePrice" className="text-sm font-medium">
-                    Purchase Price (USD)
+                    Prix d'achat (USD)
                   </Label>
                   <div className="relative mt-1.5">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -153,7 +146,7 @@ const CostCalculatorPage = () => {
                 </div>
                 <div>
                   <Label htmlFor="transportCost" className="text-sm font-medium">
-                    Transport Cost (USD)
+                    Coût transport (USD)
                   </Label>
                   <div className="relative mt-1.5">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -171,14 +164,14 @@ const CostCalculatorPage = () => {
               </div>
             </div>
 
-            {/* Local Fees */}
+            {/* Frais locaux */}
             <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-foreground mb-4">
-                Local Fees (DZD)
+                Frais locaux (DZD)
               </h2>
               <div>
                 <Label htmlFor="localFees" className="text-sm font-medium">
-                  Customs, Registration & Other Fees
+                  Douane, immatriculation & autres frais
                 </Label>
                 <div className="relative mt-1.5">
                   <Input
@@ -194,12 +187,12 @@ const CostCalculatorPage = () => {
               </div>
             </div>
 
-            {/* Payments */}
+            {/* Paiements */}
             <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-semibold text-foreground">
-                    Payments with Exchange Rates
+                    Paiements avec taux de change
                   </h2>
                   <Tooltip>
                     <TooltipTrigger>
@@ -207,15 +200,15 @@ const CostCalculatorPage = () => {
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       <p>
-                        Enter each payment separately with the exchange rate at the
-                        time of payment for accurate cost calculation.
+                        Entrez chaque paiement séparément avec le taux de change au
+                        moment du paiement pour un calcul précis.
                       </p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
                 <Button onClick={addPayment} variant="outline" size="sm">
                   <Plus className="h-4 w-4 mr-1" />
-                  Add Payment
+                  Ajouter paiement
                 </Button>
               </div>
 
@@ -227,7 +220,7 @@ const CostCalculatorPage = () => {
                   >
                     <div className="col-span-12 md:col-span-4">
                       <Label className="text-xs text-muted-foreground">
-                        Payment {index + 1} (USD)
+                        Paiement {index + 1} (USD)
                       </Label>
                       <div className="relative mt-1">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -245,7 +238,7 @@ const CostCalculatorPage = () => {
                     </div>
                     <div className="col-span-8 md:col-span-3">
                       <Label className="text-xs text-muted-foreground">
-                        Exchange Rate
+                        Taux de change
                       </Label>
                       <div className="relative mt-1">
                         <Input
@@ -272,7 +265,7 @@ const CostCalculatorPage = () => {
                         onChange={(e) =>
                           updatePayment(payment.id, 'description', e.target.value)
                         }
-                        placeholder="e.g., Initial deposit"
+                        placeholder="ex: Acompte initial"
                         className="mt-1"
                       />
                     </div>
@@ -295,26 +288,26 @@ const CostCalculatorPage = () => {
             </div>
           </div>
 
-          {/* Results Section */}
+          {/* Section résultats */}
           <div className="space-y-6">
-            {/* Summary Card */}
+            {/* Carte récapitulatif */}
             <div className="bg-card rounded-xl border border-border p-6 shadow-sm sticky top-24">
               <div className="flex items-center gap-2 mb-6">
-                <Calculator className="h-5 w-5 text-info" />
+                <Calculator className="h-5 w-5 text-primary" />
                 <h2 className="text-lg font-semibold text-foreground">
-                  Cost Summary
+                  Récapitulatif
                 </h2>
               </div>
 
               <div className="space-y-4">
-                {/* USD Costs */}
+                {/* Coûts USD */}
                 <div className="pb-4 border-b border-border">
                   <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
-                    USD Costs
+                    Coûts USD
                   </p>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Purchase Price</span>
+                      <span className="text-muted-foreground">Prix d'achat</span>
                       <span className="text-foreground font-medium">
                         {formatCurrency(purchasePrice, 'USD')}
                       </span>
@@ -334,26 +327,26 @@ const CostCalculatorPage = () => {
                   </div>
                 </div>
 
-                {/* Payments */}
+                {/* Paiements */}
                 <div className="pb-4 border-b border-border">
                   <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
-                    Payments Made
+                    Paiements effectués
                   </p>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Total Paid (USD)</span>
+                      <span className="text-muted-foreground">Total payé (USD)</span>
                       <span className="text-foreground font-medium">
                         {formatCurrency(calculations.totalUSDPayments, 'USD')}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Avg. Rate</span>
+                      <span className="text-muted-foreground">Taux moyen</span>
                       <span className="text-foreground font-medium">
                         {calculations.weightedAvgRate.toFixed(2)} DZD/USD
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Total in DZD</span>
+                      <span className="text-muted-foreground">Total en DZD</span>
                       <span className="text-foreground font-medium">
                         {formatCurrency(calculations.totalPaidDZD)}
                       </span>
@@ -361,22 +354,22 @@ const CostCalculatorPage = () => {
                   </div>
                 </div>
 
-                {/* Remaining */}
+                {/* Restant */}
                 {calculations.remainingUSD > 0 && (
                   <div className="pb-4 border-b border-border">
                     <p className="text-xs uppercase tracking-wider text-warning mb-3">
-                      Remaining Balance
+                      Solde restant
                     </p>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Remaining USD</span>
+                        <span className="text-muted-foreground">Restant USD</span>
                         <span className="text-warning font-medium">
                           {formatCurrency(calculations.remainingUSD, 'USD')}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground flex items-center gap-1">
-                          @ Current Rate
+                          @ Taux actuel
                           <Tooltip>
                             <TooltipTrigger>
                               <RefreshCw className="h-3 w-3" />
@@ -394,23 +387,23 @@ const CostCalculatorPage = () => {
                   </div>
                 )}
 
-                {/* Local Fees */}
+                {/* Frais locaux */}
                 <div className="pb-4 border-b border-border">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Local Fees</span>
+                    <span className="text-muted-foreground">Frais locaux</span>
                     <span className="text-foreground font-medium">
                       {formatCurrency(localFees)}
                     </span>
                   </div>
                 </div>
 
-                {/* Final Cost */}
+                {/* Coût final */}
                 <div className="pt-2">
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-semibold text-foreground">
-                      Final Cost
+                      Coût final
                     </span>
-                    <span className="text-2xl font-bold text-info">
+                    <span className="text-2xl font-bold text-primary">
                       {formatCurrency(calculations.finalCostDZD)}
                     </span>
                   </div>
@@ -421,15 +414,14 @@ const CostCalculatorPage = () => {
               </div>
             </div>
 
-            {/* Transparency Note */}
-            <div className="bg-info-muted rounded-xl p-4">
-              <p className="text-sm text-info font-medium mb-1">
-                Accurate Cost Tracking
+            {/* Note transparence */}
+            <div className="bg-accent rounded-xl p-4">
+              <p className="text-sm text-accent-foreground font-medium mb-1">
+                Suivi précis des coûts
               </p>
               <p className="text-xs text-muted-foreground">
-                Each payment is calculated with its actual exchange rate at the time
-                of transaction, ensuring precise cost tracking regardless of currency
-                fluctuations.
+                Chaque paiement est calculé avec son taux de change réel au moment
+                de la transaction, garantissant un suivi précis des coûts.
               </p>
             </div>
           </div>
