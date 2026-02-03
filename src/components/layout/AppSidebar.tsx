@@ -11,18 +11,24 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   BookUser,
   ShoppingCart,
+  Package,
+  Receipt,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const navigation = [
-  { name: 'Tableau de bord', href: '/', icon: LayoutDashboard },
-  { name: 'Véhicules', href: '/vehicles', icon: Car },
-  { name: 'Calculateur', href: '/calculator', icon: Calculator },
+// Navigation structure
+const importItems = [
   { name: 'Fournisseurs', href: '/suppliers', icon: Building2 },
   { name: 'Passeports', href: '/passeports', icon: BookUser },
   { name: 'Clients', href: '/clients', icon: ShoppingCart },
+  { name: 'Véhicules', href: '/vehicles', icon: Car },
+];
+
+const comptabiliteItems = [
   { name: 'Ventes & Marges', href: '/sales', icon: TrendingUp },
   { name: 'Rapports', href: '/reports', icon: FileText },
 ];
@@ -34,7 +40,60 @@ const secondaryNav = [
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const [importOpen, setImportOpen] = useState(true);
+  const [comptaOpen, setComptaOpen] = useState(true);
   const location = useLocation();
+
+  const isActive = (href: string) => 
+    location.pathname === href || (href !== '/' && location.pathname.startsWith(href + '/'));
+
+  const NavItem = ({ item }: { item: { name: string; href: string; icon: any } }) => {
+    const active = isActive(item.href);
+    return (
+      <li>
+        <NavLink
+          to={item.href}
+          className={cn(
+            'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+            active
+              ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+              : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+          )}
+        >
+          <item.icon className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span>{item.name}</span>}
+        </NavLink>
+      </li>
+    );
+  };
+
+  const GroupHeader = ({ 
+    label, 
+    icon: Icon, 
+    open, 
+    onToggle 
+  }: { 
+    label: string; 
+    icon: any; 
+    open: boolean; 
+    onToggle: () => void;
+  }) => (
+    <button
+      onClick={onToggle}
+      className={cn(
+        'flex items-center w-full gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-all',
+        'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+      )}
+    >
+      <Icon className="h-5 w-5 flex-shrink-0" />
+      {!collapsed && (
+        <>
+          <span className="flex-1 text-left">{label}</span>
+          {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </>
+      )}
+    </button>
+  );
 
   return (
     <aside
@@ -64,52 +123,60 @@ export function AppSidebar() {
 
       {/* Main Navigation */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto scrollbar-thin">
+        {/* Tableau de bord - Solo */}
         <ul className="space-y-1">
-          {navigation.map((item) => {
-            const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
-            return (
-              <li key={item.name}>
-                <NavLink
-                  to={item.href}
-                  className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
-                    isActive
-                      ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                      : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                  )}
-                >
-                  <item.icon className={cn('h-5 w-5 flex-shrink-0')} />
-                  {!collapsed && <span>{item.name}</span>}
-                </NavLink>
-              </li>
-            );
-          })}
+          <NavItem item={{ name: 'Tableau de bord', href: '/', icon: LayoutDashboard }} />
         </ul>
+
+        {/* Import Group */}
+        <div className="mt-4">
+          <GroupHeader 
+            label="Import" 
+            icon={Package} 
+            open={importOpen} 
+            onToggle={() => setImportOpen(!importOpen)} 
+          />
+          {(importOpen || collapsed) && (
+            <ul className={cn('space-y-1 mt-1', !collapsed && 'ml-2')}>
+              {importItems.map((item) => (
+                <NavItem key={item.name} item={item} />
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Comptabilité Group */}
+        <div className="mt-4">
+          <GroupHeader 
+            label="Comptabilité" 
+            icon={Receipt} 
+            open={comptaOpen} 
+            onToggle={() => setComptaOpen(!comptaOpen)} 
+          />
+          {(comptaOpen || collapsed) && (
+            <ul className={cn('space-y-1 mt-1', !collapsed && 'ml-2')}>
+              {comptabiliteItems.map((item) => (
+                <NavItem key={item.name} item={item} />
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Calculateur - Solo at bottom */}
+        <div className="mt-4">
+          <ul className="space-y-1">
+            <NavItem item={{ name: 'Calculateur', href: '/calculator', icon: Calculator }} />
+          </ul>
+        </div>
 
         {/* Divider */}
         <div className="my-4 border-t border-sidebar-border" />
 
         {/* Secondary Navigation */}
         <ul className="space-y-1">
-          {secondaryNav.map((item) => {
-            const isActive = location.pathname === item.href;
-            return (
-              <li key={item.name}>
-                <NavLink
-                  to={item.href}
-                  className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
-                    isActive
-                      ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                      : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                  )}
-                >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
-                  {!collapsed && <span>{item.name}</span>}
-                </NavLink>
-              </li>
-            );
-          })}
+          {secondaryNav.map((item) => (
+            <NavItem key={item.name} item={item} />
+          ))}
         </ul>
       </nav>
 
