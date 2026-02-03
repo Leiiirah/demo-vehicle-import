@@ -201,10 +201,10 @@ const PasseportsPage = () => {
                           togglePaiement(passeport.id);
                         }}
                         className={cn(
-                          'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium cursor-pointer transition-all hover:scale-105',
+                          'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all hover:scale-105 shadow-sm border',
                           passeport.paye
-                            ? 'bg-success/10 text-success hover:bg-success/20'
-                            : 'bg-warning/10 text-warning hover:bg-warning/20'
+                            ? 'bg-success/10 text-success hover:bg-success/20 border-success/30'
+                            : 'bg-warning/10 text-warning hover:bg-warning/20 border-warning/30'
                         )}
                       >
                         {passeport.paye ? (
