@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { clients } from '@/data/mockData';
 import { UserCircle, MoreVertical, Eye, FileText, Mail, Phone } from 'lucide-react';
@@ -9,8 +10,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { AddClientDialog } from '@/components/clients/AddClientDialog';
 
 const ClientsPage = () => {
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-DZ', {
       style: 'decimal',
@@ -29,7 +33,10 @@ const ClientsPage = () => {
               Gérez vos clients d'importation et suivez leur rentabilité
             </p>
           </div>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+          <Button 
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            onClick={() => setIsAddDialogOpen(true)}
+          >
             <UserCircle className="h-4 w-4 mr-2" />
             Ajouter client
           </Button>
@@ -153,6 +160,8 @@ const ClientsPage = () => {
           </div>
         </div>
       </div>
+
+      <AddClientDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
     </DashboardLayout>
   );
 };
