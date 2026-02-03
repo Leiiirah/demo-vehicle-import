@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { suppliers } from '@/data/mockData';
 import { Building2, Star, MoreVertical, Eye, FileText } from 'lucide-react';
@@ -13,8 +14,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { AddSupplierDialog } from '@/components/suppliers/AddSupplierDialog';
 
 const SuppliersPage = () => {
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'USD') => {
     if (currency === 'USD') {
       return new Intl.NumberFormat('en-US', {
@@ -40,7 +44,10 @@ const SuppliersPage = () => {
               Gérez vos fournisseurs chinois et les soldes de paiement
             </p>
           </div>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+          <Button 
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            onClick={() => setIsAddDialogOpen(true)}
+          >
             <Building2 className="h-4 w-4 mr-2" />
             Ajouter fournisseur
           </Button>
@@ -159,6 +166,8 @@ const SuppliersPage = () => {
           ))}
         </div>
       </div>
+
+      <AddSupplierDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
     </DashboardLayout>
   );
 };
