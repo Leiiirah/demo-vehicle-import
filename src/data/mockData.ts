@@ -33,6 +33,29 @@ export interface Supplier {
   rating: number;
 }
 
+export interface Dossier {
+  id: string;
+  reference: string;
+  supplierId: string;
+  supplierName: string;
+  dateCreation: string;
+  status: 'en_cours' | 'termine' | 'annule';
+  totalVehicles: number;
+  totalConteneurs: number;
+}
+
+export interface Conteneur {
+  id: string;
+  numero: string;
+  dossierId: string;
+  dossierRef: string;
+  type: '20ft' | '40ft' | '40ft_hc';
+  status: 'en_chargement' | 'en_transit' | 'arrive' | 'dedouane';
+  dateDepart?: string;
+  dateArrivee?: string;
+  vehiculesCount: number;
+}
+
 export interface Client {
   id: string;
   name: string;

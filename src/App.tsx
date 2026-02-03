@@ -13,6 +13,10 @@ import PasseportsPage from "./pages/Passeports";
 import PasseportDetailPage from "./pages/PasseportDetail";
 import ClientsPage from "./pages/Clients";
 import ClientDetailPage from "./pages/ClientDetail";
+import DossiersPage from "./pages/Dossiers";
+import DossierDetailPage from "./pages/DossierDetail";
+import ConteneursPage from "./pages/Conteneurs";
+import ConteneurDetailPage from "./pages/ConteneurDetail";
 import ReportsPage from "./pages/Reports";
 import SalesPage from "./pages/Sales";
 import UsersPage from "./pages/Users";
@@ -38,6 +42,10 @@ const App = () => (
           <Route path="/passeports/:id" element={<PasseportDetailPage />} />
           <Route path="/clients" element={<ClientsPage />} />
           <Route path="/clients/:id" element={<ClientDetailPage />} />
+          <Route path="/dossiers" element={<DossiersPage />} />
+          <Route path="/dossiers/:id" element={<DossierDetailPage />} />
+          <Route path="/conteneurs" element={<ConteneursPage />} />
+          <Route path="/conteneurs/:id" element={<ConteneurDetailPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/sales" element={<SalesPage />} />
           <Route path="/users" element={<UsersPage />} />

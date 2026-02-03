@@ -16,6 +16,8 @@ import {
   BookUser,
   ShoppingCart,
   Package,
+  FolderOpen,
+  Container,
   Receipt,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -25,6 +27,8 @@ const importItems = [
   { name: 'Fournisseurs', href: '/suppliers', icon: Building2 },
   { name: 'Passeports', href: '/passeports', icon: BookUser },
   { name: 'Clients', href: '/clients', icon: ShoppingCart },
+  { name: 'Dossiers', href: '/dossiers', icon: FolderOpen },
+  { name: 'Conteneurs', href: '/conteneurs', icon: Container },
   { name: 'Véhicules', href: '/vehicles', icon: Car },
 ];
 
