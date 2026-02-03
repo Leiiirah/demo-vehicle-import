@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { suppliers } from '@/data/mockData';
 import { Building2, Star, MoreVertical, Eye, FileText } from 'lucide-react';
@@ -18,6 +19,7 @@ import { AddSupplierDialog } from '@/components/suppliers/AddSupplierDialog';
 
 const SuppliersPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'USD') => {
     if (currency === 'USD') {
@@ -78,7 +80,8 @@ const SuppliersPage = () => {
           {suppliers.map((supplier) => (
             <div
               key={supplier.id}
-              className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md transition-shadow"
+              onClick={() => navigate(`/suppliers/${supplier.id}`)}
+              className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -91,7 +94,7 @@ const SuppliersPage = () => {
                   </div>
                 </div>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                     <Button variant="ghost" size="icon">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
