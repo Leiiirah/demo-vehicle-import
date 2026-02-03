@@ -9,6 +9,7 @@ import CostCalculatorPage from "./pages/Calculator";
 import SuppliersPage from "./pages/Suppliers";
 import SupplierDetailPage from "./pages/SupplierDetail";
 import ClientsPage from "./pages/Clients";
+import ClientDetailPage from "./pages/ClientDetail";
 import ReportsPage from "./pages/Reports";
 import SalesPage from "./pages/Sales";
 import UsersPage from "./pages/Users";
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/suppliers" element={<SuppliersPage />} />
           <Route path="/suppliers/:id" element={<SupplierDetailPage />} />
           <Route path="/clients" element={<ClientsPage />} />
+          <Route path="/clients/:id" element={<ClientDetailPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/sales" element={<SalesPage />} />
           <Route path="/users" element={<UsersPage />} />
