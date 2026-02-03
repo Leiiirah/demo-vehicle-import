@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, User, CreditCard, FileText, Star } from 'lucide-react';
+import { Building2, User, CreditCard, FileText } from 'lucide-react';
 
 interface AddSupplierDialogProps {
   open: boolean;
@@ -26,7 +25,6 @@ interface AddSupplierDialogProps {
 }
 
 export const AddSupplierDialog = ({ open, onOpenChange }: AddSupplierDialogProps) => {
-  const [rating, setRating] = useState(0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -108,48 +106,22 @@ export const AddSupplierDialog = ({ open, onOpenChange }: AddSupplierDialogProps
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="specialization">Spécialisation</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Type de véhicules" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sedan">Berlines</SelectItem>
-                    <SelectItem value="suv">SUV / Crossovers</SelectItem>
-                    <SelectItem value="truck">Camions / Utilitaires</SelectItem>
-                    <SelectItem value="bus">Bus / Minibus</SelectItem>
-                    <SelectItem value="electric">Véhicules électriques</SelectItem>
-                    <SelectItem value="parts">Pièces détachées</SelectItem>
-                    <SelectItem value="mixed">Mixte</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Évaluation initiale</Label>
-                <div className="flex items-center gap-1 pt-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setRating(i + 1)}
-                      className="focus:outline-none"
-                    >
-                      <Star
-                        className={`h-6 w-6 transition-colors ${
-                          i < rating
-                            ? 'text-warning fill-warning'
-                            : 'text-muted hover:text-warning/50'
-                        }`}
-                      />
-                    </button>
-                  ))}
-                  <span className="text-sm text-muted-foreground ml-2">
-                    {rating > 0 ? `${rating}/5` : 'Non évalué'}
-                  </span>
-                </div>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="specialization">Spécialisation</Label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Type de véhicules" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sedan">Berlines</SelectItem>
+                  <SelectItem value="suv">SUV / Crossovers</SelectItem>
+                  <SelectItem value="truck">Camions / Utilitaires</SelectItem>
+                  <SelectItem value="bus">Bus / Minibus</SelectItem>
+                  <SelectItem value="electric">Véhicules électriques</SelectItem>
+                  <SelectItem value="parts">Pièces détachées</SelectItem>
+                  <SelectItem value="mixed">Mixte</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </TabsContent>
 
