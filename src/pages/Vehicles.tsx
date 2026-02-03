@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { vehicles } from '@/data/mockData';
 import {
@@ -27,8 +28,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import AddVehicleDialog from '@/components/vehicles/AddVehicleDialog';
 
 const VehiclesPage = () => {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -89,10 +92,12 @@ const VehiclesPage = () => {
               Gérez vos importations et suivez leur statut
             </p>
           </div>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <Car className="h-4 w-4 mr-2" />
-            Ajouter un véhicule
-          </Button>
+          <AddVehicleDialog>
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Car className="h-4 w-4 mr-2" />
+              Ajouter un véhicule
+            </Button>
+          </AddVehicleDialog>
         </div>
 
         {/* Filtres */}
@@ -158,7 +163,11 @@ const VehiclesPage = () => {
                 </thead>
                 <tbody>
                   {filteredVehicles.map((vehicle) => (
-                    <tr key={vehicle.id}>
+                    <tr 
+                      key={vehicle.id} 
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => navigate(`/vehicles/${vehicle.id}`)}
+                    >
                       <td>
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
@@ -226,7 +235,8 @@ const VehiclesPage = () => {
             {filteredVehicles.map((vehicle) => (
               <div
                 key={vehicle.id}
-                className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow"
+                className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => navigate(`/vehicles/${vehicle.id}`)}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
