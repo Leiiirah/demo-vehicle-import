@@ -5,14 +5,14 @@ import {
   Car,
   Users,
   Building2,
-  UserCircle,
   Calculator,
   TrendingUp,
   FileText,
   Settings,
   ChevronLeft,
   ChevronRight,
-  Ship,
+  Wallet,
+  ShoppingCart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -21,7 +21,8 @@ const navigation = [
   { name: 'Véhicules', href: '/vehicles', icon: Car },
   { name: 'Calculateur', href: '/calculator', icon: Calculator },
   { name: 'Fournisseurs', href: '/suppliers', icon: Building2 },
-  { name: 'Clients', href: '/clients', icon: UserCircle },
+  { name: 'Clients Import', href: '/clients-import', icon: Wallet },
+  { name: 'Clients Vente', href: '/clients-vente', icon: ShoppingCart },
   { name: 'Ventes & Marges', href: '/sales', icon: TrendingUp },
   { name: 'Rapports', href: '/reports', icon: FileText },
 ];
