@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { vehicles, suppliers } from '@/data/mockData';
@@ -5,16 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   ArrowLeft,
   Car,
-  Truck,
   Package,
   CheckCircle2,
   DollarSign,
   FileText,
   Calendar,
-  MapPin,
   User,
   Building2,
   Edit,
@@ -22,8 +23,26 @@ import {
   Ship,
   Anchor,
   BadgeCheck,
+  Plus,
+  Trash2,
+  CreditCard,
+  TrendingUp,
+  Truck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+interface Versement {
+  id: string;
+  date: string;
+  montantUSD: number;
+  tauxChange: number;
+}
+
+interface ChargeDivers {
+  id: string;
+  libelle: string;
+  montant: number;
+}
 
 const VehicleDetailPage = () => {
   const { id } = useParams();
@@ -41,6 +60,24 @@ const VehicleDetailPage = () => {
     investedAmount: 5000000,
   };
 
+  // État pour les coûts USD
+  const [prixVehicule, setPrixVehicule] = useState<number>(vehicle.purchasePrice);
+  const [prixTransport, setPrixTransport] = useState<number>(vehicle.transportCost);
+
+  // État pour les charges DZD
+  const [chargesTransit, setChargesTransit] = useState<number>(vehicle.localFees || 850000);
+  const [chargesDivers, setChargesDivers] = useState<ChargeDivers[]>([
+    { id: 'cd-1', libelle: 'Mise en conformité', montant: 45000 },
+    { id: 'cd-2', libelle: 'Frais transitaire', montant: 25000 },
+  ]);
+
+  // État pour les versements (mock data)
+  const [versements, setVersements] = useState<Versement[]>([
+    { id: 'v-1', date: '2026-01-15', montantUSD: 15000, tauxChange: 134.00 },
+    { id: 'v-2', date: '2026-01-22', montantUSD: 10000, tauxChange: 135.50 },
+    { id: 'v-3', date: '2026-01-28', montantUSD: 5000, tauxChange: 136.20 },
+  ]);
+
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
     if (currency === 'USD') {
       return new Intl.NumberFormat('en-US', {
@@ -53,6 +90,67 @@ const VehicleDetailPage = () => {
       style: 'decimal',
       minimumFractionDigits: 0,
     }).format(amount) + ' DZD';
+  };
+
+  // Calculs
+  const totalUSD = prixVehicule + prixTransport;
+  const totalVerse = versements.reduce((sum, v) => sum + v.montantUSD, 0);
+  const resteAVerser = totalUSD - totalVerse;
+
+  // Taux moyen pondéré
+  const tauxMoyenPondere = versements.length > 0
+    ? versements.reduce((sum, v) => sum + v.montantUSD * v.tauxChange, 0) / 
+      versements.reduce((sum, v) => sum + v.montantUSD, 0) || 0
+    : 0;
+
+  // Total USD converti en DZD via taux moyen
+  const totalUSDenDZD = totalUSD * tauxMoyenPondere;
+
+  // Total charges diverses
+  const totalChargesDivers = chargesDivers.reduce((sum, c) => sum + c.montant, 0);
+
+  // Prix de revient
+  const prixRevient = totalUSDenDZD + chargesTransit + totalChargesDivers;
+
+  // Calcul de la répartition des bénéfices
+  const benefice = vehicle.sellingPrice - prixRevient;
+  const clientShare = (benefice * clientImport.profitPercentage) / 100;
+  const companyShare = benefice - clientShare;
+
+  // Gestion des versements
+  const addVersement = () => {
+    setVersements([
+      ...versements,
+      { id: `v-${Date.now()}`, date: '', montantUSD: 0, tauxChange: 0 },
+    ]);
+  };
+
+  const updateVersement = (id: string, field: keyof Versement, value: string | number) => {
+    setVersements(
+      versements.map((v) => (v.id === id ? { ...v, [field]: value } : v))
+    );
+  };
+
+  const removeVersement = (id: string) => {
+    setVersements(versements.filter((v) => v.id !== id));
+  };
+
+  // Gestion des charges diverses
+  const addChargeDivers = () => {
+    setChargesDivers([
+      ...chargesDivers,
+      { id: `cd-${Date.now()}`, libelle: '', montant: 0 },
+    ]);
+  };
+
+  const updateChargeDivers = (id: string, field: keyof ChargeDivers, value: string | number) => {
+    setChargesDivers(
+      chargesDivers.map((c) => (c.id === id ? { ...c, [field]: value } : c))
+    );
+  };
+
+  const removeChargeDivers = (id: string) => {
+    setChargesDivers(chargesDivers.filter((c) => c.id !== id));
   };
 
   const getStatusInfo = (status: string) => {
@@ -99,10 +197,6 @@ const VehicleDetailPage = () => {
       icon: BadgeCheck,
     },
   ];
-
-  // Calcul de la répartition des bénéfices
-  const clientShare = (vehicle.profit * clientImport.profitPercentage) / 100;
-  const companyShare = vehicle.profit - clientShare;
 
   return (
     <DashboardLayout>
@@ -174,8 +268,8 @@ const VehicleDetailPage = () => {
                   <DollarSign className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Coût total</p>
-                  <p className="text-xl font-semibold">{formatCurrency(vehicle.totalCost)}</p>
+                  <p className="text-sm text-muted-foreground">Prix de revient</p>
+                  <p className="text-xl font-semibold">{formatCurrency(prixRevient)}</p>
                 </div>
               </div>
             </CardContent>
@@ -201,7 +295,9 @@ const VehicleDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Bénéfice</p>
-                  <p className="text-xl font-semibold text-success">{formatCurrency(vehicle.profit)}</p>
+                  <p className={cn('text-xl font-semibold', benefice > 0 ? 'text-success' : 'text-destructive')}>
+                    {formatCurrency(benefice)}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -210,11 +306,11 @@ const VehicleDetailPage = () => {
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Car className="h-5 w-5 text-primary" />
+                  <TrendingUp className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Marge</p>
-                  <p className="text-xl font-semibold">{vehicle.margin}%</p>
+                  <p className="text-sm text-muted-foreground">Taux moyen</p>
+                  <p className="text-xl font-semibold">{tauxMoyenPondere.toFixed(2)} DZD/$</p>
                 </div>
               </div>
             </CardContent>
@@ -222,14 +318,274 @@ const VehicleDetailPage = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="details" className="space-y-4">
+        <Tabs defaultValue="costs" className="space-y-4">
           <TabsList>
+            <TabsTrigger value="costs">Coûts & Versements</TabsTrigger>
             <TabsTrigger value="details">Détails</TabsTrigger>
-            <TabsTrigger value="costs">Coûts détaillés</TabsTrigger>
             <TabsTrigger value="profit">Répartition bénéfices</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="history">Historique</TabsTrigger>
           </TabsList>
+
+          {/* Coûts & Versements */}
+          <TabsContent value="costs" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Colonne gauche : Coûts USD */}
+              <div className="space-y-4">
+                {/* Prix véhicule USD */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Car className="h-4 w-4" />
+                      Prix du véhicule (USD)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <Label>Prix FOB</Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                        <Input
+                          type="number"
+                          className="pl-7"
+                          value={prixVehicule}
+                          onChange={(e) => setPrixVehicule(Number(e.target.value))}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Prix transport USD */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Truck className="h-4 w-4" />
+                      Prix du transport (USD)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <Label>Fret + Assurance</Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                        <Input
+                          type="number"
+                          className="pl-7"
+                          value={prixTransport}
+                          onChange={(e) => setPrixTransport(Number(e.target.value))}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Charges Transit DZD */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Charges Transit (DZD)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Total incluant : Douane, Transit, Quittance, Port
+                    </p>
+                    <Input
+                      type="number"
+                      value={chargesTransit}
+                      onChange={(e) => setChargesTransit(Number(e.target.value))}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Charges Divers DZD */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">Charges Divers (DZD)</CardTitle>
+                      <Button variant="outline" size="sm" onClick={addChargeDivers}>
+                        <Plus className="h-4 w-4 mr-1" />
+                        Ajouter
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {chargesDivers.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Aucune charge diverse
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {chargesDivers.map((c) => (
+                          <div key={c.id} className="flex items-center gap-2">
+                            <Input
+                              placeholder="Libellé"
+                              className="flex-1"
+                              value={c.libelle}
+                              onChange={(e) => updateChargeDivers(c.id, 'libelle', e.target.value)}
+                            />
+                            <Input
+                              type="number"
+                              placeholder="Montant"
+                              className="w-32"
+                              value={c.montant || ''}
+                              onChange={(e) => updateChargeDivers(c.id, 'montant', Number(e.target.value))}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeChargeDivers(c.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        ))}
+                        <div className="pt-2 border-t border-border flex justify-between text-sm">
+                          <span className="text-muted-foreground">Total</span>
+                          <span className="font-medium">{formatCurrency(totalChargesDivers)}</span>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Colonne droite : Versements */}
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <CreditCard className="h-4 w-4" />
+                        Versements USD
+                      </CardTitle>
+                      <Button variant="outline" size="sm" onClick={addVersement}>
+                        <Plus className="h-4 w-4 mr-1" />
+                        Ajouter
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Récap */}
+                    <div className="p-3 bg-muted/50 rounded-lg mb-4 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Total USD à payer</span>
+                        <span className="font-semibold">{formatCurrency(totalUSD, 'USD')}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Total versé</span>
+                        <span className="font-medium">{formatCurrency(totalVerse, 'USD')}</span>
+                      </div>
+                      <div className="flex justify-between text-sm pt-2 border-t border-border">
+                        <span className="text-muted-foreground">Reste à verser</span>
+                        <span className={cn('font-semibold', resteAVerser > 0 ? 'text-warning' : 'text-success')}>
+                          {formatCurrency(resteAVerser, 'USD')}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Liste des versements */}
+                    {versements.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Aucun versement enregistré
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {versements.map((v, index) => (
+                          <div key={v.id} className="p-3 bg-muted/30 rounded-lg border border-border">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium">Versement {index + 1}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeVersement(v.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              <div className="space-y-1">
+                                <Label className="text-xs">Date</Label>
+                                <Input
+                                  type="date"
+                                  value={v.date}
+                                  onChange={(e) => updateVersement(v.id, 'date', e.target.value)}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs">Montant USD</Label>
+                                <div className="relative">
+                                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
+                                  <Input
+                                    type="number"
+                                    className="pl-5"
+                                    value={v.montantUSD || ''}
+                                    onChange={(e) => updateVersement(v.id, 'montantUSD', Number(e.target.value))}
+                                  />
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs">Taux de change</Label>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={v.tauxChange || ''}
+                                  onChange={(e) => updateVersement(v.id, 'tauxChange', Number(e.target.value))}
+                                />
+                              </div>
+                            </div>
+                            {v.montantUSD > 0 && v.tauxChange > 0 && (
+                              <div className="mt-2 text-xs text-right text-muted-foreground">
+                                = {formatCurrency(v.montantUSD * v.tauxChange)}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Taux moyen */}
+                    {versements.length > 0 && (
+                      <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium">Taux moyen pondéré</span>
+                          <span className="text-lg font-bold">{tauxMoyenPondere.toFixed(2)} DZD/$</span>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Récap prix de revient */}
+                <Card className="border-primary/30 bg-primary/5">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Prix de revient</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">
+                          Total USD ({formatCurrency(totalUSD, 'USD')} × {tauxMoyenPondere.toFixed(2)})
+                        </span>
+                        <span>{formatCurrency(totalUSDenDZD)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Charges Transit</span>
+                        <span>{formatCurrency(chargesTransit)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Charges Divers</span>
+                        <span>{formatCurrency(totalChargesDivers)}</span>
+                      </div>
+                      <div className="flex justify-between pt-3 border-t border-primary/20">
+                        <span className="font-semibold">Total prix de revient</span>
+                        <span className="text-xl font-bold">{formatCurrency(prixRevient)}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
 
           {/* Détails */}
           <TabsContent value="details" className="space-y-4">
@@ -336,51 +692,6 @@ const VehicleDetailPage = () => {
             </div>
           </TabsContent>
 
-          {/* Coûts détaillés */}
-          <TabsContent value="costs">
-            <Card>
-              <CardHeader>
-                <CardTitle>Décomposition des coûts</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <h4 className="font-medium mb-3">Prix d'achat (USD)</h4>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Prix FOB</span>
-                      <span className="font-medium">{formatCurrency(vehicle.purchasePrice, 'USD')}</span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <h4 className="font-medium mb-3">Frais de transport (USD)</h4>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Fret + Assurance</span>
-                      <span className="font-medium">{formatCurrency(vehicle.transportCost, 'USD')}</span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <h4 className="font-medium mb-3">Frais locaux (DZD)</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Douane + Port + Transit</span>
-                        <span className="font-medium">{formatCurrency(vehicle.localFees)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold">Coût total</span>
-                      <span className="text-xl font-bold">{formatCurrency(vehicle.totalCost)}</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
           {/* Répartition bénéfices */}
           <TabsContent value="profit">
             <Card>
@@ -391,7 +702,12 @@ const VehicleDetailPage = () => {
                 <div className="space-y-6">
                   <div className="p-6 bg-success/10 border border-success/20 rounded-lg text-center">
                     <p className="text-sm text-muted-foreground mb-1">Bénéfice total</p>
-                    <p className="text-3xl font-bold text-success">{formatCurrency(vehicle.profit)}</p>
+                    <p className={cn('text-3xl font-bold', benefice > 0 ? 'text-success' : 'text-destructive')}>
+                      {formatCurrency(benefice)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Prix de vente ({formatCurrency(vehicle.sellingPrice)}) - Prix de revient ({formatCurrency(prixRevient)})
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -400,7 +716,7 @@ const VehicleDetailPage = () => {
                         <User className="h-4 w-4 text-primary" />
                         <span className="font-medium">Part Client Import</span>
                       </div>
-                      <p className="text-2xl font-bold">{formatCurrency(clientShare)}</p>
+                      <p className="text-2xl font-bold">{formatCurrency(clientShare > 0 ? clientShare : 0)}</p>
                       <p className="text-sm text-muted-foreground">
                         {clientImport.profitPercentage}% - {clientImport.name}
                       </p>
@@ -410,7 +726,7 @@ const VehicleDetailPage = () => {
                         <Building2 className="h-4 w-4 text-primary" />
                         <span className="font-medium">Part Entreprise</span>
                       </div>
-                      <p className="text-2xl font-bold">{formatCurrency(companyShare)}</p>
+                      <p className="text-2xl font-bold">{formatCurrency(companyShare > 0 ? companyShare : 0)}</p>
                       <p className="text-sm text-muted-foreground">
                         {100 - clientImport.profitPercentage}% - Votre part
                       </p>
@@ -422,7 +738,7 @@ const VehicleDetailPage = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Montant dû au client import</span>
-                        <span className="font-medium text-warning">{formatCurrency(clientShare)}</span>
+                        <span className="font-medium text-warning">{formatCurrency(clientShare > 0 ? clientShare : 0)}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Déjà versé</span>
@@ -430,7 +746,7 @@ const VehicleDetailPage = () => {
                       </div>
                       <div className="flex justify-between items-center pt-2 border-t border-border">
                         <span className="font-medium">Reste à verser</span>
-                        <span className="font-medium text-destructive">{formatCurrency(clientShare)}</span>
+                        <span className="font-medium text-destructive">{formatCurrency(clientShare > 0 ? clientShare : 0)}</span>
                       </div>
                     </div>
                   </div>
@@ -497,9 +813,12 @@ const VehicleDetailPage = () => {
                 <div className="space-y-4">
                   {[
                     { date: '2026-01-28', action: 'Véhicule arrivé au port d\'Alger', type: 'status' },
+                    { date: '2026-01-28', action: 'Versement de $5,000 @ 136.20 DZD/$', type: 'payment' },
                     { date: '2026-01-25', action: 'Déclaration douanière initiée', type: 'document' },
+                    { date: '2026-01-22', action: 'Versement de $10,000 @ 135.50 DZD/$', type: 'payment' },
                     { date: '2026-01-20', action: 'Départ du port de Shanghai', type: 'status' },
                     { date: '2026-01-18', action: 'Photos du véhicule ajoutées', type: 'document' },
+                    { date: '2026-01-15', action: 'Versement de $15,000 @ 134.00 DZD/$', type: 'payment' },
                     { date: '2026-01-15', action: 'Commande passée chez ' + vehicle.supplier, type: 'status' },
                     { date: '2026-01-15', action: 'B/L et facture uploadés', type: 'document' },
                   ].map((event, index) => (
@@ -507,9 +826,10 @@ const VehicleDetailPage = () => {
                       <div className="flex flex-col items-center">
                         <div className={cn(
                           'h-3 w-3 rounded-full',
-                          event.type === 'status' ? 'bg-primary' : 'bg-muted-foreground'
+                          event.type === 'status' ? 'bg-primary' : 
+                          event.type === 'payment' ? 'bg-success' : 'bg-muted-foreground'
                         )} />
-                        {index < 5 && <div className="w-px h-full bg-border" />}
+                        {index < 8 && <div className="w-px h-full bg-border" />}
                       </div>
                       <div className="pb-4">
                         <p className="font-medium">{event.action}</p>
