@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { clients } from '@/data/mockData';
-import { UserCircle, MoreVertical, Eye, FileText, Mail, Phone } from 'lucide-react';
+import { UserCircle, MoreVertical, Eye, FileText, Mail, Phone, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +16,15 @@ import { AddClientDialog } from '@/components/clients/AddClientDialog';
 
 const ClientsPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+
+  const filteredClients = clients.filter(client => 
+    client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.phone.includes(searchQuery)
+  );
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-DZ', {
@@ -40,6 +51,17 @@ const ClientsPage = () => {
             <UserCircle className="h-4 w-4 mr-2" />
             Ajouter client
           </Button>
+        </div>
+
+        {/* Barre de recherche */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher un client (nom, entreprise, email, téléphone)..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
         </div>
 
         {/* Cartes récapitulatives */}
@@ -84,8 +106,12 @@ const ClientsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {clients.map((client) => (
-                  <tr key={client.id}>
+                {filteredClients.map((client) => (
+                  <tr 
+                    key={client.id}
+                    onClick={() => navigate(`/clients/${client.id}`)}
+                    className="cursor-pointer hover:bg-accent/50"
+                  >
                     <td>
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
@@ -136,13 +162,13 @@ const ClientsPage = () => {
                     </td>
                     <td>
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                           <Button variant="ghost" size="icon">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}`)}>
                             <Eye className="h-4 w-4 mr-2" />
                             Voir le profil
                           </DropdownMenuItem>
@@ -155,6 +181,13 @@ const ClientsPage = () => {
                     </td>
                   </tr>
                 ))}
+                {filteredClients.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="text-center py-8 text-muted-foreground">
+                      Aucun client trouvé pour "{searchQuery}"
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
