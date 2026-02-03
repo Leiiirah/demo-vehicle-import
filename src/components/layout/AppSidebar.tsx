@@ -11,7 +11,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Wallet,
+  BookUser,
   ShoppingCart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,8 +21,8 @@ const navigation = [
   { name: 'Véhicules', href: '/vehicles', icon: Car },
   { name: 'Calculateur', href: '/calculator', icon: Calculator },
   { name: 'Fournisseurs', href: '/suppliers', icon: Building2 },
-  { name: 'Clients Import', href: '/clients-import', icon: Wallet },
-  { name: 'Clients Vente', href: '/clients-vente', icon: ShoppingCart },
+  { name: 'Passeports', href: '/passeports', icon: BookUser },
+  { name: 'Clients', href: '/clients', icon: ShoppingCart },
   { name: 'Ventes & Marges', href: '/sales', icon: TrendingUp },
   { name: 'Rapports', href: '/reports', icon: FileText },
 ];
@@ -66,7 +66,7 @@ export function AppSidebar() {
       <nav className="flex-1 px-3 py-4 overflow-y-auto scrollbar-thin">
         <ul className="space-y-1">
           {navigation.map((item) => {
-            const isActive = location.pathname === item.href;
+            const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
             return (
               <li key={item.name}>
                 <NavLink
