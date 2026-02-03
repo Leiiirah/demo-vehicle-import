@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 import { AddPasseportDialog } from '@/components/clients/AddPasseportDialog';
 
 // Mock data for passeports
-const passeports = [
+const initialPasseports = [
   {
     id: 'pass-1',
     nom: 'Benali',
@@ -54,9 +54,16 @@ const passeports = [
 ];
 
 const PasseportsPage = () => {
+  const [passeports, setPasseports] = useState(initialPasseports);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+
+  const togglePaiement = (id: string) => {
+    setPasseports(prev => 
+      prev.map(p => p.id === id ? { ...p, paye: !p.paye } : p)
+    );
+  };
 
   const filteredPasseports = passeports.filter(p => 
     p.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -188,12 +195,16 @@ const PasseportsPage = () => {
                       </span>
                     </td>
                     <td>
-                      <span
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePaiement(passeport.id);
+                        }}
                         className={cn(
-                          'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium',
+                          'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium cursor-pointer transition-all hover:scale-105',
                           passeport.paye
-                            ? 'bg-success/10 text-success'
-                            : 'bg-warning/10 text-warning'
+                            ? 'bg-success/10 text-success hover:bg-success/20'
+                            : 'bg-warning/10 text-warning hover:bg-warning/20'
                         )}
                       >
                         {passeport.paye ? (
@@ -207,7 +218,7 @@ const PasseportsPage = () => {
                             Non payé
                           </>
                         )}
-                      </span>
+                      </button>
                     </td>
                     <td>
                       <DropdownMenu>
