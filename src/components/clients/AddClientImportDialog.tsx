@@ -18,9 +18,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Building2, FileText, Upload, X, File, AlertCircle } from 'lucide-react';
+import { User, Building2, FileText, Upload, X, File, AlertCircle, Percent, Wallet } from 'lucide-react';
 
-interface AddClientDialogProps {
+interface AddClientImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -31,8 +31,9 @@ interface UploadedFile {
   type: string;
 }
 
-export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) => {
+export const AddClientImportDialog = ({ open, onOpenChange }: AddClientImportDialogProps) => {
   const [clientType, setClientType] = useState<'individual' | 'company'>('individual');
+  const [profitPercentage, setProfitPercentage] = useState('');
   const [documents, setDocuments] = useState<Record<string, UploadedFile | null>>({
     passport: null,
     nationalId: null,
@@ -44,7 +45,6 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
   });
 
   const handleFileSelect = (docType: string) => {
-    // Simule la sélection d'un fichier (UI only)
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.pdf,.jpg,.jpeg,.png';
@@ -131,11 +131,11 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <User className="h-5 w-5 text-primary" />
-            Ajouter un client
+            <Wallet className="h-5 w-5 text-primary" />
+            Ajouter un client import (partenaire)
           </DialogTitle>
           <DialogDescription>
-            Enregistrez un nouveau client avec ses documents légaux pour l'import
+            Ce client investit avec vous sur l'importation et reçoit un pourcentage du bénéfice
           </DialogDescription>
         </DialogHeader>
 
@@ -145,13 +145,13 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
               <User className="h-4 w-4 mr-1 hidden sm:inline" />
               Informations
             </TabsTrigger>
+            <TabsTrigger value="financial" className="text-xs sm:text-sm">
+              <Percent className="h-4 w-4 mr-1 hidden sm:inline" />
+              Financier
+            </TabsTrigger>
             <TabsTrigger value="documents" className="text-xs sm:text-sm">
               <FileText className="h-4 w-4 mr-1 hidden sm:inline" />
               Documents
-            </TabsTrigger>
-            <TabsTrigger value="preferences" className="text-xs sm:text-sm">
-              <Building2 className="h-4 w-4 mr-1 hidden sm:inline" />
-              Préférences
             </TabsTrigger>
           </TabsList>
 
@@ -261,6 +261,107 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
             </div>
           </TabsContent>
 
+          {/* Onglet Financier */}
+          <TabsContent value="financial" className="space-y-4 mt-4">
+            <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+              <h3 className="font-medium text-primary flex items-center gap-2">
+                <Percent className="h-4 w-4" />
+                Répartition des bénéfices
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Définissez le pourcentage du bénéfice que ce partenaire recevra sur chaque vente
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="profitPercentage">Pourcentage du bénéfice (%) *</Label>
+              <div className="relative">
+                <Input 
+                  id="profitPercentage" 
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={profitPercentage}
+                  onChange={(e) => setProfitPercentage(e.target.value)}
+                  placeholder="Ex: 30"
+                  className="pr-12"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  %
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Ce pourcentage sera appliqué sur le bénéfice net de chaque véhicule vendu
+              </p>
+            </div>
+
+            {profitPercentage && (
+              <div className="p-4 bg-accent/50 rounded-lg space-y-3">
+                <h4 className="font-medium text-sm">Exemple de répartition</h4>
+                <p className="text-xs text-muted-foreground">
+                  Pour un bénéfice de 500 000 DZD :
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 bg-background rounded-lg">
+                    <p className="text-xs text-muted-foreground">Part du partenaire</p>
+                    <p className="text-lg font-bold text-primary">
+                      {(500000 * Number(profitPercentage) / 100).toLocaleString('fr-DZ')} DZD
+                    </p>
+                    <p className="text-xs text-muted-foreground">{profitPercentage}%</p>
+                  </div>
+                  <div className="p-3 bg-background rounded-lg">
+                    <p className="text-xs text-muted-foreground">Votre part</p>
+                    <p className="text-lg font-bold text-success">
+                      {(500000 * (100 - Number(profitPercentage)) / 100).toLocaleString('fr-DZ')} DZD
+                    </p>
+                    <p className="text-xs text-muted-foreground">{100 - Number(profitPercentage)}%</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="investmentCapacity">Capacité d'investissement (DZD)</Label>
+              <Input 
+                id="investmentCapacity" 
+                type="number"
+                placeholder="Ex: 10 000 000"
+              />
+              <p className="text-xs text-muted-foreground">
+                Montant maximum que le partenaire peut investir par véhicule
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="paymentTerms">Conditions de paiement</Label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="immediate">Paiement immédiat à la vente</SelectItem>
+                  <SelectItem value="15days">Sous 15 jours après vente</SelectItem>
+                  <SelectItem value="30days">Sous 30 jours après vente</SelectItem>
+                  <SelectItem value="custom">Personnalisé</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bankDetails">RIB / Coordonnées bancaires</Label>
+              <Input id="bankDetails" placeholder="Numéro de compte pour les virements" />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="financialNotes">Notes financières</Label>
+              <Textarea 
+                id="financialNotes" 
+                placeholder="Conditions particulières, accords spéciaux..."
+                rows={2}
+              />
+            </div>
+          </TabsContent>
+
           {/* Onglet Documents */}
           <TabsContent value="documents" className="space-y-4 mt-4">
             <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg flex items-start gap-2">
@@ -338,94 +439,6 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
                 />
               )}
             </div>
-
-            <div className="space-y-4">
-              <h3 className="font-medium text-sm text-foreground border-b border-border pb-2">
-                Autres documents
-              </h3>
-
-              <div className="space-y-2">
-                <Label htmlFor="otherDocs">Documents supplémentaires</Label>
-                <button
-                  type="button"
-                  onClick={() => handleFileSelect('other')}
-                  className="w-full border-2 border-dashed border-border rounded-lg p-4 hover:border-primary/50 hover:bg-accent/30 transition-colors flex flex-col items-center gap-2"
-                >
-                  <Upload className="h-6 w-6 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    Ajouter d'autres documents
-                  </span>
-                </button>
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Onglet Préférences */}
-          <TabsContent value="preferences" className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label htmlFor="preferredBrands">Marques préférées</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {['Toyota', 'Mercedes', 'BMW', 'Audi', 'Porsche', 'Hyundai'].map((brand) => (
-                  <label 
-                    key={brand}
-                    className="flex items-center gap-2 p-2 border border-border rounded-md cursor-pointer hover:bg-accent/50"
-                  >
-                    <input type="checkbox" className="rounded" />
-                    <span className="text-sm">{brand}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="vehicleType">Types de véhicules recherchés</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {['Berline', 'SUV', 'Pick-up', '4x4', 'Utilitaire', 'Luxe'].map((type) => (
-                  <label 
-                    key={type}
-                    className="flex items-center gap-2 p-2 border border-border rounded-md cursor-pointer hover:bg-accent/50"
-                  >
-                    <input type="checkbox" className="rounded" />
-                    <span className="text-sm">{type}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="budgetMin">Budget minimum (DZD)</Label>
-                <Input id="budgetMin" type="number" placeholder="5 000 000" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="budgetMax">Budget maximum (DZD)</Label>
-                <Input id="budgetMax" type="number" placeholder="15 000 000" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="paymentMethod">Mode de paiement préféré</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">Espèces</SelectItem>
-                  <SelectItem value="bank_transfer">Virement bancaire</SelectItem>
-                  <SelectItem value="check">Chèque</SelectItem>
-                  <SelectItem value="installments">Paiement échelonné</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes / Remarques</Label>
-              <Textarea 
-                id="notes" 
-                placeholder="Informations supplémentaires sur le client..."
-                rows={3}
-              />
-            </div>
           </TabsContent>
         </Tabs>
 
@@ -434,7 +447,7 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
             Annuler
           </Button>
           <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-            Enregistrer le client
+            Enregistrer le partenaire
           </Button>
         </div>
       </DialogContent>
