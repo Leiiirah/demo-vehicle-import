@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { suppliers } from '@/data/mockData';
-import { Building2, Star, MoreVertical, Eye, FileText } from 'lucide-react';
+import { Building2, MoreVertical, Eye, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -112,22 +112,7 @@ const SuppliersPage = () => {
                 </DropdownMenu>
               </div>
 
-              {/* Note */}
-              <div className="flex items-center gap-1 mb-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-4 w-4 ${
-                      i < Math.floor(supplier.rating)
-                        ? 'text-warning fill-warning'
-                        : 'text-muted'
-                    }`}
-                  />
-                ))}
-                <span className="text-sm text-muted-foreground ml-1">
-                  {supplier.rating}
-                </span>
-              </div>
+              {/* Résumé financier */}
 
               {/* Résumé financier */}
               <div className="space-y-3">

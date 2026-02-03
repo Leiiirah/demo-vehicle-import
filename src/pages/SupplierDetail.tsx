@@ -3,7 +3,6 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { suppliers, vehicles } from '@/data/mockData';
 import { 
   Building2, 
-  Star, 
   ArrowLeft, 
   Phone, 
   Mail, 
@@ -118,21 +117,6 @@ const SupplierDetailPage = () => {
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <MapPin className="h-4 w-4" />
                   <span>{supplier.location}</span>
-                </div>
-                <div className="flex items-center gap-1 mt-1">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 ${
-                        i < Math.floor(supplier.rating)
-                          ? 'text-warning fill-warning'
-                          : 'text-muted'
-                      }`}
-                    />
-                  ))}
-                  <span className="text-sm text-muted-foreground ml-1">
-                    {supplier.rating}
-                  </span>
                 </div>
               </div>
             </div>
