@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Plus, Search, FolderOpen, Building2, Container, Car } from 'lucide-react';
+import { AddDossierDialog } from '@/components/dossiers/AddDossierDialog';
 
 // Mock data pour les dossiers
 const mockDossiers = [
@@ -59,6 +60,7 @@ export default function DossiersPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [dossiers] = useState(mockDossiers);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   const filteredDossiers = dossiers.filter(
     (dossier) =>
@@ -75,11 +77,13 @@ export default function DossiersPage() {
             <h1 className="text-3xl font-bold tracking-tight">Dossiers</h1>
             <p className="text-muted-foreground">Gérez vos commandes d'importation</p>
           </div>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => setAddDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Nouveau Dossier
           </Button>
         </div>
+
+        <AddDossierDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
 
         {/* KPI Cards */}
         <div className="grid gap-4 md:grid-cols-3">
