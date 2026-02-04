@@ -65,8 +65,9 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+    const dto = updateUserDto as any;
+    if (dto.password) {
+      dto.password = await bcrypt.hash(dto.password, 10);
     }
 
     Object.assign(user, updateUserDto);
