@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { TypeOrmExceptionFilter } from '../src/filters/typeorm-exception.filter';
 import { nonExistingUuid } from './testUtils';
 
 describe('VehiclesController (e2e)', () => {
@@ -20,6 +21,7 @@ describe('VehiclesController (e2e)', () => {
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api');
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalFilters(new TypeOrmExceptionFilter());
     await app.init();
 
     const loginRes = await request(app.getHttpServer())
