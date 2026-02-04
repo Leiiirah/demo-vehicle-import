@@ -26,10 +26,10 @@ import { cn } from '@/lib/utils';
 const importItems = [
   { name: 'Fournisseurs', href: '/suppliers', icon: Building2 },
   { name: 'Passeports', href: '/passeports', icon: BookUser },
-  { name: 'Clients', href: '/clients', icon: ShoppingCart },
   { name: 'Dossiers', href: '/dossiers', icon: FolderOpen },
   { name: 'Conteneurs', href: '/conteneurs', icon: Container },
   { name: 'Véhicules', href: '/vehicles', icon: Car },
+  { name: 'Clients', href: '/clients', icon: ShoppingCart },
 ];
 
 const comptabiliteItems = [
