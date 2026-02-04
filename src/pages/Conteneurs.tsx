@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Plus, Search, Container, FolderOpen, Ship, Anchor } from 'lucide-react';
+import { AddConteneurDialog } from '@/components/conteneurs/AddConteneurDialog';
 
 // Mock data pour les conteneurs
 const mockConteneurs = [
@@ -91,6 +92,7 @@ export default function ConteneursPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [conteneurs] = useState(mockConteneurs);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   const filteredConteneurs = conteneurs.filter(
     (conteneur) =>
@@ -110,11 +112,13 @@ export default function ConteneursPage() {
             <h1 className="text-3xl font-bold tracking-tight">Conteneurs</h1>
             <p className="text-muted-foreground">Suivez vos conteneurs en temps réel</p>
           </div>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => setAddDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Nouveau Conteneur
           </Button>
         </div>
+
+        <AddConteneurDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
 
         {/* KPI Cards */}
         <div className="grid gap-4 md:grid-cols-4">
