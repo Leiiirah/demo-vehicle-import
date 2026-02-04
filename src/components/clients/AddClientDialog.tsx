@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -19,8 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ShoppingCart, Percent, UserPlus, Users } from 'lucide-react';
-import { clients } from '@/data/mockData';
+import { ShoppingCart, Percent, UserPlus, Users, Loader2 } from 'lucide-react';
+import { api, type CreateClientData } from '@/services/api';
+import { toast } from '@/hooks/use-toast';
 
 interface AddClientDialogProps {
   open: boolean;
@@ -30,22 +32,90 @@ interface AddClientDialogProps {
 export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) => {
   const [clientType, setClientType] = useState<'new' | 'existing'>('new');
   const [selectedClientId, setSelectedClientId] = useState('');
+  const [nom, setNom] = useState('');
+  const [prenom, setPrenom] = useState('');
+  const [telephone, setTelephone] = useState('');
+  const [adresse, setAdresse] = useState('');
   const [pourcentage, setPourcentage] = useState('5');
   const [prixVente, setPrixVente] = useState('');
   const [coutRevient, setCoutRevient] = useState('');
   const [paye, setPaye] = useState(false);
 
+  const queryClient = useQueryClient();
+
+  // Charger les clients depuis l'API
+  const { data: clients = [] } = useQuery({
+    queryKey: ['clients'],
+    queryFn: () => api.getClients(),
+  });
+
   const benefice = (Number(prixVente) || 0) - (Number(coutRevient) || 0);
   const dette = benefice > 0 ? (benefice * Number(pourcentage)) / 100 : 0;
 
+  const createMutation = useMutation({
+    mutationFn: (data: CreateClientData) => api.createClient(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      toast({ title: 'Succès', description: 'Client créé avec succès' });
+      onOpenChange(false);
+      resetForm();
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateClientData> }) => api.updateClient(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      toast({ title: 'Succès', description: 'Client mis à jour avec succès' });
+      onOpenChange(false);
+      resetForm();
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    },
+  });
+
   const handleSubmit = () => {
-    // TODO: Enregistrer le client
-    onOpenChange(false);
+    if (clientType === 'new') {
+      if (!nom || !prenom || !telephone) return;
+      createMutation.mutate({
+        nom,
+        prenom,
+        telephone,
+        adresse: adresse || undefined,
+        pourcentageBenefice: Number(pourcentage),
+        prixVente: Number(prixVente) || 0,
+        coutRevient: Number(coutRevient) || 0,
+        detteBenefice: dette,
+        paye,
+      });
+    } else {
+      if (!selectedClientId) return;
+      updateMutation.mutate({
+        id: selectedClientId,
+        data: {
+          pourcentageBenefice: Number(pourcentage),
+          prixVente: Number(prixVente) || 0,
+          coutRevient: Number(coutRevient) || 0,
+          detteBenefice: dette,
+          paye,
+        },
+      });
+    }
   };
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   const resetForm = () => {
     setClientType('new');
     setSelectedClientId('');
+    setNom('');
+    setPrenom('');
+    setTelephone('');
+    setAdresse('');
     setPourcentage('5');
     setPrixVente('');
     setCoutRevient('');
@@ -119,27 +189,29 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="nom">Nom *</Label>
-                  <Input id="nom" placeholder="Ex: Kaci" />
+                  <Input id="nom" placeholder="Ex: Kaci" value={nom} onChange={(e) => setNom(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="prenom">Prénom *</Label>
-                  <Input id="prenom" placeholder="Ex: Mohamed" />
+                  <Input id="prenom" placeholder="Ex: Mohamed" value={prenom} onChange={(e) => setPrenom(e.target.value)} />
                 </div>
               </div>
 
               {/* Téléphone */}
               <div className="space-y-2">
                 <Label htmlFor="telephone">Téléphone *</Label>
-                <Input id="telephone" placeholder="+213 XXX XXX XXX" />
+                <Input id="telephone" placeholder="+213 XXX XXX XXX" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
               </div>
 
               {/* Adresse */}
               <div className="space-y-2">
-                <Label htmlFor="adresse">Adresse *</Label>
+                <Label htmlFor="adresse">Adresse</Label>
                 <Textarea 
                   id="adresse" 
                   placeholder="Adresse complète"
                   rows={2}
+                  value={adresse}
+                  onChange={(e) => setAdresse(e.target.value)}
                 />
               </div>
             </>
@@ -157,8 +229,8 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
                   {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       <div className="flex flex-col">
-                        <span className="font-medium">{client.name}</span>
-                        <span className="text-xs text-muted-foreground">{client.phone}</span>
+                        <span className="font-medium">{client.nom} {client.prenom}</span>
+                        <span className="text-xs text-muted-foreground">{client.telephone}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -258,7 +330,9 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
           <Button 
             className="bg-success text-success-foreground hover:bg-success/90"
             onClick={handleSubmit}
+            disabled={isPending || (clientType === 'new' ? (!nom || !prenom || !telephone) : !selectedClientId)}
           >
+            {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Enregistrer le client
           </Button>
         </div>
