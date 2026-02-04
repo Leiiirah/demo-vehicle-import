@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { suppliers, vehicles } from '@/data/mockData';
+import { useSupplier, useVehicles } from '@/hooks/useApi';
 import { 
   Building2, 
   ArrowLeft, 
@@ -12,7 +13,8 @@ import {
   Car,
   FileText,
   Edit,
-  MessageCircle
+  MessageCircle,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,13 +28,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EditSupplierDialog } from '@/components/suppliers/EditSupplierDialog';
 
 const SupplierDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   
-  const supplier = suppliers.find(s => s.id === id);
-  const supplierVehicles = vehicles.filter(v => v.supplier === supplier?.name);
+  const { data: supplier, isLoading, error } = useSupplier(id || '');
+  const { data: vehicles } = useVehicles();
+  
+  const supplierVehicles = (vehicles || []).filter(v => v.supplierId === id);
 
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'USD') => {
     if (currency === 'USD') {
@@ -68,10 +75,25 @@ const SupplierDetailPage = () => {
     );
   };
 
-  if (!supplier) {
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <Skeleton className="h-16 w-full" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24" />)}
+          </div>
+          <Skeleton className="h-96" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !supplier) {
     return (
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+          <AlertCircle className="h-12 w-12 text-destructive" />
           <p className="text-muted-foreground">Fournisseur non trouvé</p>
           <Button onClick={() => navigate('/suppliers')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -81,19 +103,6 @@ const SupplierDetailPage = () => {
       </DashboardLayout>
     );
   }
-
-  // Mock additional data
-  const supplierDetails = {
-    phone: '+86 20 8888 9999',
-    email: 'contact@' + supplier.name.toLowerCase().replace(/\s/g, '') + '.cn',
-    wechat: 'wx_' + supplier.id.toLowerCase(),
-    address: '123 Auto District, ' + supplier.location,
-    bankName: 'Bank of China',
-    swiftCode: 'BKCHCNBJ',
-    accountNumber: '****' + Math.random().toString().slice(2, 6),
-    paymentTerms: '30% avance / 70% avant expédition',
-    incoterm: 'FOB',
-  };
 
   return (
     <DashboardLayout>
@@ -126,7 +135,10 @@ const SupplierDetailPage = () => {
               <MessageCircle className="h-4 w-4 mr-2" />
               Contacter
             </Button>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button 
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={() => setEditDialogOpen(true)}
+            >
               <Edit className="h-4 w-4 mr-2" />
               Modifier
             </Button>
@@ -143,7 +155,7 @@ const SupplierDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Véhicules fournis</p>
-                  <p className="text-2xl font-bold">{supplier.vehiclesSupplied}</p>
+                  <p className="text-2xl font-bold">{supplier.vehiclesSupplied || supplierVehicles.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -156,7 +168,7 @@ const SupplierDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total payé</p>
-                  <p className="text-2xl font-bold text-success">{formatCurrency(supplier.totalPaid)}</p>
+                  <p className="text-2xl font-bold text-success">{formatCurrency(supplier.totalPaid || 0)}</p>
                 </div>
               </div>
             </CardContent>
@@ -169,7 +181,7 @@ const SupplierDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Solde crédit</p>
-                  <p className="text-2xl font-bold text-primary">{formatCurrency(supplier.creditBalance)}</p>
+                  <p className="text-2xl font-bold text-primary">{formatCurrency(supplier.creditBalance || 0)}</p>
                 </div>
               </div>
             </CardContent>
@@ -182,7 +194,7 @@ const SupplierDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Dette restante</p>
-                  <p className="text-2xl font-bold text-danger">{formatCurrency(supplier.remainingDebt)}</p>
+                  <p className="text-2xl font-bold text-danger">{formatCurrency(supplier.remainingDebt || 0)}</p>
                 </div>
               </div>
             </CardContent>
@@ -190,89 +202,12 @@ const SupplierDetailPage = () => {
         </div>
 
         {/* Onglets */}
-        <Tabs defaultValue="info" className="space-y-4">
+        <Tabs defaultValue="vehicles" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="info">Informations</TabsTrigger>
             <TabsTrigger value="vehicles">Véhicules ({supplierVehicles.length})</TabsTrigger>
             <TabsTrigger value="payments">Paiements</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="info" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Contact */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Contact</CardTitle>
-                  <CardDescription>Informations de contact du fournisseur</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span>{supplierDetails.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span>{supplierDetails.email}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                    <span>WeChat: {supplierDetails.wechat}</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <span>{supplierDetails.address}</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Bancaire */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Informations bancaires</CardTitle>
-                  <CardDescription>Pour les virements internationaux</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Banque</span>
-                    <span className="font-medium">{supplierDetails.bankName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Code SWIFT</span>
-                    <span className="font-medium font-mono">{supplierDetails.swiftCode}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Compte</span>
-                    <span className="font-medium font-mono">{supplierDetails.accountNumber}</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Commercial */}
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle className="text-lg">Conditions commerciales</CardTitle>
-                  <CardDescription>Termes de paiement et livraison</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Conditions de paiement</p>
-                      <p className="font-medium mt-1">{supplierDetails.paymentTerms}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Incoterm</p>
-                      <p className="font-medium mt-1">{supplierDetails.incoterm}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Délai moyen</p>
-                      <p className="font-medium mt-1">21-30 jours</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
 
           <TabsContent value="vehicles">
             <Card>
@@ -294,14 +229,20 @@ const SupplierDetailPage = () => {
                     </TableHeader>
                     <TableBody>
                       {supplierVehicles.map((vehicle) => (
-                        <TableRow key={vehicle.id}>
+                        <TableRow 
+                          key={vehicle.id} 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => navigate(`/vehicles/${vehicle.id}`)}
+                        >
                           <TableCell>
                             <div>
                               <p className="font-medium">{vehicle.brand} {vehicle.model}</p>
                               <p className="text-sm text-muted-foreground">{vehicle.year}</p>
                             </div>
                           </TableCell>
-                          <TableCell>{vehicle.client}</TableCell>
+                          <TableCell>
+                            {vehicle.client ? `${vehicle.client.prenom} ${vehicle.client.nom}` : '-'}
+                          </TableCell>
                           <TableCell>{formatCurrency(vehicle.purchasePrice)}</TableCell>
                           <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
                           <TableCell>{new Date(vehicle.orderDate).toLocaleDateString('fr-FR')}</TableCell>
@@ -330,38 +271,9 @@ const SupplierDetailPage = () => {
                 </Button>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Référence</TableHead>
-                      <TableHead>Montant</TableHead>
-                      <TableHead>Statut</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>01/02/2026</TableCell>
-                      <TableCell>Paiement VH001</TableCell>
-                      <TableCell className="font-medium">{formatCurrency(45000)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                          Complété
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>15/01/2026</TableCell>
-                      <TableCell>Acompte commande</TableCell>
-                      <TableCell className="font-medium">{formatCurrency(25000)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                          Complété
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+                <p className="text-center text-muted-foreground py-8">
+                  Aucun paiement enregistré
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -373,25 +285,20 @@ const SupplierDetailPage = () => {
                 <CardDescription>Contrats, factures et documents associés</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {['Contrat cadre 2026', 'Facture F-2026-001', 'Certificat d\'origine'].map((doc, i) => (
-                    <div 
-                      key={i}
-                      className="flex items-center gap-3 p-4 border border-border rounded-lg hover:bg-accent/50 cursor-pointer transition-colors"
-                    >
-                      <FileText className="h-8 w-8 text-primary" />
-                      <div>
-                        <p className="font-medium">{doc}</p>
-                        <p className="text-sm text-muted-foreground">PDF • 2.4 MB</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-center text-muted-foreground py-8">
+                  Aucun document enregistré
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
+
+      <EditSupplierDialog 
+        open={editDialogOpen} 
+        onOpenChange={setEditDialogOpen} 
+        supplier={supplier}
+      />
     </DashboardLayout>
   );
 };

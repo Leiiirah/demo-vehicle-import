@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { vehicles, suppliers } from '@/data/mockData';
+import { useVehicle } from '@/hooks/useApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   ArrowLeft,
   Car,
@@ -28,8 +29,10 @@ import {
   CreditCard,
   TrendingUp,
   Truck,
+  AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { EditVehicleDialog } from '@/components/vehicles/EditVehicleDialog';
 
 interface Versement {
   id: string;
@@ -47,25 +50,24 @@ interface ChargeDivers {
 const VehicleDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  // Trouver le véhicule (mock)
-  const vehicle = vehicles.find((v) => v.id === id) || vehicles[0];
-  const supplier = suppliers.find((s) => s.name === vehicle.supplier);
+  const { data: vehicle, isLoading, error } = useVehicle(id || '');
 
   // Mock client import associé
   const clientImport = {
     id: 'CLI001',
-    name: 'Ahmed Benali',
-    profitPercentage: 15,
+    name: vehicle?.client ? `${vehicle.client.prenom} ${vehicle.client.nom}` : 'Non assigné',
+    profitPercentage: vehicle?.client?.pourcentageBenefice || 15,
     investedAmount: 5000000,
   };
 
   // État pour les coûts USD
-  const [prixVehicule, setPrixVehicule] = useState<number>(vehicle.purchasePrice);
-  const [prixTransport, setPrixTransport] = useState<number>(vehicle.transportCost);
+  const [prixVehicule, setPrixVehicule] = useState<number>(0);
+  const [prixTransport, setPrixTransport] = useState<number>(0);
 
   // État pour les charges DZD
-  const [chargesTransit, setChargesTransit] = useState<number>(vehicle.localFees || 850000);
+  const [chargesTransit, setChargesTransit] = useState<number>(850000);
   const [chargesDivers, setChargesDivers] = useState<ChargeDivers[]>([
     { id: 'cd-1', libelle: 'Mise en conformité', montant: 45000 },
     { id: 'cd-2', libelle: 'Frais transitaire', montant: 25000 },
@@ -77,6 +79,15 @@ const VehicleDetailPage = () => {
     { id: 'v-2', date: '2026-01-22', montantUSD: 10000, tauxChange: 135.50 },
     { id: 'v-3', date: '2026-01-28', montantUSD: 5000, tauxChange: 136.20 },
   ]);
+
+  // Initialize state from vehicle when loaded
+  useState(() => {
+    if (vehicle) {
+      setPrixVehicule(vehicle.purchasePrice || 0);
+      setPrixTransport(vehicle.transportCost || 0);
+      setChargesTransit(vehicle.localFees || 850000);
+    }
+  });
 
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
     if (currency === 'USD') {
@@ -153,6 +164,36 @@ const VehicleDetailPage = () => {
     setChargesDivers(chargesDivers.filter((c) => c.id !== id));
   };
 
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-24" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24" />)}
+          </div>
+          <Skeleton className="h-96" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !vehicle) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+          <AlertCircle className="h-12 w-12 text-destructive" />
+          <p className="text-muted-foreground">Véhicule non trouvé</p>
+          <Button onClick={() => navigate('/vehicles')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour aux véhicules
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   const getStatusInfo = (status: string) => {
     const statusMap = {
       ordered: { label: 'Commandé', color: 'badge-info', progress: 25, icon: Package },
@@ -160,11 +201,10 @@ const VehicleDetailPage = () => {
       arrived: { label: 'Arrivé', color: 'badge-profit', progress: 75, icon: Anchor },
       sold: { label: 'Vendu', color: 'bg-muted text-muted-foreground', progress: 100, icon: BadgeCheck },
     };
-    return statusMap[status as keyof typeof statusMap];
+    return statusMap[status as keyof typeof statusMap] || statusMap.ordered;
   };
 
   const statusInfo = getStatusInfo(vehicle.status);
-  const StatusIcon = statusInfo.icon;
 
   // Timeline du véhicule
   const timeline = [
@@ -219,7 +259,7 @@ const VehicleDetailPage = () => {
               {vehicle.year} • {vehicle.id} • VIN: {vehicle.vin}
             </p>
           </div>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
             <Edit className="h-4 w-4 mr-2" />
             Modifier
           </Button>
@@ -616,7 +656,7 @@ const VehicleDetailPage = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Conteneur</span>
-                    <code className="text-xs bg-muted px-2 py-1 rounded">{vehicle.containerId}</code>
+                    <code className="text-xs bg-muted px-2 py-1 rounded">{vehicle.conteneur?.numero || vehicle.conteneurId || '-'}</code>
                   </div>
                 </CardContent>
               </Card>
@@ -631,15 +671,15 @@ const VehicleDetailPage = () => {
                 <CardContent className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Nom</span>
-                    <span className="font-medium">{vehicle.supplier}</span>
+                    <span className="font-medium">{vehicle.supplier?.name || '-'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Localisation</span>
-                    <span className="font-medium">{supplier?.location || 'N/A'}</span>
+                    <span className="font-medium">{vehicle.supplier?.location || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Note</span>
-                    <span className="font-medium">⭐ {supplier?.rating || 'N/A'}</span>
+                    <span className="font-medium">⭐ {vehicle.supplier?.rating || 'N/A'}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -843,6 +883,12 @@ const VehicleDetailPage = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <EditVehicleDialog 
+        open={editDialogOpen} 
+        onOpenChange={setEditDialogOpen} 
+        vehicle={vehicle}
+      />
     </DashboardLayout>
   );
 };

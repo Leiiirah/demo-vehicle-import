@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { useClient, useUpdateClient } from '@/hooks/useApi';
 import { 
   ArrowLeft, 
   Phone, 
@@ -9,74 +11,25 @@ import {
   Percent,
   Check,
   X,
-  TrendingUp
+  TrendingUp,
+  AlertCircle,
+  Mail,
+  Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-
-// Mock data
-const clients = [
-  {
-    id: 'client-1',
-    nom: 'Kaci',
-    prenom: 'Mohamed',
-    telephone: '+213 555 111 222',
-    adresse: '12 Rue des Oliviers, Blida',
-    pourcentageBenefice: 5,
-    prixVente: 10000000,
-    coutRevient: 8500000,
-    detteBenefice: 75000,
-    paye: false,
-    createdAt: '2026-01-15',
-  },
-  {
-    id: 'client-2',
-    nom: 'Boudiaf',
-    prenom: 'Yacine',
-    telephone: '+213 555 333 444',
-    adresse: '45 Avenue 8 Mai 1945, Sétif',
-    pourcentageBenefice: 10,
-    prixVente: 14000000,
-    coutRevient: 11000000,
-    detteBenefice: 300000,
-    paye: true,
-    createdAt: '2026-01-20',
-  },
-  {
-    id: 'client-3',
-    nom: 'Sahraoui',
-    prenom: 'Nadia',
-    telephone: '+213 555 555 666',
-    adresse: '8 Cité AADL, Bab Ezzouar, Alger',
-    pourcentageBenefice: 3,
-    prixVente: 7200000,
-    coutRevient: 6000000,
-    detteBenefice: 36000,
-    paye: true,
-    createdAt: '2026-01-25',
-  },
-  {
-    id: 'client-4',
-    nom: 'Hamidi',
-    prenom: 'Rachid',
-    telephone: '+213 555 777 888',
-    adresse: '20 Rue Zighoud Youcef, El Bouni, Annaba',
-    pourcentageBenefice: 8,
-    prixVente: 21000000,
-    coutRevient: 17500000,
-    detteBenefice: 280000,
-    paye: false,
-    createdAt: '2026-01-28',
-  },
-];
+import { EditClientDialog } from '@/components/clients/EditClientDialog';
 
 const ClientDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   
-  const client = clients.find(c => c.id === id);
+  const { data: client, isLoading, error } = useClient(id || '');
+  const updateClient = useUpdateClient();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-DZ', {
@@ -85,10 +38,35 @@ const ClientDetailPage = () => {
     }).format(amount) + ' DZD';
   };
 
-  if (!client) {
+  const handleMarkAsPaid = () => {
+    if (client) {
+      updateClient.mutate({ id: client.id, data: { paye: true } });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <Skeleton className="h-16 w-full" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24" />)}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Skeleton className="h-48" />
+            <Skeleton className="h-48" />
+          </div>
+          <Skeleton className="h-32" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !client) {
     return (
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+          <AlertCircle className="h-12 w-12 text-destructive" />
           <p className="text-muted-foreground">Client non trouvé</p>
           <Button onClick={() => navigate('/clients')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -99,7 +77,7 @@ const ClientDetailPage = () => {
     );
   }
 
-  const benefice = client.prixVente - client.coutRevient;
+  const benefice = (client.prixVente || 0) - (client.coutRevient || 0);
 
   return (
     <DashboardLayout>
@@ -128,16 +106,16 @@ const ClientDetailPage = () => {
                   </Badge>
                 </div>
                 <p className="text-muted-foreground">
-                  {client.pourcentageBenefice}% du bénéfice
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Client depuis {new Date(client.createdAt).toLocaleDateString('fr-FR')}
+                  {client.pourcentageBenefice || 0}% du bénéfice
                 </p>
               </div>
             </div>
           </div>
           <div className="flex gap-2">
-            <Button className="bg-success text-success-foreground hover:bg-success/90">
+            <Button 
+              className="bg-success text-success-foreground hover:bg-success/90"
+              onClick={() => setEditDialogOpen(true)}
+            >
               <Edit className="h-4 w-4 mr-2" />
               Modifier
             </Button>
@@ -154,7 +132,7 @@ const ClientDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Pourcentage</p>
-                  <p className="text-2xl font-bold text-primary">{client.pourcentageBenefice}%</p>
+                  <p className="text-2xl font-bold text-primary">{client.pourcentageBenefice || 0}%</p>
                 </div>
               </div>
             </CardContent>
@@ -167,7 +145,7 @@ const ClientDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Prix vente</p>
-                  <p className="text-lg font-bold">{formatCurrency(client.prixVente)}</p>
+                  <p className="text-lg font-bold">{formatCurrency(client.prixVente || 0)}</p>
                 </div>
               </div>
             </CardContent>
@@ -193,7 +171,7 @@ const ClientDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Dette client</p>
-                  <p className="text-lg font-bold text-warning">{formatCurrency(client.detteBenefice)}</p>
+                  <p className="text-lg font-bold text-warning">{formatCurrency(client.detteBenefice || 0)}</p>
                 </div>
               </div>
             </CardContent>
@@ -212,10 +190,24 @@ const ClientDetailPage = () => {
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 <span>{client.telephone}</span>
               </div>
-              <div className="flex items-start gap-3">
-                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <span>{client.adresse}</span>
-              </div>
+              {client.email && (
+                <div className="flex items-center gap-3">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span>{client.email}</span>
+                </div>
+              )}
+              {client.adresse && (
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <span>{client.adresse}</span>
+                </div>
+              )}
+              {client.company && (
+                <div className="flex items-center gap-3">
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <span>{client.company}</span>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -227,19 +219,19 @@ const ClientDetailPage = () => {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Prix de vente</span>
-                <span className="font-medium">{formatCurrency(client.prixVente)}</span>
+                <span className="font-medium">{formatCurrency(client.prixVente || 0)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Coût de revient</span>
-                <span className="font-medium">- {formatCurrency(client.coutRevient)}</span>
+                <span className="font-medium">- {formatCurrency(client.coutRevient || 0)}</span>
               </div>
               <div className="border-t border-border pt-3 flex justify-between">
                 <span className="font-medium">Bénéfice</span>
                 <span className="font-bold text-success">{formatCurrency(benefice)}</span>
               </div>
               <div className="flex justify-between bg-warning/10 p-3 rounded-lg">
-                <span className="font-medium">Part client ({client.pourcentageBenefice}%)</span>
-                <span className="font-bold text-warning">{formatCurrency(client.detteBenefice)}</span>
+                <span className="font-medium">Part client ({client.pourcentageBenefice || 0}%)</span>
+                <span className="font-bold text-warning">{formatCurrency(client.detteBenefice || 0)}</span>
               </div>
             </CardContent>
           </Card>
@@ -254,7 +246,7 @@ const ClientDetailPage = () => {
                 <div className="p-4 bg-warning/5 rounded-lg">
                   <p className="text-sm text-muted-foreground">Dette totale</p>
                   <p className="text-2xl font-bold text-warning mt-1">
-                    {formatCurrency(client.detteBenefice)}
+                    {formatCurrency(client.detteBenefice || 0)}
                   </p>
                 </div>
                 <div className="p-4 bg-accent/50 rounded-lg">
@@ -284,7 +276,11 @@ const ClientDetailPage = () => {
                 </div>
                 {!client.paye && (
                   <div className="flex items-center">
-                    <Button className="bg-success text-success-foreground hover:bg-success/90">
+                    <Button 
+                      className="bg-success text-success-foreground hover:bg-success/90"
+                      onClick={handleMarkAsPaid}
+                      disabled={updateClient.isPending}
+                    >
                       <Check className="h-4 w-4 mr-2" />
                       Marquer comme payé
                     </Button>
@@ -295,6 +291,12 @@ const ClientDetailPage = () => {
           </Card>
         </div>
       </div>
+
+      <EditClientDialog 
+        open={editDialogOpen} 
+        onOpenChange={setEditDialogOpen} 
+        client={client}
+      />
     </DashboardLayout>
   );
 };

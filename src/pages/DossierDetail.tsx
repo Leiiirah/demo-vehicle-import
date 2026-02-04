@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { useDossier } from '@/hooks/useApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,39 +13,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Building2, Container, Car, Plus, Calendar, Edit } from 'lucide-react';
+import { ArrowLeft, Building2, Container, Car, Plus, Calendar, Edit, AlertCircle } from 'lucide-react';
 import { AddConteneurDialog } from '@/components/conteneurs/AddConteneurDialog';
-
-// Mock data
-const mockDossier = {
-  id: 'DOS001',
-  reference: 'DOS-2026-001',
-  supplierId: 'SUP001',
-  supplierName: 'Guangzhou Auto Export',
-  dateCreation: '2026-01-15',
-  status: 'en_cours' as const,
-  totalVehicles: 4,
-  totalConteneurs: 2,
-  notes: 'Commande premium pour clients VIP',
-};
-
-const mockConteneurs = [
-  {
-    id: 'CONT001',
-    numero: 'MSKU1234567',
-    type: '40ft' as const,
-    status: 'en_transit' as const,
-    dateDepart: '2026-01-20',
-    vehiculesCount: 2,
-  },
-  {
-    id: 'CONT002',
-    numero: 'TCLU7654321',
-    type: '40ft_hc' as const,
-    status: 'en_chargement' as const,
-    vehiculesCount: 2,
-  },
-];
+import { EditDossierDialog } from '@/components/dossiers/EditDossierDialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const statusConfig = {
   en_cours: { label: 'En cours', className: 'bg-primary/10 text-primary border-primary/30' },
@@ -69,9 +41,44 @@ export default function DossierDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [addConteneurOpen, setAddConteneurOpen] = useState(false);
-  const dossier = mockDossier;
-  const conteneurs = mockConteneurs;
-  const status = statusConfig[dossier.status];
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  const { data: dossier, isLoading, error } = useDossier(id || '');
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <Skeleton className="h-16 w-full" />
+          <div className="grid gap-4 md:grid-cols-3">
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+          </div>
+          <Skeleton className="h-96" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !dossier) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+          <AlertCircle className="h-12 w-12 text-destructive" />
+          <p className="text-muted-foreground">Dossier non trouvé</p>
+          <Button onClick={() => navigate('/dossiers')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour aux dossiers
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const status = statusConfig[dossier.status as keyof typeof statusConfig] || statusConfig.en_cours;
+  const conteneurs = dossier.conteneurs || [];
+  const totalVehicles = conteneurs.reduce((sum, c) => sum + (c.vehicles?.length || 0), 0);
 
   return (
     <DashboardLayout>
@@ -90,7 +97,7 @@ export default function DossierDetailPage() {
             </div>
             <p className="text-muted-foreground">Dossier #{id}</p>
           </div>
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => setEditDialogOpen(true)}>
             <Edit className="h-4 w-4" />
             Modifier
           </Button>
@@ -104,14 +111,16 @@ export default function DossierDetailPage() {
               <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold">{dossier.supplierName}</div>
+              <div className="text-lg font-bold">{dossier.supplier?.name || '-'}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                <button
-                  className="hover:underline text-primary"
-                  onClick={() => navigate(`/suppliers/${dossier.supplierId}`)}
-                >
-                  Voir le fournisseur →
-                </button>
+                {dossier.supplier && (
+                  <button
+                    className="hover:underline text-primary"
+                    onClick={() => navigate(`/suppliers/${dossier.supplierId}`)}
+                  >
+                    Voir le fournisseur →
+                  </button>
+                )}
               </p>
             </CardContent>
           </Card>
@@ -136,9 +145,9 @@ export default function DossierDetailPage() {
               <Car className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{dossier.totalVehicles}</div>
+              <div className="text-2xl font-bold">{totalVehicles}</div>
               <p className="text-xs text-muted-foreground">
-                dans {dossier.totalConteneurs} conteneurs
+                dans {conteneurs.length} conteneurs
               </p>
             </CardContent>
           </Card>
@@ -174,53 +183,55 @@ export default function DossierDetailPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {conteneurs.map((conteneur) => {
-                    const cStatus = conteneurStatusConfig[conteneur.status];
-                    return (
-                      <TableRow
-                        key={conteneur.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => navigate(`/conteneurs/${conteneur.id}`)}
-                      >
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <Container className="h-4 w-4 text-muted-foreground" />
-                            {conteneur.numero}
-                          </div>
-                        </TableCell>
-                        <TableCell>{typeLabels[conteneur.type]}</TableCell>
-                        <TableCell>
-                          {conteneur.dateDepart
-                            ? new Date(conteneur.dateDepart).toLocaleDateString('fr-FR')
-                            : '-'}
-                        </TableCell>
-                        <TableCell className="text-center">{conteneur.vehiculesCount}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={cStatus.className}>
-                            {cStatus.label}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {conteneurs.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                        Aucun conteneur dans ce dossier
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    conteneurs.map((conteneur) => {
+                      const cStatus = conteneurStatusConfig[conteneur.status as keyof typeof conteneurStatusConfig] || conteneurStatusConfig.en_chargement;
+                      return (
+                        <TableRow
+                          key={conteneur.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => navigate(`/conteneurs/${conteneur.id}`)}
+                        >
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              <Container className="h-4 w-4 text-muted-foreground" />
+                              {conteneur.numero}
+                            </div>
+                          </TableCell>
+                          <TableCell>{typeLabels[conteneur.type as keyof typeof typeLabels] || conteneur.type}</TableCell>
+                          <TableCell>
+                            {conteneur.dateDepart
+                              ? new Date(conteneur.dateDepart).toLocaleDateString('fr-FR')
+                              : '-'}
+                          </TableCell>
+                          <TableCell className="text-center">{conteneur.vehicles?.length || 0}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={cStatus.className}>
+                              {cStatus.label}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
                 </TableBody>
               </Table>
             </div>
           </CardContent>
         </Card>
-
-        {/* Notes */}
-        {dossier.notes && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Notes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">{dossier.notes}</p>
-            </CardContent>
-          </Card>
-        )}
       </div>
+
+      <EditDossierDialog 
+        open={editDialogOpen} 
+        onOpenChange={setEditDialogOpen} 
+        dossier={dossier}
+      />
     </DashboardLayout>
   );
 }
