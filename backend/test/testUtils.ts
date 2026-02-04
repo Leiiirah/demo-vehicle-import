@@ -7,3 +7,11 @@ import { randomUUID } from 'crypto';
 export function nonExistingUuid(): string {
   return randomUUID();
 }
+
+/**
+ * Generates a highly-unique code string for test data (prevents collisions across
+ * parallel Jest workers and repeated runs against the same DB).
+ */
+export function uniqueCode(prefix: string): string {
+  return `${prefix}-${randomUUID()}`;
+}
