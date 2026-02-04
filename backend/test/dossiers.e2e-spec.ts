@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { nonExistingUuid } from './testUtils';
 
 describe('DossiersController (e2e)', () => {
   let app: INestApplication;
@@ -132,8 +133,9 @@ describe('DossiersController (e2e)', () => {
     });
 
     it('should return 404 for non-existent dossier', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .get('/api/dossiers/non-existent-id')
+        .get(`/api/dossiers/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(404);
     });
@@ -164,8 +166,9 @@ describe('DossiersController (e2e)', () => {
     });
 
     it('should return 404 for non-existent dossier', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .patch('/api/dossiers/non-existent-id')
+        .patch(`/api/dossiers/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ status: 'termine' })
         .expect(404);
@@ -197,8 +200,9 @@ describe('DossiersController (e2e)', () => {
     });
 
     it('should return 404 for non-existent dossier', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .delete('/api/dossiers/non-existent-id')
+        .delete(`/api/dossiers/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(404);
     });

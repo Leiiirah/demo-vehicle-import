@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { nonExistingUuid } from './testUtils';
 
 describe('SuppliersController (e2e)', () => {
   let app: INestApplication;
@@ -102,8 +103,9 @@ describe('SuppliersController (e2e)', () => {
     });
 
     it('should return 404 for non-existent supplier', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .get('/api/suppliers/non-existent-id')
+        .get(`/api/suppliers/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(404);
     });
@@ -130,8 +132,9 @@ describe('SuppliersController (e2e)', () => {
     });
 
     it('should return 404 for non-existent supplier', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .patch('/api/suppliers/non-existent-id')
+        .patch(`/api/suppliers/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ name: 'Test' })
         .expect(404);
@@ -159,8 +162,9 @@ describe('SuppliersController (e2e)', () => {
     });
 
     it('should return 404 for non-existent supplier', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .delete('/api/suppliers/non-existent-id')
+        .delete(`/api/suppliers/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(404);
     });
