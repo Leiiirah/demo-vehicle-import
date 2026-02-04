@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { nonExistingUuid } from './testUtils';
 
 describe('ClientsController (e2e)', () => {
   let app: INestApplication;
@@ -110,8 +111,9 @@ describe('ClientsController (e2e)', () => {
     });
 
     it('should return 404 for non-existent client', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .get('/api/clients/non-existent-id')
+        .get(`/api/clients/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(404);
     });
@@ -143,8 +145,9 @@ describe('ClientsController (e2e)', () => {
     });
 
     it('should return 404 for non-existent client', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .patch('/api/clients/non-existent-id')
+        .patch(`/api/clients/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ paye: true })
         .expect(404);
@@ -176,8 +179,9 @@ describe('ClientsController (e2e)', () => {
     });
 
     it('should return 404 for non-existent client', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .delete('/api/clients/non-existent-id')
+        .delete(`/api/clients/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(404);
     });

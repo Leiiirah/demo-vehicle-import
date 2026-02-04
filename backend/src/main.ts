@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { TypeOrmExceptionFilter } from './filters/typeorm-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -22,6 +23,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // Normalize DB errors (e.g., unique constraints) into proper HTTP codes
+  app.useGlobalFilters(new TypeOrmExceptionFilter());
 
   const port = process.env.PORT || 3001;
   await app.listen(port);

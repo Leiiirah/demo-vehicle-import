@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { nonExistingUuid } from './testUtils';
 
 describe('ConteneursController (e2e)', () => {
   let app: INestApplication;
@@ -150,8 +151,9 @@ describe('ConteneursController (e2e)', () => {
     });
 
     it('should return 404 for non-existent conteneur', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .get('/api/conteneurs/non-existent-id')
+        .get(`/api/conteneurs/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(404);
     });
@@ -182,8 +184,9 @@ describe('ConteneursController (e2e)', () => {
     });
 
     it('should return 404 for non-existent conteneur', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .patch('/api/conteneurs/non-existent-id')
+        .patch(`/api/conteneurs/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ status: 'arrive' })
         .expect(404);
@@ -215,8 +218,9 @@ describe('ConteneursController (e2e)', () => {
     });
 
     it('should return 404 for non-existent conteneur', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .delete('/api/conteneurs/non-existent-id')
+        .delete(`/api/conteneurs/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(404);
     });

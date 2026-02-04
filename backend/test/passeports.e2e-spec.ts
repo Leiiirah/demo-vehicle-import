@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { nonExistingUuid } from './testUtils';
 
 describe('PasseportsController (e2e)', () => {
   let app: INestApplication;
@@ -137,8 +138,9 @@ describe('PasseportsController (e2e)', () => {
     });
 
     it('should return 404 for non-existent passeport', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .get('/api/passeports/non-existent-id')
+        .get(`/api/passeports/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(404);
     });
@@ -171,8 +173,9 @@ describe('PasseportsController (e2e)', () => {
     });
 
     it('should return 404 for non-existent passeport', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .patch('/api/passeports/non-existent-id')
+        .patch(`/api/passeports/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ paye: true })
         .expect(404);
@@ -205,8 +208,9 @@ describe('PasseportsController (e2e)', () => {
     });
 
     it('should return 404 for non-existent passeport', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .delete('/api/passeports/non-existent-id')
+        .delete(`/api/passeports/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(404);
     });

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { nonExistingUuid } from './testUtils';
 
 describe('PaymentsController (e2e)', () => {
   let app: INestApplication;
@@ -218,8 +219,9 @@ describe('PaymentsController (e2e)', () => {
     });
 
     it('should return 404 for non-existent payment', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .get('/api/payments/non-existent-id')
+        .get(`/api/payments/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(404);
     });
@@ -253,8 +255,9 @@ describe('PaymentsController (e2e)', () => {
     });
 
     it('should return 404 for non-existent payment', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .patch('/api/payments/non-existent-id')
+        .patch(`/api/payments/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ status: 'completed' })
         .expect(404);
@@ -287,8 +290,9 @@ describe('PaymentsController (e2e)', () => {
     });
 
     it('should return 404 for non-existent payment', () => {
+      const id = nonExistingUuid();
       return request(app.getHttpServer())
-        .delete('/api/payments/non-existent-id')
+        .delete(`/api/payments/${id}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(404);
     });
