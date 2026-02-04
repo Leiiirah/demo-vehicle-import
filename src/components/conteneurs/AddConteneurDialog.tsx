@@ -35,6 +35,7 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
   const [numero, setNumero] = useState('');
   const [dossierId, setDossierId] = useState(preSelectedDossierId || '');
   const [type, setType] = useState<'20ft' | '40ft' | '40ft_hc'>('40ft');
+  const [coutTransport, setCoutTransport] = useState('');
   const [dateDepart, setDateDepart] = useState('');
   const [dateArrivee, setDateArrivee] = useState('');
 
@@ -44,6 +45,7 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
       numero,
       dossierId,
       type,
+      coutTransport,
       dateDepart,
       dateArrivee,
     });
@@ -55,6 +57,7 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
     setNumero('');
     setDossierId(preSelectedDossierId || '');
     setType('40ft');
+    setCoutTransport('');
     setDateDepart('');
     setDateArrivee('');
   };
@@ -149,6 +152,28 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
                 <SelectItem value="40ft_hc">40 pieds High Cube</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Coût du transport */}
+          <div className="space-y-2">
+            <Label htmlFor="coutTransport" className="flex items-center gap-2">
+              <Ship className="h-4 w-4 text-muted-foreground" />
+              Coût du transport (USD) *
+            </Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+              <Input 
+                id="coutTransport" 
+                type="number"
+                placeholder="Ex: 3500"
+                value={coutTransport}
+                onChange={(e) => setCoutTransport(e.target.value)}
+                className="pl-7"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Fret + assurance maritime. Ce coût sera réparti sur les véhicules du conteneur.
+            </p>
           </div>
 
           {/* Dates de suivi */}
