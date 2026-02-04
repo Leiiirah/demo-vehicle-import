@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { api, CreatePasseportData } from '@/services/api';
+import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { BookUser, Upload, X, File } from 'lucide-react';
+import { BookUser, Upload, X, File, Loader2 } from 'lucide-react';
 
 interface AddPasseportDialogProps {
   open: boolean;
@@ -25,9 +28,49 @@ interface UploadedFile {
 }
 
 export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogProps) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Form state
+  const [nom, setNom] = useState('');
+  const [prenom, setPrenom] = useState('');
+  const [telephone, setTelephone] = useState('');
+  const [adresse, setAdresse] = useState('');
+  const [numeroPasseport, setNumeroPasseport] = useState('');
   const [pdfPasseport, setPdfPasseport] = useState<UploadedFile | null>(null);
   const [montant, setMontant] = useState('10000');
   const [paye, setPaye] = useState(false);
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreatePasseportData) => api.createPasseport(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['passeports'] });
+      toast({
+        title: 'Passeport enregistré',
+        description: 'Le passeport a été créé avec succès',
+      });
+      resetForm();
+      onOpenChange(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const resetForm = () => {
+    setNom('');
+    setPrenom('');
+    setTelephone('');
+    setAdresse('');
+    setNumeroPasseport('');
+    setPdfPasseport(null);
+    setMontant('10000');
+    setPaye(false);
+  };
 
   const handleFileSelect = () => {
     const input = document.createElement('input');
@@ -51,12 +94,35 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
   };
 
   const handleSubmit = () => {
-    // TODO: Enregistrer le passeport
-    onOpenChange(false);
+    if (!nom.trim() || !prenom.trim() || !telephone.trim() || !numeroPasseport.trim()) {
+      toast({
+        title: 'Champs requis',
+        description: 'Veuillez remplir tous les champs obligatoires',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    createMutation.mutate({
+      nom: nom.trim(),
+      prenom: prenom.trim(),
+      telephone: telephone.trim(),
+      adresse: adresse.trim() || undefined,
+      numeroPasseport: numeroPasseport.trim(),
+      montantDu: parseFloat(montant) || 10000,
+      paye,
+    });
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      resetForm();
+    }
+    onOpenChange(open);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
@@ -73,39 +139,62 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="nom">Nom *</Label>
-              <Input id="nom" placeholder="Ex: Benali" />
+              <Input 
+                id="nom" 
+                placeholder="Ex: Benali" 
+                value={nom}
+                onChange={(e) => setNom(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="prenom">Prénom *</Label>
-              <Input id="prenom" placeholder="Ex: Ahmed" />
+              <Input 
+                id="prenom" 
+                placeholder="Ex: Ahmed" 
+                value={prenom}
+                onChange={(e) => setPrenom(e.target.value)}
+              />
             </div>
           </div>
 
           {/* Téléphone */}
           <div className="space-y-2">
             <Label htmlFor="telephone">Téléphone *</Label>
-            <Input id="telephone" placeholder="+213 XXX XXX XXX" />
+            <Input 
+              id="telephone" 
+              placeholder="+213 XXX XXX XXX" 
+              value={telephone}
+              onChange={(e) => setTelephone(e.target.value)}
+            />
           </div>
 
           {/* Adresse */}
           <div className="space-y-2">
-            <Label htmlFor="adresse">Adresse *</Label>
+            <Label htmlFor="adresse">Adresse</Label>
             <Textarea 
               id="adresse" 
               placeholder="Adresse complète"
               rows={2}
+              value={adresse}
+              onChange={(e) => setAdresse(e.target.value)}
             />
           </div>
 
           {/* Numéro de passeport */}
           <div className="space-y-2">
             <Label htmlFor="numeroPasseport">Numéro de passeport *</Label>
-            <Input id="numeroPasseport" placeholder="Ex: A12345678" className="font-mono" />
+            <Input 
+              id="numeroPasseport" 
+              placeholder="Ex: A12345678" 
+              className="font-mono" 
+              value={numeroPasseport}
+              onChange={(e) => setNumeroPasseport(e.target.value)}
+            />
           </div>
 
           {/* PDF du passeport */}
           <div className="space-y-2">
-            <Label>PDF du passeport *</Label>
+            <Label>PDF du passeport (optionnel)</Label>
             {pdfPasseport ? (
               <div className="flex items-center justify-between p-3 border border-border rounded-lg bg-accent/30">
                 <div className="flex items-center gap-3">
@@ -175,14 +264,21 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
         </div>
 
         <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={createMutation.isPending}>
             Annuler
           </Button>
           <Button 
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={handleSubmit}
+            disabled={createMutation.isPending}
           >
-            Enregistrer
+            {createMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Enregistrement...
+              </>
+            ) : (
+              'Enregistrer'
+            )}
           </Button>
         </div>
       </DialogContent>

@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { api, CreateDossierData } from '@/services/api';
+import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -17,8 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FolderOpen, Building2, Calendar, FileText } from 'lucide-react';
-import { suppliers } from '@/data/mockData';
+import { FolderOpen, Building2, Calendar, FileText, Loader2 } from 'lucide-react';
 
 interface AddDossierDialogProps {
   open: boolean;
@@ -26,10 +28,40 @@ interface AddDossierDialogProps {
 }
 
 export const AddDossierDialog = ({ open, onOpenChange }: AddDossierDialogProps) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const [reference, setReference] = useState('');
   const [supplierId, setSupplierId] = useState('');
   const [dateCreation, setDateCreation] = useState(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
+
+  // Fetch suppliers from API
+  const { data: suppliers = [], isLoading: loadingSuppliers } = useQuery({
+    queryKey: ['suppliers'],
+    queryFn: () => api.getSuppliers(),
+    enabled: open,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreateDossierData) => api.createDossier(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dossiers'] });
+      toast({
+        title: 'Dossier créé',
+        description: 'Le dossier a été créé avec succès',
+      });
+      resetForm();
+      onOpenChange(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        variant: 'destructive',
+      });
+    },
+  });
 
   // Générer une référence automatique
   const generateReference = () => {
@@ -39,15 +71,21 @@ export const AddDossierDialog = ({ open, onOpenChange }: AddDossierDialogProps) 
   };
 
   const handleSubmit = () => {
-    // TODO: Enregistrer le dossier
-    console.log({
-      reference: reference || generateReference(),
+    if (!supplierId) {
+      toast({
+        title: 'Champ requis',
+        description: 'Veuillez sélectionner un fournisseur',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    createMutation.mutate({
+      reference: reference.trim() || generateReference(),
       supplierId,
       dateCreation,
-      notes,
+      status: 'en_cours',
     });
-    onOpenChange(false);
-    resetForm();
   };
 
   const resetForm = () => {
@@ -103,9 +141,9 @@ export const AddDossierDialog = ({ open, onOpenChange }: AddDossierDialogProps) 
               <Building2 className="h-4 w-4 text-muted-foreground" />
               Fournisseur *
             </Label>
-            <Select value={supplierId} onValueChange={setSupplierId}>
+            <Select value={supplierId} onValueChange={setSupplierId} disabled={loadingSuppliers}>
               <SelectTrigger id="supplier">
-                <SelectValue placeholder="Sélectionner un fournisseur" />
+                <SelectValue placeholder={loadingSuppliers ? 'Chargement...' : 'Sélectionner un fournisseur'} />
               </SelectTrigger>
               <SelectContent className="bg-popover border border-border shadow-lg z-50">
                 {suppliers.map((supplier) => (
@@ -168,14 +206,21 @@ export const AddDossierDialog = ({ open, onOpenChange }: AddDossierDialogProps) 
         </div>
 
         <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={createMutation.isPending}>
             Annuler
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={!supplierId}
+            disabled={!supplierId || createMutation.isPending}
           >
-            Créer le dossier
+            {createMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Création...
+              </>
+            ) : (
+              'Créer le dossier'
+            )}
           </Button>
         </div>
       </DialogContent>

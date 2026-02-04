@@ -1,5 +1,6 @@
 import { Bell, LogOut, User, Wallet } from 'lucide-react';
 import { kpiData } from '@/data/mockData';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,8 @@ import {
 } from '@/components/ui/tooltip';
 
 export function Header() {
+  const { user, logout } = useAuth();
+
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
     if (currency === 'USD') {
       return new Intl.NumberFormat('en-US', {
@@ -28,6 +31,10 @@ export function Header() {
       style: 'decimal',
       minimumFractionDigits: 0,
     }).format(amount) + ' DZD';
+  };
+
+  const handleLogout = async () => {
+    await logout();
   };
 
   return (
@@ -86,8 +93,8 @@ export function Header() {
                   <User className="h-4 w-4 text-primary-foreground" />
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium">Administrateur</p>
-                  <p className="text-xs text-muted-foreground">Accès complet</p>
+                  <p className="text-sm font-medium">{user?.name || 'Utilisateur'}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{user?.role || 'Invité'}</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>
@@ -103,7 +110,7 @@ export function Header() {
                 Notifications
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-danger">
+              <DropdownMenuItem className="text-danger" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Déconnexion
               </DropdownMenuItem>
