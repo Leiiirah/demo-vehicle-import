@@ -28,11 +28,12 @@ const mockDossiers = [
 interface AddConteneurDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  preSelectedDossierId?: string;
 }
 
-export const AddConteneurDialog = ({ open, onOpenChange }: AddConteneurDialogProps) => {
+export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }: AddConteneurDialogProps) => {
   const [numero, setNumero] = useState('');
-  const [dossierId, setDossierId] = useState('');
+  const [dossierId, setDossierId] = useState(preSelectedDossierId || '');
   const [type, setType] = useState<'20ft' | '40ft' | '40ft_hc'>('40ft');
   const [dateDepart, setDateDepart] = useState('');
 
@@ -50,7 +51,7 @@ export const AddConteneurDialog = ({ open, onOpenChange }: AddConteneurDialogPro
 
   const resetForm = () => {
     setNumero('');
-    setDossierId('');
+    setDossierId(preSelectedDossierId || '');
     setType('40ft');
     setDateDepart('');
   };

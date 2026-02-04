@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ArrowLeft, Building2, Container, Car, Plus, Calendar, Edit } from 'lucide-react';
+import { AddConteneurDialog } from '@/components/conteneurs/AddConteneurDialog';
 
 // Mock data
 const mockDossier = {
@@ -66,6 +68,7 @@ const typeLabels = {
 export default function DossierDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [addConteneurOpen, setAddConteneurOpen] = useState(false);
   const dossier = mockDossier;
   const conteneurs = mockConteneurs;
   const status = statusConfig[dossier.status];
@@ -148,10 +151,15 @@ export default function DossierDetailPage() {
               <CardTitle>Conteneurs</CardTitle>
               <CardDescription>Liste des conteneurs de ce dossier</CardDescription>
             </div>
-            <Button className="gap-2">
+            <Button className="gap-2" onClick={() => setAddConteneurOpen(true)}>
               <Plus className="h-4 w-4" />
               Ajouter Conteneur
             </Button>
+            <AddConteneurDialog 
+              open={addConteneurOpen} 
+              onOpenChange={setAddConteneurOpen}
+              preSelectedDossierId={dossier.id}
+            />
           </CardHeader>
           <CardContent>
             <div className="rounded-md border">
