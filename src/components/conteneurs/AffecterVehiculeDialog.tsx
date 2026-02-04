@@ -17,13 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Car, Plus, Link2 } from 'lucide-react';
+import { Car, Plus, Link2, DollarSign } from 'lucide-react';
 
 // Mock véhicules non affectés
 const mockVehiculesDisponibles = [
-  { id: 'VH010', brand: 'Mercedes', model: 'GLE 450', year: 2024, vin: 'W1N253486...', status: 'ordered' },
-  { id: 'VH011', brand: 'BMW', model: 'X7', year: 2024, vin: '5UXCW2C5...', status: 'ordered' },
-  { id: 'VH012', brand: 'Audi', model: 'Q7', year: 2024, vin: 'WAUZZZ4M...', status: 'ordered' },
+  { id: 'VH010', brand: 'Mercedes', model: 'GLE 450', year: 2024, vin: 'W1N253486...', status: 'ordered', prix: 62000 },
+  { id: 'VH011', brand: 'BMW', model: 'X7', year: 2024, vin: '5UXCW2C5...', status: 'ordered', prix: 75000 },
+  { id: 'VH012', brand: 'Audi', model: 'Q7', year: 2024, vin: 'WAUZZZ4M...', status: 'ordered', prix: 58000 },
 ];
 
 interface AffecterVehiculeDialogProps {
@@ -47,6 +47,7 @@ export const AffecterVehiculeDialog = ({
   const [model, setModel] = useState('');
   const [year, setYear] = useState('2024');
   const [vin, setVin] = useState('');
+  const [prixVehicule, setPrixVehicule] = useState('');
 
   const handleSubmit = () => {
     // TODO: Enregistrer l'affectation
@@ -58,6 +59,7 @@ export const AffecterVehiculeDialog = ({
       model,
       year,
       vin,
+      prixVehicule,
     });
     onOpenChange(false);
     resetForm();
@@ -70,6 +72,7 @@ export const AffecterVehiculeDialog = ({
     setModel('');
     setYear('2024');
     setVin('');
+    setPrixVehicule('');
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -195,9 +198,27 @@ export const AffecterVehiculeDialog = ({
                 </div>
               </div>
 
-              <p className="text-xs text-muted-foreground">
-                Les coûts et détails complets pourront être ajoutés depuis la fiche véhicule.
-              </p>
+              {/* Prix du véhicule */}
+              <div className="space-y-2">
+                <Label htmlFor="prixVehicule" className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  Prix du véhicule (USD) *
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                  <Input 
+                    id="prixVehicule" 
+                    type="number"
+                    placeholder="Ex: 45000"
+                    value={prixVehicule}
+                    onChange={(e) => setPrixVehicule(e.target.value)}
+                    className="pl-7"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Prix FOB du véhicule. Le coût transport sera ajouté automatiquement.
+                </p>
+              </div>
             </>
           )}
 
