@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { useConteneur } from '@/hooks/useApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,43 +13,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Container, FolderOpen, Car, Calendar, Edit, Plus, Ship, Anchor } from 'lucide-react';
+import { ArrowLeft, Container, FolderOpen, Car, Edit, Plus, Ship, Anchor, AlertCircle } from 'lucide-react';
 import { AffecterVehiculeDialog } from '@/components/conteneurs/AffecterVehiculeDialog';
-
-// Mock data
-const mockConteneur = {
-  id: 'CONT001',
-  numero: 'MSKU1234567',
-  dossierId: 'DOS001',
-  dossierRef: 'DOS-2026-001',
-  type: '40ft' as const,
-  status: 'en_transit' as const,
-  dateDepart: '2026-01-20',
-  dateArrivee: undefined,
-  vehiculesCount: 2,
-  compagnieMaritime: 'Maersk Line',
-  portDepart: 'Shanghai, Chine',
-  portArrivee: 'Alger, Algérie',
-};
-
-const mockVehicules = [
-  {
-    id: 'VH001',
-    brand: 'Toyota',
-    model: 'Land Cruiser',
-    year: 2024,
-    vin: 'JTMWF4DV4P5012345',
-    status: 'in_transit' as const,
-  },
-  {
-    id: 'VH005',
-    brand: 'Porsche',
-    model: 'Cayenne',
-    year: 2024,
-    vin: 'WP1AB2A53PLB12345',
-    status: 'in_transit' as const,
-  },
-];
+import { EditConteneurDialog } from '@/components/conteneurs/EditConteneurDialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const statusConfig = {
   en_chargement: { label: 'En chargement', className: 'bg-warning/10 text-warning border-warning/30' },
@@ -74,9 +42,42 @@ export default function ConteneurDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [affecterVehiculeOpen, setAffecterVehiculeOpen] = useState(false);
-  const conteneur = mockConteneur;
-  const vehicules = mockVehicules;
-  const status = statusConfig[conteneur.status];
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  const { data: conteneur, isLoading, error } = useConteneur(id || '');
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <Skeleton className="h-16 w-full" />
+          <div className="grid gap-4 md:grid-cols-4">
+            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24" />)}
+          </div>
+          <Skeleton className="h-48" />
+          <Skeleton className="h-96" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !conteneur) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+          <AlertCircle className="h-12 w-12 text-destructive" />
+          <p className="text-muted-foreground">Conteneur non trouvé</p>
+          <Button onClick={() => navigate('/conteneurs')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour aux conteneurs
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const status = statusConfig[conteneur.status as keyof typeof statusConfig] || statusConfig.en_chargement;
+  const vehicules = conteneur.vehicles || [];
 
   return (
     <DashboardLayout>
@@ -96,7 +97,7 @@ export default function ConteneurDetailPage() {
             </div>
             <p className="text-muted-foreground">Conteneur #{id}</p>
           </div>
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => setEditDialogOpen(true)}>
             <Edit className="h-4 w-4" />
             Modifier
           </Button>
@@ -110,14 +111,16 @@ export default function ConteneurDetailPage() {
               <FolderOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold">{conteneur.dossierRef}</div>
+              <div className="text-lg font-bold">{conteneur.dossier?.reference || '-'}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                <button
-                  className="hover:underline text-primary"
-                  onClick={() => navigate(`/dossiers/${conteneur.dossierId}`)}
-                >
-                  Voir le dossier →
-                </button>
+                {conteneur.dossier && (
+                  <button
+                    className="hover:underline text-primary"
+                    onClick={() => navigate(`/dossiers/${conteneur.dossierId}`)}
+                  >
+                    Voir le dossier →
+                  </button>
+                )}
               </p>
             </CardContent>
           </Card>
@@ -127,7 +130,7 @@ export default function ConteneurDetailPage() {
               <Container className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold">{typeLabels[conteneur.type]}</div>
+              <div className="text-lg font-bold">{typeLabels[conteneur.type as keyof typeof typeLabels] || conteneur.type}</div>
             </CardContent>
           </Card>
           <Card>
@@ -136,16 +139,16 @@ export default function ConteneurDetailPage() {
               <Car className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{conteneur.vehiculesCount}</div>
+              <div className="text-2xl font-bold">{vehicules.length}</div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Compagnie</CardTitle>
+              <CardTitle className="text-sm font-medium">Coût transport</CardTitle>
               <Ship className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold">{conteneur.compagnieMaritime}</div>
+              <div className="text-lg font-bold">${conteneur.coutTransport || 0}</div>
             </CardContent>
           </Card>
         </div>
@@ -162,18 +165,24 @@ export default function ConteneurDetailPage() {
                 <div className="flex items-center justify-center h-12 w-12 rounded-full bg-success/10 mx-auto mb-2">
                   <Ship className="h-6 w-6 text-success" />
                 </div>
-                <p className="font-medium">{conteneur.portDepart}</p>
-                {conteneur.dateDepart && (
+                <p className="font-medium">Port de départ</p>
+                {conteneur.dateDepart ? (
                   <p className="text-sm text-muted-foreground">
                     {new Date(conteneur.dateDepart).toLocaleDateString('fr-FR')}
                   </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Non défini</p>
                 )}
               </div>
               <div className="flex-1 mx-4">
                 <div className="h-1 bg-muted rounded-full relative">
                   <div
                     className="absolute h-1 bg-primary rounded-full"
-                    style={{ width: conteneur.status === 'en_transit' ? '50%' : conteneur.status === 'arrive' || conteneur.status === 'dedouane' ? '100%' : '0%' }}
+                    style={{ 
+                      width: conteneur.status === 'en_transit' ? '50%' : 
+                             conteneur.status === 'arrive' || conteneur.status === 'dedouane' ? '100%' : 
+                             conteneur.status === 'en_chargement' ? '10%' : '0%' 
+                    }}
                   />
                 </div>
               </div>
@@ -181,7 +190,7 @@ export default function ConteneurDetailPage() {
                 <div className={`flex items-center justify-center h-12 w-12 rounded-full mx-auto mb-2 ${conteneur.dateArrivee ? 'bg-success/10' : 'bg-muted'}`}>
                   <Anchor className={`h-6 w-6 ${conteneur.dateArrivee ? 'text-success' : 'text-muted-foreground'}`} />
                 </div>
-                <p className="font-medium">{conteneur.portArrivee}</p>
+                <p className="font-medium">Port d'arrivée</p>
                 {conteneur.dateArrivee ? (
                   <p className="text-sm text-muted-foreground">
                     {new Date(conteneur.dateArrivee).toLocaleDateString('fr-FR')}
@@ -220,40 +229,58 @@ export default function ConteneurDetailPage() {
                     <TableHead>Véhicule</TableHead>
                     <TableHead>VIN</TableHead>
                     <TableHead>Année</TableHead>
+                    <TableHead>Client</TableHead>
                     <TableHead>Statut</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {vehicules.map((vehicule) => {
-                    const vStatus = vehicleStatusConfig[vehicule.status];
-                    return (
-                      <TableRow
-                        key={vehicule.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => navigate(`/vehicles/${vehicule.id}`)}
-                      >
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <Car className="h-4 w-4 text-muted-foreground" />
-                            {vehicule.brand} {vehicule.model}
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">{vehicule.vin}</TableCell>
-                        <TableCell>{vehicule.year}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={vStatus.className}>
-                            {vStatus.label}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {vehicules.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                        Aucun véhicule dans ce conteneur
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    vehicules.map((vehicule) => {
+                      const vStatus = vehicleStatusConfig[vehicule.status as keyof typeof vehicleStatusConfig] || vehicleStatusConfig.ordered;
+                      return (
+                        <TableRow
+                          key={vehicule.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => navigate(`/vehicles/${vehicule.id}`)}
+                        >
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              <Car className="h-4 w-4 text-muted-foreground" />
+                              {vehicule.brand} {vehicule.model}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">{vehicule.vin}</TableCell>
+                          <TableCell>{vehicule.year}</TableCell>
+                          <TableCell>
+                            {vehicule.client ? `${vehicule.client.prenom} ${vehicule.client.nom}` : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={vStatus.className}>
+                              {vStatus.label}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
                 </TableBody>
               </Table>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <EditConteneurDialog 
+        open={editDialogOpen} 
+        onOpenChange={setEditDialogOpen} 
+        conteneur={conteneur}
+      />
     </DashboardLayout>
   );
 }
