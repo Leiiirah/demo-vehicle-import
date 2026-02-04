@@ -57,8 +57,8 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <BookUser className="h-5 w-5 text-primary" />
             Ajouter un passeport
@@ -68,7 +68,7 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
+        <div className="space-y-4 mt-4 overflow-y-auto flex-1 pr-2">
           {/* Nom et Prénom */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
