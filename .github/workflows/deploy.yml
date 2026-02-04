@@ -1,0 +1,54 @@
+name: Deploy VHL Import to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 77.37.122.252
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
+            
+            echo "=== Starting VHL Import deployment ==="
+            
+            cd /var/www/vhlimport
+            
+            echo "=== Syncing with repository ==="
+            git fetch origin main
+            git reset --hard origin/main
+            git clean -fd -e backend/.env
+            
+            echo "=== Building frontend ==="
+            npm install --legacy-peer-deps
+            npm run build
+            
+            echo "=== Building backend ==="
+            cd backend
+            rm -rf dist node_modules
+            npm install --legacy-peer-deps
+            npm run build
+            
+            echo "=== Running database migrations ==="
+            npm run migration:run
+            
+            echo "=== Restarting API ==="
+            pm2 delete vhlimport-api 2>/dev/null || true
+            pm2 start ecosystem.config.js
+            pm2 save
+            
+            echo "=== Deployment complete ==="
+            pm2 list
