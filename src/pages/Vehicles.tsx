@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { vehicles } from '@/data/mockData';
+import { useVehicles } from '@/hooks/useApi';
 import {
   Search,
   Filter,
@@ -11,6 +11,7 @@ import {
   Car,
   Grid3X3,
   List,
+  AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,12 +30,15 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import AddVehicleDialog from '@/components/vehicles/AddVehicleDialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const VehiclesPage = () => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  
+  const { data: vehicles, isLoading, error } = useVehicles();
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -70,16 +74,29 @@ const VehiclesPage = () => {
     }).format(amount) + ' DZD';
   };
 
-  const filteredVehicles = vehicles.filter((vehicle) => {
+  const filteredVehicles = (vehicles || []).filter((vehicle) => {
     const matchesSearch =
       vehicle.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
       vehicle.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vehicle.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vehicle.containerId.toLowerCase().includes(searchQuery.toLowerCase());
+      (vehicle.client?.nom?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+      (vehicle.conteneur?.numero?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
     const matchesStatus =
       statusFilter === 'all' || vehicle.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <p className="text-destructive">Erreur de chargement des véhicules</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -144,8 +161,19 @@ const VehiclesPage = () => {
           </div>
         </div>
 
+        {/* Loading state */}
+        {isLoading && (
+          <div className="bg-card rounded-xl border border-border shadow-sm p-6">
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-16" />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Vue tableau */}
-        {viewMode === 'table' && (
+        {!isLoading && viewMode === 'table' && (
           <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="data-table">
@@ -157,72 +185,78 @@ const VehiclesPage = () => {
                     <th>Conteneur</th>
                     <th>Statut</th>
                     <th>Coût total</th>
-                    <th>Profit</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredVehicles.map((vehicle) => (
-                    <tr 
-                      key={vehicle.id} 
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => navigate(`/vehicles/${vehicle.id}`)}
-                    >
-                      <td>
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
-                            <Car className="h-5 w-5 text-secondary-foreground" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground">
-                              {vehicle.brand} {vehicle.model}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {vehicle.year} • {vehicle.id}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="text-foreground">{vehicle.client}</td>
-                      <td className="text-muted-foreground">{vehicle.supplier}</td>
-                      <td>
-                        <code className="text-xs bg-muted px-2 py-1 rounded">
-                          {vehicle.containerId}
-                        </code>
-                      </td>
-                      <td>{getStatusBadge(vehicle.status)}</td>
-                      <td className="font-medium text-foreground">
-                        {formatCurrency(vehicle.totalCost)}
-                      </td>
-                      <td>
-                        <span className="font-medium text-success">
-                          {formatCurrency(vehicle.profit)}
-                        </span>
-                        <span className="text-xs text-muted-foreground ml-1">
-                          ({vehicle.margin}%)
-                        </span>
-                      </td>
-                      <td>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Eye className="h-4 w-4 mr-2" />
-                              Voir les détails
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Modifier
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                  {filteredVehicles.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-8 text-muted-foreground">
+                        Aucun véhicule trouvé
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    filteredVehicles.map((vehicle) => (
+                      <tr 
+                        key={vehicle.id} 
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => navigate(`/vehicles/${vehicle.id}`)}
+                      >
+                        <td>
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
+                              <Car className="h-5 w-5 text-secondary-foreground" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-foreground">
+                                {vehicle.brand} {vehicle.model}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {vehicle.year} • {vehicle.vin}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="text-foreground">
+                          {vehicle.client ? `${vehicle.client.prenom} ${vehicle.client.nom}` : '-'}
+                        </td>
+                        <td className="text-muted-foreground">
+                          {vehicle.supplier?.name || '-'}
+                        </td>
+                        <td>
+                          <code className="text-xs bg-muted px-2 py-1 rounded">
+                            {vehicle.conteneur?.numero || '-'}
+                          </code>
+                        </td>
+                        <td>{getStatusBadge(vehicle.status)}</td>
+                        <td className="font-medium text-foreground">
+                          {formatCurrency(vehicle.totalCost)}
+                        </td>
+                        <td>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/vehicles/${vehicle.id}`);
+                              }}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Voir les détails
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Modifier
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -230,61 +264,59 @@ const VehiclesPage = () => {
         )}
 
         {/* Vue cartes */}
-        {viewMode === 'cards' && (
+        {!isLoading && viewMode === 'cards' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredVehicles.map((vehicle) => (
-              <div
-                key={vehicle.id}
-                className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => navigate(`/vehicles/${vehicle.id}`)}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center">
-                      <Car className="h-6 w-6 text-secondary-foreground" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">
-                        {vehicle.brand} {vehicle.model}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {vehicle.year} • {vehicle.id}
-                      </p>
-                    </div>
-                  </div>
-                  {getStatusBadge(vehicle.status)}
-                </div>
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Client</span>
-                    <span className="text-foreground font-medium">{vehicle.client}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Conteneur</span>
-                    <code className="text-xs bg-muted px-2 py-0.5 rounded">
-                      {vehicle.containerId}
-                    </code>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Coût total</span>
-                    <span className="text-foreground font-medium">
-                      {formatCurrency(vehicle.totalCost)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Profit</p>
-                    <p className="text-lg font-semibold text-success">
-                      {formatCurrency(vehicle.profit)}
-                    </p>
-                  </div>
-                  <span className="badge-profit text-sm">{vehicle.margin}% marge</span>
-                </div>
+            {filteredVehicles.length === 0 ? (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                Aucun véhicule trouvé
               </div>
-            ))}
+            ) : (
+              filteredVehicles.map((vehicle) => (
+                <div
+                  key={vehicle.id}
+                  className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => navigate(`/vehicles/${vehicle.id}`)}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center">
+                        <Car className="h-6 w-6 text-secondary-foreground" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          {vehicle.brand} {vehicle.model}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {vehicle.year} • {vehicle.vin}
+                        </p>
+                      </div>
+                    </div>
+                    {getStatusBadge(vehicle.status)}
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Client</span>
+                      <span className="text-foreground font-medium">
+                        {vehicle.client ? `${vehicle.client.prenom} ${vehicle.client.nom}` : '-'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Conteneur</span>
+                      <code className="text-xs bg-muted px-2 py-0.5 rounded">
+                        {vehicle.conteneur?.numero || '-'}
+                      </code>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Coût total</span>
+                      <span className="text-foreground font-medium">
+                        {formatCurrency(vehicle.totalCost)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
       </div>

@@ -1,13 +1,51 @@
-import { topVehicles } from '@/data/mockData';
+import { useTopVehicles } from '@/hooks/useApi';
 import { TrendingUp } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function TopVehiclesTable() {
+  const { data: topVehicles, isLoading, error } = useTopVehicles();
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-DZ', {
       style: 'decimal',
       minimumFractionDigits: 0,
     }).format(amount) + ' DZD';
   };
+
+  if (isLoading) {
+    return (
+      <div className="bg-card rounded-xl border border-border p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <Skeleton className="h-6 w-48 mb-2" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-12" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !topVehicles || topVehicles.length === 0) {
+    return (
+      <div className="bg-card rounded-xl border border-border p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">Top véhicules rentables</h3>
+            <p className="text-sm text-muted-foreground">Meilleures importations</p>
+          </div>
+          <TrendingUp className="h-5 w-5 text-success" />
+        </div>
+        <div className="h-48 flex items-center justify-center text-muted-foreground">
+          Aucune donnée disponible
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card rounded-xl border border-border p-5 shadow-sm">

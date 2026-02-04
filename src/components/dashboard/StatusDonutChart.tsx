@@ -1,7 +1,36 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { vehiclesByStatus } from '@/data/mockData';
+import { useVehiclesByStatus } from '@/hooks/useApi';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function StatusDonutChart() {
+  const { data: vehiclesByStatus, isLoading, error } = useVehiclesByStatus();
+
+  if (isLoading) {
+    return (
+      <div className="bg-card rounded-xl border border-border p-5 shadow-sm">
+        <div className="mb-4">
+          <Skeleton className="h-6 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="h-[280px]" />
+      </div>
+    );
+  }
+
+  if (error || !vehiclesByStatus || vehiclesByStatus.length === 0) {
+    return (
+      <div className="bg-card rounded-xl border border-border p-5 shadow-sm">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-foreground">Véhicules par statut</h3>
+          <p className="text-sm text-muted-foreground">Répartition de l'inventaire actuel</p>
+        </div>
+        <div className="h-[280px] flex items-center justify-center text-muted-foreground">
+          Aucune donnée disponible
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-card rounded-xl border border-border p-5 shadow-sm">
       <div className="mb-4">

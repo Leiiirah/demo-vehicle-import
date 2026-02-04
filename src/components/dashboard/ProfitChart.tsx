@@ -7,15 +7,44 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { profitHistory } from '@/data/mockData';
+import { useProfitHistory } from '@/hooks/useApi';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function ProfitChart() {
+  const { data: profitHistory, isLoading, error } = useProfitHistory();
+
   const formatValue = (value: number) => {
     return new Intl.NumberFormat('fr-DZ', {
       notation: 'compact',
       compactDisplay: 'short',
     }).format(value) + ' DZD';
   };
+
+  if (isLoading) {
+    return (
+      <div className="bg-card rounded-xl border border-border p-5 shadow-sm">
+        <div className="mb-4">
+          <Skeleton className="h-6 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="h-[280px]" />
+      </div>
+    );
+  }
+
+  if (error || !profitHistory) {
+    return (
+      <div className="bg-card rounded-xl border border-border p-5 shadow-sm">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-foreground">Évolution des profits</h3>
+          <p className="text-sm text-muted-foreground">Performance des 6 derniers mois</p>
+        </div>
+        <div className="h-[280px] flex items-center justify-center text-muted-foreground">
+          Aucune donnée disponible
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card rounded-xl border border-border p-5 shadow-sm">

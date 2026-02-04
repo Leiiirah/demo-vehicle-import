@@ -3,6 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import LoginPage from "./pages/Login";
 import Index from "./pages/Index";
 import VehiclesPage from "./pages/Vehicles";
 import VehicleDetailPage from "./pages/VehicleDetail";
@@ -27,34 +30,37 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/vehicles" element={<VehiclesPage />} />
-          <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
-          <Route path="/calculator" element={<CostCalculatorPage />} />
-          <Route path="/suppliers" element={<SuppliersPage />} />
-          <Route path="/suppliers/:id" element={<SupplierDetailPage />} />
-          <Route path="/passeports" element={<PasseportsPage />} />
-          <Route path="/passeports/:id" element={<PasseportDetailPage />} />
-          <Route path="/clients" element={<ClientsPage />} />
-          <Route path="/clients/:id" element={<ClientDetailPage />} />
-          <Route path="/dossiers" element={<DossiersPage />} />
-          <Route path="/dossiers/:id" element={<DossierDetailPage />} />
-          <Route path="/conteneurs" element={<ConteneursPage />} />
-          <Route path="/conteneurs/:id" element={<ConteneurDetailPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
-          <Route path="/sales" element={<SalesPage />} />
-          <Route path="/users" element={<UsersPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="/vehicles" element={<ProtectedRoute><VehiclesPage /></ProtectedRoute>} />
+            <Route path="/vehicles/:id" element={<ProtectedRoute><VehicleDetailPage /></ProtectedRoute>} />
+            <Route path="/calculator" element={<ProtectedRoute><CostCalculatorPage /></ProtectedRoute>} />
+            <Route path="/suppliers" element={<ProtectedRoute><SuppliersPage /></ProtectedRoute>} />
+            <Route path="/suppliers/:id" element={<ProtectedRoute><SupplierDetailPage /></ProtectedRoute>} />
+            <Route path="/passeports" element={<ProtectedRoute><PasseportsPage /></ProtectedRoute>} />
+            <Route path="/passeports/:id" element={<ProtectedRoute><PasseportDetailPage /></ProtectedRoute>} />
+            <Route path="/clients" element={<ProtectedRoute><ClientsPage /></ProtectedRoute>} />
+            <Route path="/clients/:id" element={<ProtectedRoute><ClientDetailPage /></ProtectedRoute>} />
+            <Route path="/dossiers" element={<ProtectedRoute><DossiersPage /></ProtectedRoute>} />
+            <Route path="/dossiers/:id" element={<ProtectedRoute><DossierDetailPage /></ProtectedRoute>} />
+            <Route path="/conteneurs" element={<ProtectedRoute><ConteneursPage /></ProtectedRoute>} />
+            <Route path="/conteneurs/:id" element={<ProtectedRoute><ConteneurDetailPage /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+            <Route path="/sales" element={<ProtectedRoute><SalesPage /></ProtectedRoute>} />
+            <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
