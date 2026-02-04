@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Container, FolderOpen, Calendar, Package } from 'lucide-react';
+import { Container, FolderOpen, Calendar, Package, Ship, Anchor } from 'lucide-react';
 
 // Mock dossiers pour la sélection
 const mockDossiers = [
@@ -36,6 +36,7 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
   const [dossierId, setDossierId] = useState(preSelectedDossierId || '');
   const [type, setType] = useState<'20ft' | '40ft' | '40ft_hc'>('40ft');
   const [dateDepart, setDateDepart] = useState('');
+  const [dateArrivee, setDateArrivee] = useState('');
 
   const handleSubmit = () => {
     // TODO: Enregistrer le conteneur
@@ -44,6 +45,7 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
       dossierId,
       type,
       dateDepart,
+      dateArrivee,
     });
     onOpenChange(false);
     resetForm();
@@ -54,6 +56,7 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
     setDossierId(preSelectedDossierId || '');
     setType('40ft');
     setDateDepart('');
+    setDateArrivee('');
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -148,20 +151,45 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
             </Select>
           </div>
 
-          {/* Date de départ */}
-          <div className="space-y-2">
-            <Label htmlFor="dateDepart" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              Date de départ (optionnel)
+          {/* Dates de suivi */}
+          <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
+            <Label className="flex items-center gap-2 text-sm font-medium">
+              <Calendar className="h-4 w-4 text-primary" />
+              Suivi du transport
             </Label>
-            <Input 
-              id="dateDepart" 
-              type="date"
-              value={dateDepart}
-              onChange={(e) => setDateDepart(e.target.value)}
-            />
+            
+            <div className="grid grid-cols-2 gap-3">
+              {/* Date de départ */}
+              <div className="space-y-2">
+                <Label htmlFor="dateDepart" className="text-xs flex items-center gap-1">
+                  <Ship className="h-3 w-3 text-muted-foreground" />
+                  Date de départ
+                </Label>
+                <Input 
+                  id="dateDepart" 
+                  type="date"
+                  value={dateDepart}
+                  onChange={(e) => setDateDepart(e.target.value)}
+                />
+              </div>
+              
+              {/* Date d'arrivée */}
+              <div className="space-y-2">
+                <Label htmlFor="dateArrivee" className="text-xs flex items-center gap-1">
+                  <Anchor className="h-3 w-3 text-muted-foreground" />
+                  Date d'arrivée
+                </Label>
+                <Input 
+                  id="dateArrivee" 
+                  type="date"
+                  value={dateArrivee}
+                  onChange={(e) => setDateArrivee(e.target.value)}
+                />
+              </div>
+            </div>
+            
             <p className="text-xs text-muted-foreground">
-              À renseigner une fois le conteneur expédié
+              À renseigner au fur et à mesure du transport
             </p>
           </div>
         </div>
