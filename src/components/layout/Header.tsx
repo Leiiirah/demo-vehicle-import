@@ -1,5 +1,5 @@
-import { Bell, LogOut, RefreshCw, User, Wallet } from 'lucide-react';
-import { exchangeRate, kpiData } from '@/data/mockData';
+import { Bell, LogOut, User, Wallet } from 'lucide-react';
+import { kpiData } from '@/data/mockData';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,24 +32,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-      <div className="flex h-full items-center justify-between px-6">
-        {/* Taux de change */}
-        <div className="flex items-center gap-6">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2">
-                <RefreshCw className="h-4 w-4 text-muted-foreground" />
-                <div className="text-sm">
-                  <span className="font-medium text-foreground">1 USD = </span>
-                  <span className="font-semibold text-primary">{exchangeRate.USD_DZD} DZD</span>
-                </div>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Dernière mise à jour : {exchangeRate.lastUpdated}</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
+      <div className="flex h-full items-center justify-end px-6">
 
         {/* Stats rapides & Utilisateur */}
         <div className="flex items-center gap-4">
