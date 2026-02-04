@@ -5,11 +5,6 @@ import { Vehicle, VehicleStatus } from '../../entities/vehicle.entity';
 import { Supplier } from '../../entities/supplier.entity';
 import { Payment } from '../../entities/payment.entity';
 
-interface ProfitHistoryPoint {
-  month: string;
-  profit: number;
-}
-
 @Injectable()
 export class DashboardService {
   constructor(
@@ -67,9 +62,9 @@ export class DashboardService {
     };
   }
 
-  async getProfitHistory() {
+  async getProfitHistory(): Promise<Array<{ month: string; profit: number }>> {
     const now = new Date();
-    const months: ProfitHistoryPoint[] = [];
+    const months: Array<{ month: string; profit: number }> = [];
 
     for (let i = 5; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -88,12 +83,10 @@ export class DashboardService {
 
       const monthName = date.toLocaleDateString('fr-FR', { month: 'short' });
 
-      const point: ProfitHistoryPoint = {
+      months.push({
         month: monthName.charAt(0).toUpperCase() + monthName.slice(1),
         profit,
-      };
-
-      months.push(point);
+      });
     }
 
     return months;
