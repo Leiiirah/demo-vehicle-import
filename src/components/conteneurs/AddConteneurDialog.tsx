@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -16,14 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Container, FolderOpen, Calendar, Package, Ship, Anchor } from 'lucide-react';
-
-// Mock dossiers pour la sélection
-const mockDossiers = [
-  { id: 'DOS001', reference: 'DOS-2026-001', supplierName: 'Guangzhou Auto Export' },
-  { id: 'DOS002', reference: 'DOS-2026-002', supplierName: 'Shanghai Motors Ltd' },
-  { id: 'DOS003', reference: 'DOS-2026-003', supplierName: 'Shenzhen Auto Hub' },
-];
+import { Container, FolderOpen, Calendar, Package, Ship, Anchor, Loader2 } from 'lucide-react';
+import { api, type CreateConteneurData } from '@/services/api';
+import { toast } from '@/hooks/use-toast';
 
 interface AddConteneurDialogProps {
   open: boolean;
@@ -39,18 +35,46 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
   const [dateDepart, setDateDepart] = useState('');
   const [dateArrivee, setDateArrivee] = useState('');
 
+  const queryClient = useQueryClient();
+
+  // Charger les dossiers depuis l'API
+  const { data: dossiers = [] } = useQuery({
+    queryKey: ['dossiers'],
+    queryFn: () => api.getDossiers(),
+  });
+
+  // Mettre à jour dossierId si preSelectedDossierId change
+  useEffect(() => {
+    if (preSelectedDossierId) {
+      setDossierId(preSelectedDossierId);
+    }
+  }, [preSelectedDossierId]);
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreateConteneurData) => api.createConteneur(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['conteneurs'] });
+      queryClient.invalidateQueries({ queryKey: ['dossiers'] });
+      toast({ title: 'Succès', description: 'Conteneur créé avec succès' });
+      onOpenChange(false);
+      resetForm();
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    },
+  });
+
   const handleSubmit = () => {
-    // TODO: Enregistrer le conteneur
-    console.log({
+    if (!dossierId || !numero) return;
+    
+    createMutation.mutate({
       numero,
       dossierId,
       type,
-      coutTransport,
-      dateDepart,
-      dateArrivee,
+      coutTransport: coutTransport ? Number(coutTransport) : undefined,
+      dateDepart: dateDepart || undefined,
+      dateArrivee: dateArrivee || undefined,
     });
-    onOpenChange(false);
-    resetForm();
   };
 
   const resetForm = () => {
@@ -69,7 +93,7 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
     onOpenChange(open);
   };
 
-  const selectedDossier = mockDossiers.find(d => d.id === dossierId);
+  const selectedDossier = dossiers.find(d => d.id === dossierId);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -96,11 +120,11 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
                 <SelectValue placeholder="Sélectionner un dossier" />
               </SelectTrigger>
               <SelectContent className="bg-popover border border-border shadow-lg z-50">
-                {mockDossiers.map((dossier) => (
+                {dossiers.map((dossier) => (
                   <SelectItem key={dossier.id} value={dossier.id}>
                     <div className="flex flex-col">
                       <span className="font-medium">{dossier.reference}</span>
-                      <span className="text-xs text-muted-foreground">{dossier.supplierName}</span>
+                      <span className="text-xs text-muted-foreground">{dossier.supplier?.name || 'Fournisseur inconnu'}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -113,7 +137,7 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
             <div className="p-3 bg-accent/50 rounded-lg">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Fournisseur</span>
-                <span className="font-medium">{selectedDossier.supplierName}</span>
+                <span className="font-medium">{selectedDossier.supplier?.name || 'Fournisseur inconnu'}</span>
               </div>
             </div>
           )}
@@ -225,8 +249,9 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={!dossierId || !numero}
+            disabled={!dossierId || !numero || createMutation.isPending}
           >
+            {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Créer le conteneur
           </Button>
         </div>
