@@ -1,3 +1,7 @@
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { api, CreateSupplierData } from '@/services/api';
+import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -17,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, User, CreditCard, FileText } from 'lucide-react';
+import { Building2, User, CreditCard, FileText, Loader2 } from 'lucide-react';
 
 interface AddSupplierDialogProps {
   open: boolean;
@@ -25,9 +29,70 @@ interface AddSupplierDialogProps {
 }
 
 export const AddSupplierDialog = ({ open, onOpenChange }: AddSupplierDialogProps) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Form state
+  const [companyName, setCompanyName] = useState('');
+  const [province, setProvince] = useState('');
+  const [city, setCity] = useState('');
+  const [creditLimit, setCreditLimit] = useState('0');
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreateSupplierData) => api.createSupplier(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      toast({
+        title: 'Fournisseur créé',
+        description: 'Le fournisseur a été enregistré avec succès',
+      });
+      resetForm();
+      onOpenChange(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const resetForm = () => {
+    setCompanyName('');
+    setProvince('');
+    setCity('');
+    setCreditLimit('0');
+  };
+
+  const handleSubmit = () => {
+    if (!companyName.trim()) {
+      toast({
+        title: 'Champ requis',
+        description: 'Le nom de l\'entreprise est obligatoire',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const location = [city, province].filter(Boolean).join(', ') || 'Chine';
+
+    createMutation.mutate({
+      name: companyName.trim(),
+      location,
+      creditBalance: parseFloat(creditLimit) || 0,
+    });
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      resetForm();
+    }
+    onOpenChange(open);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -64,7 +129,12 @@ export const AddSupplierDialog = ({ open, onOpenChange }: AddSupplierDialogProps
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="companyName">Nom de l'entreprise *</Label>
-                <Input id="companyName" placeholder="Ex: Guangzhou Auto Trading Co." />
+                <Input 
+                  id="companyName" 
+                  placeholder="Ex: Guangzhou Auto Trading Co." 
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="companyNameChinese">Nom chinois (可选)</Label>
@@ -75,25 +145,30 @@ export const AddSupplierDialog = ({ open, onOpenChange }: AddSupplierDialogProps
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="province">Province</Label>
-                <Select>
+                <Select value={province} onValueChange={setProvince}>
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner une province" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="guangdong">Guangdong (广东)</SelectItem>
-                    <SelectItem value="shanghai">Shanghai (上海)</SelectItem>
-                    <SelectItem value="beijing">Beijing (北京)</SelectItem>
-                    <SelectItem value="zhejiang">Zhejiang (浙江)</SelectItem>
-                    <SelectItem value="jiangsu">Jiangsu (江苏)</SelectItem>
-                    <SelectItem value="shandong">Shandong (山东)</SelectItem>
-                    <SelectItem value="tianjin">Tianjin (天津)</SelectItem>
-                    <SelectItem value="liaoning">Liaoning (辽宁)</SelectItem>
+                    <SelectItem value="Guangdong">Guangdong (广东)</SelectItem>
+                    <SelectItem value="Shanghai">Shanghai (上海)</SelectItem>
+                    <SelectItem value="Beijing">Beijing (北京)</SelectItem>
+                    <SelectItem value="Zhejiang">Zhejiang (浙江)</SelectItem>
+                    <SelectItem value="Jiangsu">Jiangsu (江苏)</SelectItem>
+                    <SelectItem value="Shandong">Shandong (山东)</SelectItem>
+                    <SelectItem value="Tianjin">Tianjin (天津)</SelectItem>
+                    <SelectItem value="Liaoning">Liaoning (辽宁)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="city">Ville</Label>
-                <Input id="city" placeholder="Ex: Guangzhou, Shenzhen..." />
+                <Input 
+                  id="city" 
+                  placeholder="Ex: Guangzhou, Shenzhen..." 
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                />
               </div>
             </div>
 
@@ -310,7 +385,13 @@ export const AddSupplierDialog = ({ open, onOpenChange }: AddSupplierDialogProps
               </div>
               <div className="space-y-2">
                 <Label htmlFor="creditLimit">Limite de crédit accordée (USD)</Label>
-                <Input id="creditLimit" type="number" placeholder="0" />
+                <Input 
+                  id="creditLimit" 
+                  type="number" 
+                  placeholder="0" 
+                  value={creditLimit}
+                  onChange={(e) => setCreditLimit(e.target.value)}
+                />
               </div>
             </div>
 
@@ -356,11 +437,21 @@ export const AddSupplierDialog = ({ open, onOpenChange }: AddSupplierDialogProps
         </Tabs>
 
         <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={createMutation.isPending}>
             Annuler
           </Button>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-            Enregistrer le fournisseur
+          <Button 
+            onClick={handleSubmit}
+            disabled={createMutation.isPending}
+          >
+            {createMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Enregistrement...
+              </>
+            ) : (
+              'Enregistrer le fournisseur'
+            )}
           </Button>
         </div>
       </DialogContent>
