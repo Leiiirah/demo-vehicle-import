@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { MoreVertical, Eye, Phone, Search, BookUser, Check, X } from 'lucide-react';
+import { usePasseports, useUpdatePasseport } from '@/hooks/useApi';
+import { MoreVertical, Eye, Phone, Search, BookUser, Check, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -12,60 +13,21 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { AddPasseportDialog } from '@/components/clients/AddPasseportDialog';
-
-// Mock data for passeports
-const initialPasseports = [
-  {
-    id: 'pass-1',
-    nom: 'Benali',
-    prenom: 'Ahmed',
-    telephone: '+213 555 123 456',
-    adresse: '25 Rue des Pins, Hydra, Alger',
-    numeroPasseport: 'A12345678',
-    pdfPasseport: 'passeport_benali.pdf',
-    montantDu: 10000,
-    paye: true,
-    createdAt: '2026-01-15',
-  },
-  {
-    id: 'pass-2',
-    nom: 'Meziane',
-    prenom: 'Karim',
-    telephone: '+213 555 789 012',
-    adresse: '10 Boulevard Front de Mer, Oran',
-    numeroPasseport: 'B98765432',
-    pdfPasseport: 'passeport_meziane.pdf',
-    montantDu: 10000,
-    paye: false,
-    createdAt: '2026-01-20',
-  },
-  {
-    id: 'pass-3',
-    nom: 'Hadj',
-    prenom: 'Sofiane',
-    telephone: '+213 555 456 789',
-    adresse: '5 Rue Ali Mendjeli, Constantine',
-    numeroPasseport: 'C55667788',
-    pdfPasseport: 'passeport_hadj.pdf',
-    montantDu: 15000,
-    paye: true,
-    createdAt: '2026-01-25',
-  },
-];
+import { Skeleton } from '@/components/ui/skeleton';
 
 const PasseportsPage = () => {
-  const [passeports, setPasseports] = useState(initialPasseports);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
-  const togglePaiement = (id: string) => {
-    setPasseports(prev => 
-      prev.map(p => p.id === id ? { ...p, paye: !p.paye } : p)
-    );
+  const { data: passeports, isLoading, error } = usePasseports();
+  const updatePasseport = useUpdatePasseport();
+
+  const togglePaiement = (id: string, currentPaye: boolean) => {
+    updatePasseport.mutate({ id, data: { paye: !currentPaye } });
   };
 
-  const filteredPasseports = passeports.filter(p => 
+  const filteredPasseports = (passeports || []).filter(p => 
     p.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.prenom.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.numeroPasseport.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -79,9 +41,22 @@ const PasseportsPage = () => {
     }).format(amount) + ' DZD';
   };
 
-  const totalDu = passeports.reduce((sum, p) => sum + p.montantDu, 0);
-  const totalPaye = passeports.filter(p => p.paye).reduce((sum, p) => sum + p.montantDu, 0);
-  const totalNonPaye = passeports.filter(p => !p.paye).reduce((sum, p) => sum + p.montantDu, 0);
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <p className="text-destructive">Erreur de chargement des passeports</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const totalDu = (passeports || []).reduce((sum, p) => sum + (p.montantDu || 0), 0);
+  const totalPaye = (passeports || []).filter(p => p.paye).reduce((sum, p) => sum + (p.montantDu || 0), 0);
+  const totalNonPaye = (passeports || []).filter(p => !p.paye).reduce((sum, p) => sum + (p.montantDu || 0), 0);
 
   return (
     <DashboardLayout>
@@ -116,136 +91,152 @@ const PasseportsPage = () => {
 
         {/* KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="kpi-card">
-            <p className="kpi-label">Total passeports</p>
-            <p className="kpi-value">{passeports.length}</p>
-          </div>
-          <div className="kpi-card">
-            <p className="kpi-label">Total dû</p>
-            <p className="kpi-value text-primary">
-              {formatCurrency(totalDu)}
-            </p>
-          </div>
-          <div className="kpi-card border-l-4 border-l-success">
-            <p className="kpi-label">Payé</p>
-            <p className="kpi-value text-success">
-              {formatCurrency(totalPaye)}
-            </p>
-          </div>
-          <div className="kpi-card border-l-4 border-l-warning">
-            <p className="kpi-label">Non payé</p>
-            <p className="kpi-value text-warning">
-              {formatCurrency(totalNonPaye)}
-            </p>
-          </div>
+          {isLoading ? (
+            <>
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-24" />
+              ))}
+            </>
+          ) : (
+            <>
+              <div className="kpi-card">
+                <p className="kpi-label">Total passeports</p>
+                <p className="kpi-value">{(passeports || []).length}</p>
+              </div>
+              <div className="kpi-card">
+                <p className="kpi-label">Total dû</p>
+                <p className="kpi-value text-primary">
+                  {formatCurrency(totalDu)}
+                </p>
+              </div>
+              <div className="kpi-card border-l-4 border-l-success">
+                <p className="kpi-label">Payé</p>
+                <p className="kpi-value text-success">
+                  {formatCurrency(totalPaye)}
+                </p>
+              </div>
+              <div className="kpi-card border-l-4 border-l-warning">
+                <p className="kpi-label">Non payé</p>
+                <p className="kpi-value text-warning">
+                  {formatCurrency(totalNonPaye)}
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Tableau */}
         <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Nom & Prénom</th>
-                  <th>Téléphone</th>
-                  <th>N° Passeport</th>
-                  <th>Adresse</th>
-                  <th>Montant dû</th>
-                  <th>Statut</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPasseports.map((passeport) => (
-                  <tr 
-                    key={passeport.id}
-                    onClick={() => navigate(`/passeports/${passeport.id}`)}
-                    className="cursor-pointer hover:bg-accent/50"
-                  >
-                    <td>
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <BookUser className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">{passeport.nom} {passeport.prenom}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Ajouté le {new Date(passeport.createdAt).toLocaleDateString('fr-FR')}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Phone className="h-3 w-3" />
-                        {passeport.telephone}
-                      </div>
-                    </td>
-                    <td>
-                      <span className="font-mono text-sm">{passeport.numeroPasseport}</span>
-                    </td>
-                    <td>
-                      <span className="text-sm text-muted-foreground truncate max-w-[200px] block">
-                        {passeport.adresse}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="font-medium">
-                        {formatCurrency(passeport.montantDu)}
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          togglePaiement(passeport.id);
-                        }}
-                        className={cn(
-                          'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all hover:scale-105 shadow-sm border',
-                          passeport.paye
-                            ? 'bg-success/10 text-success hover:bg-success/20 border-success/30'
-                            : 'bg-warning/10 text-warning hover:bg-warning/20 border-warning/30'
-                        )}
-                      >
-                        {passeport.paye ? (
-                          <>
-                            <Check className="h-3 w-3" />
-                            Payé
-                          </>
-                        ) : (
-                          <>
-                            <X className="h-3 w-3" />
-                            Non payé
-                          </>
-                        )}
-                      </button>
-                    </td>
-                    <td>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/passeports/${passeport.id}`)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Voir le détail
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
+            {isLoading ? (
+              <div className="p-6 space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-16" />
                 ))}
-                {filteredPasseports.length === 0 && (
+              </div>
+            ) : (
+              <table className="data-table">
+                <thead>
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-muted-foreground">
-                      Aucun passeport trouvé pour "{searchQuery}"
-                    </td>
+                    <th>Nom & Prénom</th>
+                    <th>Téléphone</th>
+                    <th>N° Passeport</th>
+                    <th>Adresse</th>
+                    <th>Montant dû</th>
+                    <th>Statut</th>
+                    <th></th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredPasseports.map((passeport) => (
+                    <tr 
+                      key={passeport.id}
+                      onClick={() => navigate(`/passeports/${passeport.id}`)}
+                      className="cursor-pointer hover:bg-accent/50"
+                    >
+                      <td>
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <BookUser className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground">{passeport.nom} {passeport.prenom}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Phone className="h-3 w-3" />
+                          {passeport.telephone}
+                        </div>
+                      </td>
+                      <td>
+                        <span className="font-mono text-sm">{passeport.numeroPasseport}</span>
+                      </td>
+                      <td>
+                        <span className="text-sm text-muted-foreground truncate max-w-[200px] block">
+                          {passeport.adresse || '-'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="font-medium">
+                          {formatCurrency(passeport.montantDu || 0)}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            togglePaiement(passeport.id, passeport.paye);
+                          }}
+                          disabled={updatePasseport.isPending}
+                          className={cn(
+                            'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all hover:scale-105 shadow-sm border disabled:opacity-50',
+                            passeport.paye
+                              ? 'bg-success/10 text-success hover:bg-success/20 border-success/30'
+                              : 'bg-warning/10 text-warning hover:bg-warning/20 border-warning/30'
+                          )}
+                        >
+                          {passeport.paye ? (
+                            <>
+                              <Check className="h-3 w-3" />
+                              Payé
+                            </>
+                          ) : (
+                            <>
+                              <X className="h-3 w-3" />
+                              Non payé
+                            </>
+                          )}
+                        </button>
+                      </td>
+                      <td>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => navigate(`/passeports/${passeport.id}`)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              Voir le détail
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredPasseports.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="text-center py-8 text-muted-foreground">
+                        {searchQuery ? `Aucun passeport trouvé pour "${searchQuery}"` : 'Aucun passeport'}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>

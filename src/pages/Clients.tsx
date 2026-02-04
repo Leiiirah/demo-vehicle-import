@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { MoreVertical, Eye, Phone, Search, ShoppingCart, Check, X, Percent } from 'lucide-react';
+import { useClients } from '@/hooks/useApi';
+import { MoreVertical, Eye, Phone, Search, ShoppingCart, Check, X, Percent, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -12,71 +13,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { AddClientDialog } from '@/components/clients/AddClientDialog';
-
-// Mock data for clients (acheteurs avec % sur bénéfice)
-const clients = [
-  {
-    id: 'client-1',
-    nom: 'Kaci',
-    prenom: 'Mohamed',
-    telephone: '+213 555 111 222',
-    adresse: '12 Rue des Oliviers, Blida',
-    pourcentageBenefice: 5,
-    // Exemple: achat à 100 000 DZD, coût revient 80 000 DZD, bénéfice 20 000 DZD
-    // Dette = 5% de 20 000 = 1 000 DZD
-    prixVente: 10000000,
-    coutRevient: 8500000,
-    detteBenefice: 75000, // 5% du bénéfice (1 500 000)
-    paye: false,
-    createdAt: '2026-01-15',
-  },
-  {
-    id: 'client-2',
-    nom: 'Boudiaf',
-    prenom: 'Yacine',
-    telephone: '+213 555 333 444',
-    adresse: '45 Avenue 8 Mai 1945, Sétif',
-    pourcentageBenefice: 10,
-    prixVente: 14000000,
-    coutRevient: 11000000,
-    detteBenefice: 300000, // 10% du bénéfice (3 000 000)
-    paye: true,
-    createdAt: '2026-01-20',
-  },
-  {
-    id: 'client-3',
-    nom: 'Sahraoui',
-    prenom: 'Nadia',
-    telephone: '+213 555 555 666',
-    adresse: '8 Cité AADL, Bab Ezzouar, Alger',
-    pourcentageBenefice: 3,
-    prixVente: 7200000,
-    coutRevient: 6000000,
-    detteBenefice: 36000, // 3% du bénéfice (1 200 000)
-    paye: true,
-    createdAt: '2026-01-25',
-  },
-  {
-    id: 'client-4',
-    nom: 'Hamidi',
-    prenom: 'Rachid',
-    telephone: '+213 555 777 888',
-    adresse: '20 Rue Zighoud Youcef, El Bouni, Annaba',
-    pourcentageBenefice: 8,
-    prixVente: 21000000,
-    coutRevient: 17500000,
-    detteBenefice: 280000, // 8% du bénéfice (3 500 000)
-    paye: false,
-    createdAt: '2026-01-28',
-  },
-];
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ClientsPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
-  const filteredClients = clients.filter(c => 
+  const { data: clients, isLoading, error } = useClients();
+
+  const filteredClients = (clients || []).filter(c => 
     c.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.prenom.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.telephone.includes(searchQuery)
@@ -89,9 +35,22 @@ const ClientsPage = () => {
     }).format(amount) + ' DZD';
   };
 
-  const totalDettes = clients.reduce((sum, c) => sum + c.detteBenefice, 0);
-  const totalPaye = clients.filter(c => c.paye).reduce((sum, c) => sum + c.detteBenefice, 0);
-  const totalNonPaye = clients.filter(c => !c.paye).reduce((sum, c) => sum + c.detteBenefice, 0);
+  const totalDettes = (clients || []).reduce((sum, c) => sum + (c.detteBenefice || 0), 0);
+  const totalPaye = (clients || []).filter(c => c.paye).reduce((sum, c) => sum + (c.detteBenefice || 0), 0);
+  const totalNonPaye = (clients || []).filter(c => !c.paye).reduce((sum, c) => sum + (c.detteBenefice || 0), 0);
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <p className="text-destructive">Erreur de chargement des clients</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -126,144 +85,162 @@ const ClientsPage = () => {
 
         {/* KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="kpi-card">
-            <p className="kpi-label">Total clients</p>
-            <p className="kpi-value">{clients.length}</p>
-          </div>
-          <div className="kpi-card">
-            <p className="kpi-label">Total dettes (% bénéfice)</p>
-            <p className="kpi-value text-primary">
-              {formatCurrency(totalDettes)}
-            </p>
-          </div>
-          <div className="kpi-card border-l-4 border-l-success">
-            <p className="kpi-label">Payé</p>
-            <p className="kpi-value text-success">
-              {formatCurrency(totalPaye)}
-            </p>
-          </div>
-          <div className="kpi-card border-l-4 border-l-warning">
-            <p className="kpi-label">Non payé</p>
-            <p className="kpi-value text-warning">
-              {formatCurrency(totalNonPaye)}
-            </p>
-          </div>
+          {isLoading ? (
+            <>
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-24" />
+              ))}
+            </>
+          ) : (
+            <>
+              <div className="kpi-card">
+                <p className="kpi-label">Total clients</p>
+                <p className="kpi-value">{(clients || []).length}</p>
+              </div>
+              <div className="kpi-card">
+                <p className="kpi-label">Total dettes (% bénéfice)</p>
+                <p className="kpi-value text-primary">
+                  {formatCurrency(totalDettes)}
+                </p>
+              </div>
+              <div className="kpi-card border-l-4 border-l-success">
+                <p className="kpi-label">Payé</p>
+                <p className="kpi-value text-success">
+                  {formatCurrency(totalPaye)}
+                </p>
+              </div>
+              <div className="kpi-card border-l-4 border-l-warning">
+                <p className="kpi-label">Non payé</p>
+                <p className="kpi-value text-warning">
+                  {formatCurrency(totalNonPaye)}
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Tableau */}
         <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Client</th>
-                  <th>Téléphone</th>
-                  <th>% Bénéfice</th>
-                  <th>Prix vente</th>
-                  <th>Bénéfice</th>
-                  <th>Dette client</th>
-                  <th>Statut</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredClients.map((client) => {
-                  const benefice = client.prixVente - client.coutRevient;
-                  return (
-                    <tr 
-                      key={client.id}
-                      onClick={() => navigate(`/clients/${client.id}`)}
-                      className="cursor-pointer hover:bg-accent/50"
-                    >
-                      <td>
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
-                            <ShoppingCart className="h-5 w-5 text-success" />
+            {isLoading ? (
+              <div className="p-6 space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <Skeleton key={i} className="h-16" />
+                ))}
+              </div>
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Client</th>
+                    <th>Téléphone</th>
+                    <th>% Bénéfice</th>
+                    <th>Prix vente</th>
+                    <th>Bénéfice</th>
+                    <th>Dette client</th>
+                    <th>Statut</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredClients.map((client) => {
+                    const benefice = (client.prixVente || 0) - (client.coutRevient || 0);
+                    return (
+                      <tr 
+                        key={client.id}
+                        onClick={() => navigate(`/clients/${client.id}`)}
+                        className="cursor-pointer hover:bg-accent/50"
+                      >
+                        <td>
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
+                              <ShoppingCart className="h-5 w-5 text-success" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-foreground">{client.nom} {client.prenom}</p>
+                              <p className="text-xs text-muted-foreground truncate max-w-[150px]">
+                                {client.adresse || '-'}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium text-foreground">{client.nom} {client.prenom}</p>
-                            <p className="text-xs text-muted-foreground truncate max-w-[150px]">
-                              {client.adresse}
-                            </p>
+                        </td>
+                        <td>
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            {client.telephone}
                           </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Phone className="h-3 w-3" />
-                          {client.telephone}
-                        </div>
-                      </td>
-                      <td>
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary">
-                          <Percent className="h-3 w-3" />
-                          {client.pourcentageBenefice}%
-                        </span>
-                      </td>
-                      <td>
-                        <span className="font-medium">
-                          {formatCurrency(client.prixVente)}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="font-medium text-success">
-                          {formatCurrency(benefice)}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="font-medium text-warning">
-                          {formatCurrency(client.detteBenefice)}
-                        </span>
-                      </td>
-                      <td>
-                        <span
-                          className={cn(
-                            'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium',
-                            client.paye
-                              ? 'bg-success/10 text-success'
-                              : 'bg-warning/10 text-warning'
-                          )}
-                        >
-                          {client.paye ? (
-                            <>
-                              <Check className="h-3 w-3" />
-                              Payé
-                            </>
-                          ) : (
-                            <>
-                              <X className="h-3 w-3" />
-                              Non payé
-                            </>
-                          )}
-                        </span>
-                      </td>
-                      <td>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}`)}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              Voir le détail
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        </td>
+                        <td>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary">
+                            <Percent className="h-3 w-3" />
+                            {client.pourcentageBenefice || 0}%
+                          </span>
+                        </td>
+                        <td>
+                          <span className="font-medium">
+                            {formatCurrency(client.prixVente || 0)}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="font-medium text-success">
+                            {formatCurrency(benefice)}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="font-medium text-warning">
+                            {formatCurrency(client.detteBenefice || 0)}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className={cn(
+                              'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium',
+                              client.paye
+                                ? 'bg-success/10 text-success'
+                                : 'bg-warning/10 text-warning'
+                            )}
+                          >
+                            {client.paye ? (
+                              <>
+                                <Check className="h-3 w-3" />
+                                Payé
+                              </>
+                            ) : (
+                              <>
+                                <X className="h-3 w-3" />
+                                Non payé
+                              </>
+                            )}
+                          </span>
+                        </td>
+                        <td>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}`)}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Voir le détail
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {filteredClients.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="text-center py-8 text-muted-foreground">
+                        {searchQuery ? `Aucun client trouvé pour "${searchQuery}"` : 'Aucun client'}
                       </td>
                     </tr>
-                  );
-                })}
-                {filteredClients.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="text-center py-8 text-muted-foreground">
-                      Aucun client trouvé pour "{searchQuery}"
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>

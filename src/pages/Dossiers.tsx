@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { useDossiers } from '@/hooks/useApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,42 +14,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Search, FolderOpen, Building2, Container, Car } from 'lucide-react';
+import { Plus, Search, FolderOpen, Building2, Container, Car, AlertCircle } from 'lucide-react';
 import { AddDossierDialog } from '@/components/dossiers/AddDossierDialog';
-
-// Mock data pour les dossiers
-const mockDossiers = [
-  {
-    id: 'DOS001',
-    reference: 'DOS-2026-001',
-    supplierId: 'SUP001',
-    supplierName: 'Guangzhou Auto Export',
-    dateCreation: '2026-01-15',
-    status: 'en_cours' as const,
-    totalVehicles: 4,
-    totalConteneurs: 2,
-  },
-  {
-    id: 'DOS002',
-    reference: 'DOS-2026-002',
-    supplierId: 'SUP002',
-    supplierName: 'Shanghai Motors Ltd',
-    dateCreation: '2026-01-20',
-    status: 'termine' as const,
-    totalVehicles: 6,
-    totalConteneurs: 3,
-  },
-  {
-    id: 'DOS003',
-    reference: 'DOS-2026-003',
-    supplierId: 'SUP003',
-    supplierName: 'Shenzhen Auto Hub',
-    dateCreation: '2026-02-01',
-    status: 'en_cours' as const,
-    totalVehicles: 2,
-    totalConteneurs: 1,
-  },
-];
+import { Skeleton } from '@/components/ui/skeleton';
 
 const statusConfig = {
   en_cours: { label: 'En cours', className: 'bg-primary/10 text-primary border-primary/30' },
@@ -59,14 +27,33 @@ const statusConfig = {
 export default function DossiersPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [dossiers] = useState(mockDossiers);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
-  const filteredDossiers = dossiers.filter(
+  const { data: dossiers, isLoading, error } = useDossiers();
+
+  const filteredDossiers = (dossiers || []).filter(
     (dossier) =>
       dossier.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      dossier.supplierName.toLowerCase().includes(searchTerm.toLowerCase())
+      (dossier.supplier?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <p className="text-destructive">Erreur de chargement des dossiers</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const totalConteneurs = (dossiers || []).reduce((acc, d) => acc + (d.conteneurs?.length || 0), 0);
+  const totalVehicles = (dossiers || []).reduce((acc, d) => {
+    return acc + (d.conteneurs?.reduce((sum, c) => sum + (c.vehicles?.length || 0), 0) || 0);
+  }, 0);
 
   return (
     <DashboardLayout>
@@ -87,37 +74,43 @@ export default function DossiersPage() {
 
         {/* KPI Cards */}
         <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Dossiers</CardTitle>
-              <FolderOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{dossiers.length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Conteneurs</CardTitle>
-              <Container className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {dossiers.reduce((acc, d) => acc + d.totalConteneurs, 0)}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Véhicules</CardTitle>
-              <Car className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {dossiers.reduce((acc, d) => acc + d.totalVehicles, 0)}
-              </div>
-            </CardContent>
-          </Card>
+          {isLoading ? (
+            <>
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+            </>
+          ) : (
+            <>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Dossiers</CardTitle>
+                  <FolderOpen className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{(dossiers || []).length}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Conteneurs</CardTitle>
+                  <Container className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{totalConteneurs}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Véhicules</CardTitle>
+                  <Car className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{totalVehicles}</div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         {/* Search */}
@@ -139,48 +132,66 @@ export default function DossiersPage() {
               </div>
             </div>
 
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Référence</TableHead>
-                    <TableHead>Fournisseur</TableHead>
-                    <TableHead>Date Création</TableHead>
-                    <TableHead className="text-center">Conteneurs</TableHead>
-                    <TableHead className="text-center">Véhicules</TableHead>
-                    <TableHead>Statut</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredDossiers.map((dossier) => {
-                    const status = statusConfig[dossier.status];
-                    return (
-                      <TableRow
-                        key={dossier.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => navigate(`/dossiers/${dossier.id}`)}
-                      >
-                        <TableCell className="font-medium">{dossier.reference}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4 text-muted-foreground" />
-                            {dossier.supplierName}
-                          </div>
-                        </TableCell>
-                        <TableCell>{new Date(dossier.dateCreation).toLocaleDateString('fr-FR')}</TableCell>
-                        <TableCell className="text-center">{dossier.totalConteneurs}</TableCell>
-                        <TableCell className="text-center">{dossier.totalVehicles}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={status.className}>
-                            {status.label}
-                          </Badge>
+            {isLoading ? (
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-16" />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Référence</TableHead>
+                      <TableHead>Fournisseur</TableHead>
+                      <TableHead>Date Création</TableHead>
+                      <TableHead className="text-center">Conteneurs</TableHead>
+                      <TableHead className="text-center">Véhicules</TableHead>
+                      <TableHead>Statut</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredDossiers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          {searchTerm ? `Aucun dossier trouvé pour "${searchTerm}"` : 'Aucun dossier'}
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+                    ) : (
+                      filteredDossiers.map((dossier) => {
+                        const status = statusConfig[dossier.status as keyof typeof statusConfig] || statusConfig.en_cours;
+                        const conteneurCount = dossier.conteneurs?.length || 0;
+                        const vehicleCount = dossier.conteneurs?.reduce((sum, c) => sum + (c.vehicles?.length || 0), 0) || 0;
+                        return (
+                          <TableRow
+                            key={dossier.id}
+                            className="cursor-pointer hover:bg-muted/50"
+                            onClick={() => navigate(`/dossiers/${dossier.id}`)}
+                          >
+                            <TableCell className="font-medium">{dossier.reference}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Building2 className="h-4 w-4 text-muted-foreground" />
+                                {dossier.supplier?.name || '-'}
+                              </div>
+                            </TableCell>
+                            <TableCell>{new Date(dossier.dateCreation).toLocaleDateString('fr-FR')}</TableCell>
+                            <TableCell className="text-center">{conteneurCount}</TableCell>
+                            <TableCell className="text-center">{vehicleCount}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className={status.className}>
+                                {status.label}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
