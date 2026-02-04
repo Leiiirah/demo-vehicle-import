@@ -3,12 +3,13 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { TypeOrmExceptionFilter } from '../src/filters/typeorm-exception.filter';
-import { nonExistingUuid } from './testUtils';
+import { nonExistingUuid, uniqueCode } from './testUtils';
 
 describe('PasseportsController (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
   let createdPasseportId: string;
+  let duplicatePasseportId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -31,6 +32,11 @@ describe('PasseportsController (e2e)', () => {
     if (createdPasseportId) {
       await request(app.getHttpServer())
         .delete(`/api/passeports/${createdPasseportId}`)
+        .set('Authorization', `Bearer ${accessToken}`);
+    }
+    if (duplicatePasseportId) {
+      await request(app.getHttpServer())
+        .delete(`/api/passeports/${duplicatePasseportId}`)
         .set('Authorization', `Bearer ${accessToken}`);
     }
     await app.close();
@@ -61,7 +67,7 @@ describe('PasseportsController (e2e)', () => {
         prenom: 'Ahmed',
         telephone: '+213555123456',
         adresse: 'Alger, Algérie',
-        numeroPasseport: `PASS-${Date.now()}`,
+        numeroPasseport: uniqueCode('PASS'),
         montantDu: 50000,
         paye: false,
       };
@@ -90,9 +96,9 @@ describe('PasseportsController (e2e)', () => {
     });
 
     it('should reject duplicate passport number', async () => {
-      const passeportNumber = `PASS-DUP-${Date.now()}`;
+      const passeportNumber = uniqueCode('PASS-DUP');
       
-      await request(app.getHttpServer())
+      const firstRes = await request(app.getHttpServer())
         .post('/api/passeports')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
@@ -100,7 +106,10 @@ describe('PasseportsController (e2e)', () => {
           prenom: 'Dup',
           telephone: '+213555000001',
           numeroPasseport: passeportNumber,
-        });
+        })
+        .expect(201);
+
+      duplicatePasseportId = firstRes.body.id;
 
       return request(app.getHttpServer())
         .post('/api/passeports')
@@ -125,7 +134,7 @@ describe('PasseportsController (e2e)', () => {
             nom: 'Kader',
             prenom: 'Fatima',
             telephone: '+213555111222',
-            numeroPasseport: `PASS-GET-${Date.now()}`,
+            numeroPasseport: uniqueCode('PASS-GET'),
           });
         createdPasseportId = createRes.body.id;
       }
@@ -158,7 +167,7 @@ describe('PasseportsController (e2e)', () => {
             nom: 'Saidi',
             prenom: 'Omar',
             telephone: '+213555333444',
-            numeroPasseport: `PASS-PATCH-${Date.now()}`,
+            numeroPasseport: uniqueCode('PASS-PATCH'),
           });
         createdPasseportId = createRes.body.id;
       }
@@ -193,7 +202,7 @@ describe('PasseportsController (e2e)', () => {
           nom: 'ToDelete',
           prenom: 'Passeport',
           telephone: '+213555999888',
-          numeroPasseport: `PASS-DEL-${Date.now()}`,
+          numeroPasseport: uniqueCode('PASS-DEL'),
         });
       
       const passeportToDelete = createRes.body.id;

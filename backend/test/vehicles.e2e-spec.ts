@@ -3,7 +3,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { TypeOrmExceptionFilter } from '../src/filters/typeorm-exception.filter';
-import { nonExistingUuid } from './testUtils';
+import { nonExistingUuid, uniqueCode } from './testUtils';
 
 describe('VehiclesController (e2e)', () => {
   let app: INestApplication;
@@ -12,6 +12,7 @@ describe('VehiclesController (e2e)', () => {
   let testDossierId: string;
   let testConteneurId: string;
   let createdVehicleId: string;
+  let duplicateVehicleId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -63,6 +64,11 @@ describe('VehiclesController (e2e)', () => {
         .delete(`/api/vehicles/${createdVehicleId}`)
         .set('Authorization', `Bearer ${accessToken}`);
     }
+    if (duplicateVehicleId) {
+      await request(app.getHttpServer())
+        .delete(`/api/vehicles/${duplicateVehicleId}`)
+        .set('Authorization', `Bearer ${accessToken}`);
+    }
     if (testConteneurId) {
       await request(app.getHttpServer())
         .delete(`/api/conteneurs/${testConteneurId}`)
@@ -105,7 +111,7 @@ describe('VehiclesController (e2e)', () => {
         brand: 'Toyota',
         model: 'Camry',
         year: 2023,
-        vin: `VIN-${Date.now()}`,
+        vin: uniqueCode('VIN'),
         supplierId: testSupplierId,
         conteneurId: testConteneurId,
         status: 'ordered',
@@ -142,17 +148,20 @@ describe('VehiclesController (e2e)', () => {
         brand: 'Honda',
         model: 'Accord',
         year: 2023,
-        vin: `VIN-DUP-${Date.now()}`,
+        vin: uniqueCode('VIN-DUP'),
         supplierId: testSupplierId,
         conteneurId: testConteneurId,
         purchasePrice: 22000,
         orderDate: new Date().toISOString().split('T')[0],
       };
 
-      await request(app.getHttpServer())
+      const firstRes = await request(app.getHttpServer())
         .post('/api/vehicles')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send(existingVehicle);
+        .send(existingVehicle)
+        .expect(201);
+
+      duplicateVehicleId = firstRes.body.id;
 
       return request(app.getHttpServer())
         .post('/api/vehicles')
