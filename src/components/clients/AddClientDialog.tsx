@@ -11,7 +11,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ShoppingCart, Percent } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { ShoppingCart, Percent, UserPlus, Users } from 'lucide-react';
+import { clients } from '@/data/mockData';
 
 interface AddClientDialogProps {
   open: boolean;
@@ -19,6 +28,8 @@ interface AddClientDialogProps {
 }
 
 export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) => {
+  const [clientType, setClientType] = useState<'new' | 'existing'>('new');
+  const [selectedClientId, setSelectedClientId] = useState('');
   const [pourcentage, setPourcentage] = useState('5');
   const [prixVente, setPrixVente] = useState('');
   const [coutRevient, setCoutRevient] = useState('');
@@ -32,8 +43,24 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
     onOpenChange(false);
   };
 
+  const resetForm = () => {
+    setClientType('new');
+    setSelectedClientId('');
+    setPourcentage('5');
+    setPrixVente('');
+    setCoutRevient('');
+    setPaye(false);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      resetForm();
+    }
+    onOpenChange(open);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -46,33 +73,99 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
-          {/* Nom et Prénom */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="nom">Nom *</Label>
-              <Input id="nom" placeholder="Ex: Kaci" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="prenom">Prénom *</Label>
-              <Input id="prenom" placeholder="Ex: Mohamed" />
-            </div>
+          {/* Choix type de client */}
+          <div className="space-y-3">
+            <Label>Type de client</Label>
+            <RadioGroup 
+              value={clientType} 
+              onValueChange={(value) => setClientType(value as 'new' | 'existing')}
+              className="grid grid-cols-2 gap-3"
+            >
+              <Label
+                htmlFor="new-client"
+                className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                  clientType === 'new' 
+                    ? 'border-primary bg-primary/5' 
+                    : 'border-border hover:border-muted-foreground/50'
+                }`}
+              >
+                <RadioGroupItem value="new" id="new-client" />
+                <div className="flex items-center gap-2">
+                  <UserPlus className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">Nouveau</span>
+                </div>
+              </Label>
+              <Label
+                htmlFor="existing-client"
+                className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                  clientType === 'existing' 
+                    ? 'border-primary bg-primary/5' 
+                    : 'border-border hover:border-muted-foreground/50'
+                }`}
+              >
+                <RadioGroupItem value="existing" id="existing-client" />
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">Existant</span>
+                </div>
+              </Label>
+            </RadioGroup>
           </div>
 
-          {/* Téléphone */}
-          <div className="space-y-2">
-            <Label htmlFor="telephone">Téléphone *</Label>
-            <Input id="telephone" placeholder="+213 XXX XXX XXX" />
-          </div>
+          {/* Formulaire Nouveau Client */}
+          {clientType === 'new' && (
+            <>
+              {/* Nom et Prénom */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="nom">Nom *</Label>
+                  <Input id="nom" placeholder="Ex: Kaci" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="prenom">Prénom *</Label>
+                  <Input id="prenom" placeholder="Ex: Mohamed" />
+                </div>
+              </div>
 
-          {/* Adresse */}
-          <div className="space-y-2">
-            <Label htmlFor="adresse">Adresse *</Label>
-            <Textarea 
-              id="adresse" 
-              placeholder="Adresse complète"
-              rows={2}
-            />
-          </div>
+              {/* Téléphone */}
+              <div className="space-y-2">
+                <Label htmlFor="telephone">Téléphone *</Label>
+                <Input id="telephone" placeholder="+213 XXX XXX XXX" />
+              </div>
+
+              {/* Adresse */}
+              <div className="space-y-2">
+                <Label htmlFor="adresse">Adresse *</Label>
+                <Textarea 
+                  id="adresse" 
+                  placeholder="Adresse complète"
+                  rows={2}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Sélection Client Existant */}
+          {clientType === 'existing' && (
+            <div className="space-y-2">
+              <Label htmlFor="client-select">Sélectionner un client *</Label>
+              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                <SelectTrigger id="client-select">
+                  <SelectValue placeholder="Choisir un client existant" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border border-border shadow-lg z-50">
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{client.name}</span>
+                        <span className="text-xs text-muted-foreground">{client.phone}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Séparateur - Calcul du bénéfice */}
           <div className="border-t border-border pt-4">
@@ -159,7 +252,7 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
         </div>
 
         <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Annuler
           </Button>
           <Button 
