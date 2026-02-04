@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ArrowLeft, Container, FolderOpen, Car, Calendar, Edit, Plus, Ship, Anchor } from 'lucide-react';
+import { AffecterVehiculeDialog } from '@/components/conteneurs/AffecterVehiculeDialog';
 
 // Mock data
 const mockConteneur = {
@@ -71,6 +73,7 @@ const typeLabels = {
 export default function ConteneurDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [affecterVehiculeOpen, setAffecterVehiculeOpen] = useState(false);
   const conteneur = mockConteneur;
   const vehicules = mockVehicules;
   const status = statusConfig[conteneur.status];
@@ -198,10 +201,16 @@ export default function ConteneurDetailPage() {
               <CardTitle>Véhicules</CardTitle>
               <CardDescription>Véhicules chargés dans ce conteneur</CardDescription>
             </div>
-            <Button className="gap-2">
+            <Button className="gap-2" onClick={() => setAffecterVehiculeOpen(true)}>
               <Plus className="h-4 w-4" />
               Affecter Véhicule
             </Button>
+            <AffecterVehiculeDialog 
+              open={affecterVehiculeOpen} 
+              onOpenChange={setAffecterVehiculeOpen}
+              conteneurId={conteneur.id}
+              conteneurNumero={conteneur.numero}
+            />
           </CardHeader>
           <CardContent>
             <div className="rounded-md border">
