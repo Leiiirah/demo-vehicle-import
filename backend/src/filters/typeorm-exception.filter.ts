@@ -10,6 +10,7 @@ import { QueryFailedError } from 'typeorm';
 interface PostgresDriverError {
   code?: string;
   detail?: string;
+  constraint?: string;
 }
 
 @Catch(QueryFailedError)
@@ -18,15 +19,26 @@ export class TypeOrmExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
 
-    // TypeORM wraps the driver error; access it via driverError
-    const driverError = (exception as QueryFailedError & { driverError?: PostgresDriverError }).driverError;
-    const code = driverError?.code;
-    const detail = driverError?.detail;
+    // TypeORM error shape differs a bit across versions.
+    // Try the common locations for the underlying Postgres error.
+    const anyEx = exception as unknown as {
+      code?: string;
+      detail?: string;
+      driverError?: PostgresDriverError;
+      cause?: PostgresDriverError;
+      message?: string;
+    };
+
+    const driverError = anyEx.driverError ?? anyEx.cause;
+    const code = driverError?.code ?? anyEx.code;
+    const detail = driverError?.detail ?? anyEx.detail;
+    const message = anyEx.message ?? '';
 
     // Postgres error codes:
     // - 23505: unique_violation
     // - 22P02: invalid_text_representation (e.g., invalid uuid)
-    if (code === '23505') {
+    // Some environments may not expose the code reliably; fall back to message match.
+    if (code === '23505' || /duplicate key value violates unique constraint/i.test(message)) {
       return res.status(HttpStatus.CONFLICT).json({
         statusCode: HttpStatus.CONFLICT,
         message: 'Conflict',
