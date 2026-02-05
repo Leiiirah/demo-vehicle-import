@@ -28,6 +28,13 @@ jobs:
             # Create directory if it doesn't exist
             mkdir -p /var/www/vhlimport
             cd /var/www/vhlimport
+
+            # Backup backend env so it never gets lost during git operations
+            ENV_BACKUP_PATH="/tmp/vhlimport_backend.env"
+            if [ -f backend/.env ]; then
+              echo "=== Backing up backend/.env ==="
+              cp backend/.env "$ENV_BACKUP_PATH"
+            fi
             
             echo "=== Syncing with repository ==="
             # Initialize git repo if not exists, otherwise fetch and reset
@@ -39,7 +46,26 @@ jobs:
             
             git fetch origin main
             git reset --hard origin/main
-            git clean -fd -e backend/.env
+
+            # Restore env after reset/clean (belt + suspenders)
+            if [ -f "$ENV_BACKUP_PATH" ]; then
+              echo "=== Restoring backend/.env ==="
+              mkdir -p backend
+              cp "$ENV_BACKUP_PATH" backend/.env
+            fi
+
+            # Clean untracked files but preserve env files
+            git clean -fd -e backend/.env -e backend/.env.*
+
+            # Fail fast if env is missing / misconfigured (prevents SASL SCRAM errors)
+            if [ ! -f backend/.env ]; then
+              echo "ERROR: backend/.env is missing on the server. Create /var/www/vhlimport/backend/.env and re-run." >&2
+              exit 1
+            fi
+            if ! grep -q '^DB_PASSWORD=\(.\+\)$' backend/.env; then
+              echo "ERROR: DB_PASSWORD is missing or empty in backend/.env. Set it and re-run." >&2
+              exit 1
+            fi
             
             echo "=== Building frontend ==="
             npm install --legacy-peer-deps
