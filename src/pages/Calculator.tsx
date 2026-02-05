@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { exchangeRate } from '@/data/mockData';
 import {
   Calculator,
   Plus,
@@ -18,6 +17,9 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
+// Default exchange rate - can be made configurable via settings API later
+const DEFAULT_EXCHANGE_RATE = 135.0;
+
 interface Payment {
   id: string;
   amount: number;
@@ -29,6 +31,7 @@ const CostCalculatorPage = () => {
   const [purchasePrice, setPurchasePrice] = useState<number>(45000);
   const [transportCost, setTransportCost] = useState<number>(2500);
   const [localFees, setLocalFees] = useState<number>(350000);
+  const [currentExchangeRate] = useState<number>(DEFAULT_EXCHANGE_RATE);
   const [payments, setPayments] = useState<Payment[]>([
     { id: '1', amount: 20000, exchangeRate: 134.50, description: 'Acompte initial' },
     { id: '2', amount: 25000, exchangeRate: 135.20, description: 'Paiement final' },
@@ -40,7 +43,7 @@ const CostCalculatorPage = () => {
       {
         id: Date.now().toString(),
         amount: 0,
-        exchangeRate: exchangeRate.USD_DZD,
+        exchangeRate: currentExchangeRate,
         description: '',
       },
     ]);
@@ -69,12 +72,12 @@ const CostCalculatorPage = () => {
     const totalUSDPayments = payments.reduce((sum, p) => sum + p.amount, 0);
     const weightedAvgRate = totalUSDPayments > 0
       ? totalPaidDZD / totalUSDPayments
-      : exchangeRate.USD_DZD;
+      : currentExchangeRate;
 
     const totalCostDZD = totalPaidDZD + localFees;
 
     const remainingUSD = totalUSDCosts - totalUSDPayments;
-    const remainingDZD = remainingUSD * exchangeRate.USD_DZD;
+    const remainingDZD = remainingUSD * currentExchangeRate;
 
     const finalCostDZD = totalCostDZD + (remainingUSD > 0 ? remainingDZD : 0);
 
@@ -88,7 +91,7 @@ const CostCalculatorPage = () => {
       remainingDZD,
       finalCostDZD,
     };
-  }, [purchasePrice, transportCost, localFees, payments]);
+  }, [purchasePrice, transportCost, localFees, payments, currentExchangeRate]);
 
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
     if (currency === 'USD') {
@@ -375,7 +378,7 @@ const CostCalculatorPage = () => {
                               <RefreshCw className="h-3 w-3" />
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>{exchangeRate.USD_DZD} DZD/USD</p>
+                              <p>{currentExchangeRate} DZD/USD</p>
                             </TooltipContent>
                           </Tooltip>
                         </span>
@@ -408,7 +411,7 @@ const CostCalculatorPage = () => {
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1 text-right">
-                    ≈ {formatCurrency(calculations.finalCostDZD / exchangeRate.USD_DZD, 'USD')}
+                    ≈ {formatCurrency(calculations.finalCostDZD / currentExchangeRate, 'USD')}
                   </p>
                 </div>
               </div>
