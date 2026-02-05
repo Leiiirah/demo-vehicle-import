@@ -49,4 +49,8 @@ export class CreatePaymentDto {
   @IsUUID()
   @IsOptional()
   clientId?: string;
+
+  @IsUUID()
+  @IsOptional()
+  dossierId?: string;
 }

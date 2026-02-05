@@ -10,6 +10,7 @@ import {
 import { Supplier } from './supplier.entity';
 import { Conteneur } from './conteneur.entity';
 import { Client } from './client.entity';
+import { Passeport } from './passeport.entity';
 
 export enum VehicleStatus {
   ORDERED = 'ordered',
@@ -56,6 +57,13 @@ export class Vehicle {
   @JoinColumn({ name: 'conteneurId' })
   conteneur: Conteneur;
 
+  @Column({ nullable: true })
+  passeportId: string;
+
+  @ManyToOne(() => Passeport, { nullable: true })
+  @JoinColumn({ name: 'passeportId' })
+  passeport: Passeport;
+
   @Column({
     type: 'enum',
     enum: VehicleStatus,
@@ -69,11 +77,17 @@ export class Vehicle {
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   transportCost: number; // USD - calculated from container
 
-  @Column({ type: 'decimal', precision: 14, scale: 2, default: 0 })
-  localFees: number; // DZD
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, default: 134.5 })
+  theoreticalRate: number; // Manual DZD rate for cost calculation
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  passeportCost: number; // DZD - from linked passport montantDu
 
   @Column({ type: 'decimal', precision: 14, scale: 2, default: 0 })
-  totalCost: number; // DZD - calculated
+  localFees: number; // DZD - transit fees
+
+  @Column({ type: 'decimal', precision: 14, scale: 2, default: 0 })
+  totalCost: number; // DZD - calculated prix de revient
 
   @Column({ type: 'decimal', precision: 14, scale: 2, nullable: true })
   sellingPrice: number; // DZD

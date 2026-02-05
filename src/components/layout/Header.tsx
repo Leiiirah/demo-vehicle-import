@@ -1,4 +1,6 @@
-import { Bell, LogOut, User, Wallet, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Bell, LogOut, User, Wallet, Loader2, Search } from 'lucide-react';
 import { useDashboardStats } from '@/hooks/useApi';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -10,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Tooltip,
   TooltipContent,
@@ -17,8 +20,10 @@ import {
 } from '@/components/ui/tooltip';
 
 export function Header() {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { data: stats, isLoading } = useDashboardStats();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
     if (currency === 'USD') {
@@ -38,9 +43,29 @@ export function Header() {
     await logout();
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim().length >= 2) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
+  };
+
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-      <div className="flex h-full items-center justify-end px-6">
+      <div className="flex h-full items-center justify-between px-6">
+        {/* Search Bar */}
+        <form onSubmit={handleSearch} className="flex-1 max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher dossiers, clients, VIN..."
+              className="pl-10 bg-muted/50"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </form>
 
         {/* Stats rapides & Utilisateur */}
         <div className="flex items-center gap-4">

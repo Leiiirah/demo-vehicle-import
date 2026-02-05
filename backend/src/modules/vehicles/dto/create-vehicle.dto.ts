@@ -38,6 +38,10 @@ export class CreateVehicleDto {
   @IsNotEmpty()
   conteneurId: string;
 
+  @IsUUID()
+  @IsOptional()
+  passeportId?: string;
+
   @IsEnum(VehicleStatus)
   @IsOptional()
   status?: VehicleStatus;
@@ -45,6 +49,14 @@ export class CreateVehicleDto {
   @IsNumber()
   @IsNotEmpty()
   purchasePrice: number;
+
+  @IsNumber()
+  @IsOptional()
+  theoreticalRate?: number;
+
+  @IsNumber()
+  @IsOptional()
+  passeportCost?: number;
 
   @IsNumber()
   @IsOptional()

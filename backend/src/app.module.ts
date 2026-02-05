@@ -13,6 +13,7 @@ import { ClientsModule } from './modules/clients/clients.module';
 import { PasseportsModule } from './modules/passeports/passeports.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     PasseportsModule,
     PaymentsModule,
     DashboardModule,
+    SearchModule,
   ],
 })
 export class AppModule {}

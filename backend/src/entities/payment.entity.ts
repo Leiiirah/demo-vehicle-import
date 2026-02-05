@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Supplier } from './supplier.entity';
 import { Client } from './client.entity';
+import { Dossier } from './dossier.entity';
 
 export enum PaymentCurrency {
   USD = 'USD',
@@ -77,6 +78,13 @@ export class Payment {
   @ManyToOne(() => Client, (client) => client.payments, { nullable: true })
   @JoinColumn({ name: 'clientId' })
   client: Client;
+
+  @Column({ nullable: true })
+  dossierId: string;
+
+  @ManyToOne(() => Dossier, (dossier) => dossier.payments, { nullable: true })
+  @JoinColumn({ name: 'dossierId' })
+  dossier: Dossier;
 
   @CreateDateColumn()
   createdAt: Date;
