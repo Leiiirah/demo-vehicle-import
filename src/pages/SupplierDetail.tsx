@@ -261,14 +261,9 @@ const SupplierDetailPage = () => {
 
           <TabsContent value="payments">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg">Historique des paiements</CardTitle>
-                  <CardDescription>Tous les paiements effectués à ce fournisseur</CardDescription>
-                </div>
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  Nouveau paiement
-                </Button>
+              <CardHeader>
+                <CardTitle className="text-lg">Historique des paiements</CardTitle>
+                <CardDescription>Tous les paiements effectués à ce fournisseur</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-center text-muted-foreground py-8">

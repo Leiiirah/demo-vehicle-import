@@ -13,9 +13,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Building2, Container, Car, Plus, Calendar, Edit, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Building2, Container, Car, Plus, Calendar, Edit, AlertCircle, CreditCard } from 'lucide-react';
 import { AddConteneurDialog } from '@/components/conteneurs/AddConteneurDialog';
 import { EditDossierDialog } from '@/components/dossiers/EditDossierDialog';
+import { AddPaymentDialog } from '@/components/payments/AddPaymentDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const statusConfig = {
@@ -42,6 +43,7 @@ export default function DossierDetailPage() {
   const navigate = useNavigate();
   const [addConteneurOpen, setAddConteneurOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [addPaymentOpen, setAddPaymentOpen] = useState(false);
 
   const { data: dossier, isLoading, error } = useDossier(id || '');
 
@@ -225,12 +227,37 @@ export default function DossierDetailPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Paiements */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Paiements</CardTitle>
+              <CardDescription>Paiements liés à ce dossier</CardDescription>
+            </div>
+            <Button className="gap-2" onClick={() => setAddPaymentOpen(true)}>
+              <CreditCard className="h-4 w-4" />
+              Nouveau Paiement
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <p className="text-center text-muted-foreground py-8">
+              Aucun paiement enregistré pour ce dossier
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       <EditDossierDialog 
         open={editDialogOpen} 
         onOpenChange={setEditDialogOpen} 
         dossier={dossier}
+      />
+
+      <AddPaymentDialog
+        open={addPaymentOpen}
+        onOpenChange={setAddPaymentOpen}
+        preSelectedSupplierId={dossier.supplierId}
       />
     </DashboardLayout>
   );
