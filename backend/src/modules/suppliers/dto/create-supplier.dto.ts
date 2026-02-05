@@ -9,6 +9,18 @@ export class CreateSupplierDto {
   @IsNotEmpty()
   location: string;
 
+  @IsString()
+  @IsOptional()
+  contactName?: string;
+
+  @IsString()
+  @IsOptional()
+  contactEmail?: string;
+
+  @IsString()
+  @IsOptional()
+  contactPhone?: string;
+
   @IsNumber()
   @IsOptional()
   creditBalance?: number;
