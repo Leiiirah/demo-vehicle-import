@@ -1,5 +1,5 @@
-import { Bell, LogOut, User, Wallet } from 'lucide-react';
-import { kpiData } from '@/data/mockData';
+import { Bell, LogOut, User, Wallet, Loader2 } from 'lucide-react';
+import { useDashboardStats } from '@/hooks/useApi';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   DropdownMenu,
@@ -18,6 +18,7 @@ import {
 
 export function Header() {
   const { user, logout } = useAuth();
+  const { data: stats, isLoading } = useDashboardStats();
 
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
     if (currency === 'USD') {
@@ -45,36 +46,42 @@ export function Header() {
         <div className="flex items-center gap-4">
           {/* Solde global */}
           <div className="hidden md:flex items-center gap-4 mr-4">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2">
-                  <Wallet className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Solde :</span>
-                  <span className="font-semibold text-success">
-                    {formatCurrency(kpiData.totalProfit)}
-                  </span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Profit total sur toutes les opérations</p>
-              </TooltipContent>
-            </Tooltip>
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            ) : (
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2">
+                      <Wallet className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Solde :</span>
+                      <span className="font-semibold text-success">
+                        {formatCurrency(stats?.totalProfit || 0)}
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Profit total sur toutes les opérations</p>
+                  </TooltipContent>
+                </Tooltip>
 
-            <div className="h-6 w-px bg-border" />
+                <div className="h-6 w-px bg-border" />
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Dettes :</span>
-                  <span className="font-semibold text-danger">
-                    {formatCurrency(kpiData.outstandingDebts, 'USD')}
-                  </span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Dettes fournisseurs en cours</p>
-              </TooltipContent>
-            </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Dettes :</span>
+                      <span className="font-semibold text-danger">
+                        {formatCurrency(stats?.outstandingDebts || 0, 'USD')}
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Dettes fournisseurs en cours</p>
+                  </TooltipContent>
+                </Tooltip>
+              </>
+            )}
           </div>
 
           {/* Notifications */}

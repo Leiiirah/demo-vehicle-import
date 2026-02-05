@@ -18,11 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { TrendingUp, TrendingDown, DollarSign, Search, Filter, Download, Calendar } from 'lucide-react';
-import { vehicles } from '@/data/mockData';
+import { TrendingUp, TrendingDown, DollarSign, Search, Download, Loader2 } from 'lucide-react';
+import { useVehicles } from '@/hooks/useApi';
 
 const SalesPage = () => {
-  const soldVehicles = vehicles.filter((v) => v.status === 'sold');
+  const { data: vehicles = [], isLoading } = useVehicles();
+  const soldVehicles = vehicles.filter((v: any) => v.status === 'sold');
 
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
     if (currency === 'USD') {
@@ -38,10 +39,20 @@ const SalesPage = () => {
     }).format(amount) + ' DZD';
   };
 
-  const totalSales = soldVehicles.reduce((sum, v) => sum + v.sellingPrice, 0);
-  const totalProfit = soldVehicles.reduce((sum, v) => sum + v.profit, 0);
-  const totalCost = soldVehicles.reduce((sum, v) => sum + v.totalCost, 0);
+  const totalSales = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.sellingPrice || 0), 0);
+  const totalCost = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0);
+  const totalProfit = totalSales - totalCost;
   const averageMargin = totalSales > 0 ? ((totalProfit / totalSales) * 100).toFixed(1) : '0';
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -148,8 +159,6 @@ const SalesPage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les clients</SelectItem>
-                  <SelectItem value="client1">Ahmed Benali</SelectItem>
-                  <SelectItem value="client2">Karim Mansouri</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -175,8 +184,11 @@ const SalesPage = () => {
               </TableHeader>
               <TableBody>
                 {soldVehicles.length > 0 ? (
-                  soldVehicles.map((vehicle) => {
-                    const margin = ((vehicle.profit / vehicle.sellingPrice) * 100).toFixed(1);
+                  soldVehicles.map((vehicle: any) => {
+                    const profit = Number(vehicle.sellingPrice || 0) - Number(vehicle.totalCost || 0);
+                    const margin = vehicle.sellingPrice > 0 
+                      ? ((profit / Number(vehicle.sellingPrice)) * 100).toFixed(1) 
+                      : '0';
                     return (
                       <TableRow key={vehicle.id}>
                         <TableCell>
@@ -187,16 +199,16 @@ const SalesPage = () => {
                             {vehicle.year} • {vehicle.vin}
                           </div>
                         </TableCell>
-                        <TableCell>{vehicle.client}</TableCell>
+                        <TableCell>{vehicle.client?.name || '-'}</TableCell>
                         <TableCell className="text-right">
-                          {formatCurrency(vehicle.totalCost)}
+                          {formatCurrency(Number(vehicle.totalCost || 0))}
                         </TableCell>
                         <TableCell className="text-right">
-                          {formatCurrency(vehicle.sellingPrice)}
+                          {formatCurrency(Number(vehicle.sellingPrice || 0))}
                         </TableCell>
                         <TableCell className="text-right">
                           <span className="text-success font-medium">
-                            {formatCurrency(vehicle.profit)}
+                            {formatCurrency(profit)}
                           </span>
                         </TableCell>
                         <TableCell className="text-right">

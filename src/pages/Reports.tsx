@@ -10,8 +10,8 @@ import {
   LineChart,
   Line,
 } from 'recharts';
-import { profitHistory, suppliers, clients } from '@/data/mockData';
-import { FileText, Download, Calendar } from 'lucide-react';
+import { useProfitHistory, useSuppliers, useClients } from '@/hooks/useApi';
+import { FileText, Download, Calendar, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -22,6 +22,12 @@ import {
 } from '@/components/ui/select';
 
 const ReportsPage = () => {
+  const { data: profitHistory = [], isLoading: loadingProfit } = useProfitHistory();
+  const { data: suppliers = [], isLoading: loadingSuppliers } = useSuppliers();
+  const { data: clients = [], isLoading: loadingClients } = useClients();
+
+  const isLoading = loadingProfit || loadingSuppliers || loadingClients;
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-DZ', {
       style: 'decimal',
@@ -29,18 +35,28 @@ const ReportsPage = () => {
     }).format(amount) + ' DZD';
   };
 
-  const clientProfitData = clients.map((client) => ({
-    name: client.name.split(' ')[0],
-    profit: client.totalProfit,
-    vehicles: client.vehiclesImported,
+  const clientProfitData = clients.map((client: any) => ({
+    name: client.name?.split(' ')[0] || 'N/A',
+    profit: client.totalProfit || 0,
+    vehicles: client.vehiclesImported || 0,
   }));
 
-  const supplierData = suppliers.map((supplier) => ({
-    name: supplier.name.split(' ')[0],
-    paid: supplier.totalPaid,
-    debt: supplier.remainingDebt,
-    vehicles: supplier.vehiclesSupplied,
+  const supplierData = suppliers.map((supplier: any) => ({
+    name: supplier.name?.split(' ')[0] || 'N/A',
+    paid: supplier.totalPaid || 0,
+    debt: supplier.remainingDebt || 0,
+    vehicles: supplier.vehiclesSupplied || 0,
   }));
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -150,43 +166,49 @@ const ReportsPage = () => {
               Profit par client
             </h3>
             <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={clientProfitData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 5%, 90%)" />
-                  <XAxis
-                    type="number"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
-                    tickFormatter={(value) =>
-                      new Intl.NumberFormat('fr-DZ', {
-                        notation: 'compact',
-                      }).format(value)
-                    }
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
-                    width={80}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(0, 0%, 100%)',
-                      border: '1px solid hsl(0, 5%, 90%)',
-                      borderRadius: '8px',
-                    }}
-                    formatter={(value: number) => [formatCurrency(value), 'Profit']}
-                  />
-                  <Bar
-                    dataKey="profit"
-                    fill="hsl(0, 72%, 50%)"
-                    radius={[0, 4, 4, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              {clientProfitData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={clientProfitData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 5%, 90%)" />
+                    <XAxis
+                      type="number"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
+                      tickFormatter={(value) =>
+                        new Intl.NumberFormat('fr-DZ', {
+                          notation: 'compact',
+                        }).format(value)
+                      }
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
+                      width={80}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(0, 0%, 100%)',
+                        border: '1px solid hsl(0, 5%, 90%)',
+                        borderRadius: '8px',
+                      }}
+                      formatter={(value: number) => [formatCurrency(value), 'Profit']}
+                    />
+                    <Bar
+                      dataKey="profit"
+                      fill="hsl(0, 72%, 50%)"
+                      radius={[0, 4, 4, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  Aucun client trouvé
+                </div>
+              )}
             </div>
           </div>
 
@@ -196,48 +218,54 @@ const ReportsPage = () => {
               Récapitulatif financier fournisseurs
             </h3>
             <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={supplierData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 5%, 90%)" />
-                  <XAxis
-                    dataKey="name"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
-                    tickFormatter={(value) =>
-                      new Intl.NumberFormat('en-US', {
-                        notation: 'compact',
-                        style: 'currency',
-                        currency: 'USD',
-                      }).format(value)
-                    }
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(0, 0%, 100%)',
-                      border: '1px solid hsl(0, 5%, 90%)',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Bar
-                    dataKey="paid"
-                    name="Total payé"
-                    fill="hsl(142, 71%, 45%)"
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="debt"
-                    name="Dette en cours"
-                    fill="hsl(0, 72%, 51%)"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              {supplierData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={supplierData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 5%, 90%)" />
+                    <XAxis
+                      dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
+                      tickFormatter={(value) =>
+                        new Intl.NumberFormat('en-US', {
+                          notation: 'compact',
+                          style: 'currency',
+                          currency: 'USD',
+                        }).format(value)
+                      }
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(0, 0%, 100%)',
+                        border: '1px solid hsl(0, 5%, 90%)',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Bar
+                      dataKey="paid"
+                      name="Total payé"
+                      fill="hsl(142, 71%, 45%)"
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                      dataKey="debt"
+                      name="Dette en cours"
+                      fill="hsl(0, 72%, 51%)"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  Aucun fournisseur trouvé
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -259,19 +287,27 @@ const ReportsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {profitHistory.map((month) => (
-                  <tr key={month.month}>
-                    <td className="font-medium text-foreground">{month.month} 2026</td>
-                    <td>8</td>
-                    <td>{formatCurrency(month.profit * 12)}</td>
-                    <td className="text-success font-medium">
-                      {formatCurrency(month.profit)}
-                    </td>
-                    <td>
-                      <span className="badge-profit">7,2%</span>
+                {profitHistory.length > 0 ? (
+                  profitHistory.map((month: any) => (
+                    <tr key={month.month}>
+                      <td className="font-medium text-foreground">{month.month} 2026</td>
+                      <td>-</td>
+                      <td>{formatCurrency(month.profit * 12)}</td>
+                      <td className="text-success font-medium">
+                        {formatCurrency(month.profit)}
+                      </td>
+                      <td>
+                        <span className="badge-profit">-</span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="text-center py-8 text-muted-foreground">
+                      Aucune donnée disponible
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
