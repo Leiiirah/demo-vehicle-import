@@ -21,6 +21,15 @@ export class Supplier {
   @Column()
   location: string;
 
+  @Column({ nullable: true })
+  contactName: string;
+
+  @Column({ nullable: true })
+  contactEmail: string;
+
+  @Column({ nullable: true })
+  contactPhone: string;
+
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   creditBalance: number;
 
