@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
@@ -19,8 +20,16 @@ export class PaymentsController {
   constructor(private paymentsService: PaymentsService) {}
 
   @Get()
-  findAll() {
+  findAll(@Query('dossierId') dossierId?: string) {
+    if (dossierId) {
+      return this.paymentsService.findByDossier(dossierId);
+    }
     return this.paymentsService.findAll();
+  }
+
+  @Get('dossier/:dossierId/stats')
+  getDossierPaymentStats(@Param('dossierId') dossierId: string) {
+    return this.paymentsService.getDossierPaymentStats(dossierId);
   }
 
   @Get(':id')

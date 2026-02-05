@@ -17,6 +17,8 @@ import { ArrowLeft, Building2, Container, Car, Plus, Calendar, Edit, AlertCircle
 import { AddConteneurDialog } from '@/components/conteneurs/AddConteneurDialog';
 import { EditDossierDialog } from '@/components/dossiers/EditDossierDialog';
 import { AddPaymentDialog } from '@/components/payments/AddPaymentDialog';
+import { DossierAnalytics } from '@/components/dossiers/DossierAnalytics';
+import { DossierPaymentLedger } from '@/components/dossiers/DossierPaymentLedger';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const statusConfig = {
@@ -104,6 +106,9 @@ export default function DossierDetailPage() {
             Modifier
           </Button>
         </div>
+
+        {/* Dossier Analytics */}
+        <DossierAnalytics conteneurs={conteneurs} />
 
         {/* Info Cards */}
         <div className="grid gap-4 md:grid-cols-3">
@@ -232,8 +237,8 @@ export default function DossierDetailPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Paiements</CardTitle>
-              <CardDescription>Paiements liés à ce dossier</CardDescription>
+              <CardTitle>Paiements Fournisseur</CardTitle>
+              <CardDescription>Suivi des versements pour ce dossier</CardDescription>
             </div>
             <Button className="gap-2" onClick={() => setAddPaymentOpen(true)}>
               <CreditCard className="h-4 w-4" />
@@ -241,9 +246,7 @@ export default function DossierDetailPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            <p className="text-center text-muted-foreground py-8">
-              Aucun paiement enregistré pour ce dossier
-            </p>
+            <DossierPaymentLedger dossierId={dossier.id} />
           </CardContent>
         </Card>
       </div>
@@ -258,6 +261,7 @@ export default function DossierDetailPage() {
         open={addPaymentOpen}
         onOpenChange={setAddPaymentOpen}
         preSelectedSupplierId={dossier.supplierId}
+        preSelectedDossierId={dossier.id}
       />
     </DashboardLayout>
   );

@@ -1,10 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Vehicle } from '../../entities/vehicle.entity';
 import { Conteneur } from '../../entities/conteneur.entity';
+import { Passeport } from '../../entities/passeport.entity';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
+
+const MAX_VEHICLES_PER_CONTAINER = 4;
 
 @Injectable()
 export class VehiclesService {
@@ -13,19 +16,21 @@ export class VehiclesService {
     private vehicleRepository: Repository<Vehicle>,
     @InjectRepository(Conteneur)
     private conteneurRepository: Repository<Conteneur>,
+    @InjectRepository(Passeport)
+    private passeportRepository: Repository<Passeport>,
   ) {}
 
   async findAll() {
     return this.vehicleRepository.find({
       order: { createdAt: 'DESC' },
-      relations: ['supplier', 'conteneur', 'conteneur.dossier', 'client'],
+      relations: ['supplier', 'conteneur', 'conteneur.dossier', 'client', 'passeport'],
     });
   }
 
   async findOne(id: string) {
     const vehicle = await this.vehicleRepository.findOne({
       where: { id },
-      relations: ['supplier', 'conteneur', 'conteneur.dossier', 'client'],
+      relations: ['supplier', 'conteneur', 'conteneur.dossier', 'client', 'passeport'],
     });
     if (!vehicle) {
       throw new NotFoundException('Vehicle not found');
@@ -34,7 +39,7 @@ export class VehiclesService {
   }
 
   async create(createVehicleDto: CreateVehicleDto) {
-    // Calculate transport cost per vehicle
+    // Check container capacity
     const conteneur = await this.conteneurRepository.findOne({
       where: { id: createVehicleDto.conteneurId },
       relations: ['vehicles'],
@@ -44,12 +49,44 @@ export class VehiclesService {
       throw new NotFoundException('Conteneur not found');
     }
 
-    const vehicleCount = (conteneur.vehicles?.length || 0) + 1;
+    const currentCount = conteneur.vehicles?.length || 0;
+    if (currentCount >= MAX_VEHICLES_PER_CONTAINER) {
+      throw new BadRequestException(
+        `Le conteneur ne peut pas contenir plus de ${MAX_VEHICLES_PER_CONTAINER} véhicules`,
+      );
+    }
+
+    // Get passport cost if linked
+    let passeportCost = 0;
+    if (createVehicleDto.passeportId) {
+      const passeport = await this.passeportRepository.findOne({
+        where: { id: createVehicleDto.passeportId },
+      });
+      if (passeport) {
+        passeportCost = Number(passeport.montantDu);
+      }
+    }
+
+    // Calculate transport cost per vehicle (including the new one)
+    const vehicleCount = currentCount + 1;
     const transportCostPerVehicle = Number(conteneur.coutTransport) / vehicleCount;
+
+    // Calculate total cost using the formula:
+    // (CarPrice + TransportCost) * TheoreticalRate + LocalFees + PassportCost
+    const theoreticalRate = createVehicleDto.theoreticalRate || 134.5;
+    const localFees = createVehicleDto.localFees || 0;
+    const purchasePrice = createVehicleDto.purchasePrice;
+
+    const totalCost =
+      (purchasePrice + transportCostPerVehicle) * theoreticalRate +
+      localFees +
+      passeportCost;
 
     const vehicle = this.vehicleRepository.create({
       ...createVehicleDto,
       transportCost: transportCostPerVehicle,
+      passeportCost,
+      totalCost,
     });
 
     const savedVehicle = await this.vehicleRepository.save(vehicle);
@@ -61,23 +98,55 @@ export class VehiclesService {
   }
 
   async update(id: string, updateVehicleDto: UpdateVehicleDto) {
-    const vehicle = await this.vehicleRepository.findOne({ where: { id } });
-    if (!vehicle) {
-      throw new NotFoundException('Vehicle not found');
-    }
-    Object.assign(vehicle, updateVehicleDto);
-    return this.vehicleRepository.save(vehicle);
-  }
-
-  async remove(id: string) {
-    const vehicle = await this.vehicleRepository.findOne({ 
+    const vehicle = await this.vehicleRepository.findOne({
       where: { id },
       relations: ['conteneur'],
     });
     if (!vehicle) {
       throw new NotFoundException('Vehicle not found');
     }
-    
+
+    // If updating passport, recalculate passport cost
+    if (updateVehicleDto.passeportId) {
+      const passeport = await this.passeportRepository.findOne({
+        where: { id: updateVehicleDto.passeportId },
+      });
+      if (passeport) {
+        updateVehicleDto.passeportCost = Number(passeport.montantDu);
+      }
+    }
+
+    // Recalculate total cost if relevant fields changed
+    const shouldRecalculate =
+      updateVehicleDto.purchasePrice !== undefined ||
+      updateVehicleDto.theoreticalRate !== undefined ||
+      updateVehicleDto.localFees !== undefined ||
+      updateVehicleDto.passeportCost !== undefined;
+
+    if (shouldRecalculate) {
+      const purchasePrice = updateVehicleDto.purchasePrice ?? Number(vehicle.purchasePrice);
+      const theoreticalRate = updateVehicleDto.theoreticalRate ?? Number(vehicle.theoreticalRate);
+      const localFees = updateVehicleDto.localFees ?? Number(vehicle.localFees);
+      const passeportCost = updateVehicleDto.passeportCost ?? Number(vehicle.passeportCost);
+      const transportCost = Number(vehicle.transportCost);
+
+      updateVehicleDto.totalCost =
+        (purchasePrice + transportCost) * theoreticalRate + localFees + passeportCost;
+    }
+
+    Object.assign(vehicle, updateVehicleDto);
+    return this.vehicleRepository.save(vehicle);
+  }
+
+  async remove(id: string) {
+    const vehicle = await this.vehicleRepository.findOne({
+      where: { id },
+      relations: ['conteneur'],
+    });
+    if (!vehicle) {
+      throw new NotFoundException('Vehicle not found');
+    }
+
     const conteneurId = vehicle.conteneurId;
     await this.vehicleRepository.remove(vehicle);
 
@@ -98,6 +167,16 @@ export class VehiclesService {
 
       for (const vehicle of conteneur.vehicles) {
         vehicle.transportCost = transportCostPerVehicle;
+
+        // Recalculate total cost
+        const purchasePrice = Number(vehicle.purchasePrice);
+        const theoreticalRate = Number(vehicle.theoreticalRate) || 134.5;
+        const localFees = Number(vehicle.localFees);
+        const passeportCost = Number(vehicle.passeportCost);
+
+        vehicle.totalCost =
+          (purchasePrice + transportCostPerVehicle) * theoreticalRate + localFees + passeportCost;
+
         await this.vehicleRepository.save(vehicle);
       }
     }

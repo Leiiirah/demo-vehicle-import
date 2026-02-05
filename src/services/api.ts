@@ -356,9 +356,13 @@ export interface Vehicle {
   supplier?: Supplier;
   conteneurId: string;
   conteneur?: Conteneur;
+  passeportId?: string;
+  passeport?: Passeport;
   status: 'ordered' | 'in_transit' | 'arrived' | 'sold';
   purchasePrice: number;
   transportCost: number;
+  theoreticalRate?: number;
+  passeportCost?: number;
   localFees: number;
   totalCost: number;
   sellingPrice?: number;
@@ -375,8 +379,11 @@ export interface CreateVehicleData {
   clientId?: string;
   supplierId: string;
   conteneurId: string;
+  passeportId?: string;
   status?: 'ordered' | 'in_transit' | 'arrived' | 'sold';
   purchasePrice: number;
+  theoreticalRate?: number;
+  passeportCost?: number;
   localFees?: number;
   totalCost?: number;
   sellingPrice?: number;
@@ -463,6 +470,7 @@ export interface CreatePaymentData {
   status?: 'completed' | 'pending';
   supplierId?: string;
   clientId?: string;
+  dossierId?: string;
 }
 
 export interface DashboardStats {

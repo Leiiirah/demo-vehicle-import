@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Supplier } from './supplier.entity';
 import { Conteneur } from './conteneur.entity';
+import { Payment } from './payment.entity';
 
 export enum DossierStatus {
   EN_COURS = 'en_cours',
@@ -50,4 +51,7 @@ export class Dossier {
 
   @OneToMany(() => Conteneur, (conteneur) => conteneur.dossier)
   conteneurs: Conteneur[];
+
+  @OneToMany(() => Payment, (payment) => payment.dossier)
+  payments: Payment[];
 }

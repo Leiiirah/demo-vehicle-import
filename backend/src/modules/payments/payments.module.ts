@@ -3,9 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 import { Payment } from '../../entities/payment.entity';
+import { Vehicle } from '../../entities/vehicle.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Payment])],
+  imports: [TypeOrmModule.forFeature([Payment, Vehicle])],
   controllers: [PaymentsController],
   providers: [PaymentsService],
   exports: [PaymentsService],

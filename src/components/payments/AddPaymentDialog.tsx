@@ -40,9 +40,10 @@ interface AddPaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   preSelectedSupplierId?: string;
+  preSelectedDossierId?: string;
 }
 
-export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId }: AddPaymentDialogProps) {
+export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, preSelectedDossierId }: AddPaymentDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,7 +71,7 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId }: 
   const status = watch('status');
 
   const createPaymentMutation = useMutation({
-    mutationFn: (data: { date: string; amount: number; currency: 'USD' | 'DZD'; exchangeRate: number; type: 'supplier_payment' | 'client_payment' | 'transport' | 'fees'; reference: string; status: 'completed' | 'pending'; supplierId?: string }) => api.createPayment(data),
+    mutationFn: (data: { date: string; amount: number; currency: 'USD' | 'DZD'; exchangeRate: number; type: 'supplier_payment' | 'client_payment' | 'transport' | 'fees'; reference: string; status: 'completed' | 'pending'; supplierId?: string; dossierId?: string }) => api.createPayment(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.invalidateQueries({ queryKey: ['dossiers'] });
@@ -81,10 +82,10 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId }: 
       reset();
       onOpenChange(false);
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: 'Erreur',
-        description: "Impossible d'ajouter le paiement.",
+        description: error.message || "Impossible d'ajouter le paiement.",
         variant: 'destructive',
       });
     },
@@ -102,6 +103,7 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId }: 
         reference: data.reference,
         status: data.status,
         supplierId: preSelectedSupplierId,
+        dossierId: preSelectedDossierId,
       });
     } finally {
       setIsSubmitting(false);

@@ -22,7 +22,13 @@ export class DossiersService {
   async findOne(id: string) {
     const dossier = await this.dossierRepository.findOne({
       where: { id },
-      relations: ['supplier', 'conteneurs', 'conteneurs.vehicles'],
+      relations: [
+        'supplier',
+        'conteneurs',
+        'conteneurs.vehicles',
+        'conteneurs.vehicles.client',
+        'payments',
+      ],
     });
     if (!dossier) {
       throw new NotFoundException('Dossier not found');

@@ -24,6 +24,7 @@ import ReportsPage from "./pages/Reports";
 import SalesPage from "./pages/Sales";
 import UsersPage from "./pages/Users";
 import SettingsPage from "./pages/Settings";
+import SearchPage from "./pages/Search";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/sales" element={<ProtectedRoute><SalesPage /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
