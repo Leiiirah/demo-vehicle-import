@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { FolderOpen, Building2, Calendar, FileText, Loader2 } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AddDossierDialogProps {
   open: boolean;
@@ -106,8 +107,8 @@ export const AddDossierDialog = ({ open, onOpenChange }: AddDossierDialogProps) 
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <FolderOpen className="h-5 w-5 text-primary" />
             Nouveau Dossier
@@ -117,95 +118,97 @@ export const AddDossierDialog = ({ open, onOpenChange }: AddDossierDialogProps) 
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
-          {/* Référence */}
-          <div className="space-y-2">
-            <Label htmlFor="reference" className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              Référence
-            </Label>
-            <Input 
-              id="reference" 
-              placeholder={`Ex: ${generateReference()} (auto si vide)`}
-              value={reference}
-              onChange={(e) => setReference(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Laissez vide pour générer automatiquement
-            </p>
-          </div>
-
-          {/* Sélection Fournisseur */}
-          <div className="space-y-2">
-            <Label htmlFor="supplier" className="flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-              Fournisseur *
-            </Label>
-            <Select value={supplierId} onValueChange={setSupplierId} disabled={loadingSuppliers}>
-              <SelectTrigger id="supplier">
-                <SelectValue placeholder={loadingSuppliers ? 'Chargement...' : 'Sélectionner un fournisseur'} />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border border-border shadow-lg z-50">
-                {suppliers.map((supplier) => (
-                  <SelectItem key={supplier.id} value={supplier.id}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{supplier.name}</span>
-                      <span className="text-xs text-muted-foreground">{supplier.location}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Info fournisseur sélectionné */}
-          {selectedSupplier && (
-            <div className="p-3 bg-accent/50 rounded-lg space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Localisation</span>
-                <span className="font-medium">{selectedSupplier.location}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Véhicules fournis</span>
-                <span className="font-medium">{selectedSupplier.vehiclesSupplied}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Dette en cours</span>
-                <span className="font-medium text-warning">
-                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(selectedSupplier.remainingDebt)}
-                </span>
-              </div>
+        <ScrollArea className="flex-1 px-6">
+          <div className="space-y-4 pb-4">
+            {/* Référence */}
+            <div className="space-y-2">
+              <Label htmlFor="reference" className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                Référence
+              </Label>
+              <Input 
+                id="reference" 
+                placeholder={`Ex: ${generateReference()} (auto si vide)`}
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Laissez vide pour générer automatiquement
+              </p>
             </div>
-          )}
 
-          {/* Date de création */}
-          <div className="space-y-2">
-            <Label htmlFor="dateCreation" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              Date de création
-            </Label>
-            <Input 
-              id="dateCreation" 
-              type="date"
-              value={dateCreation}
-              onChange={(e) => setDateCreation(e.target.value)}
-            />
+            {/* Sélection Fournisseur */}
+            <div className="space-y-2">
+              <Label htmlFor="supplier" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+                Fournisseur *
+              </Label>
+              <Select value={supplierId} onValueChange={setSupplierId} disabled={loadingSuppliers}>
+                <SelectTrigger id="supplier">
+                  <SelectValue placeholder={loadingSuppliers ? 'Chargement...' : 'Sélectionner un fournisseur'} />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border border-border shadow-lg z-50">
+                  {suppliers.map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{supplier.name}</span>
+                        <span className="text-xs text-muted-foreground">{supplier.location}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Info fournisseur sélectionné */}
+            {selectedSupplier && (
+              <div className="p-3 bg-accent/50 rounded-lg space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Localisation</span>
+                  <span className="font-medium">{selectedSupplier.location}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Véhicules fournis</span>
+                  <span className="font-medium">{selectedSupplier.vehiclesSupplied}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Dette en cours</span>
+                  <span className="font-medium text-warning">
+                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(selectedSupplier.remainingDebt)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Date de création */}
+            <div className="space-y-2">
+              <Label htmlFor="dateCreation" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                Date de création
+              </Label>
+              <Input 
+                id="dateCreation" 
+                type="date"
+                value={dateCreation}
+                onChange={(e) => setDateCreation(e.target.value)}
+              />
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes (optionnel)</Label>
+              <Textarea 
+                id="notes" 
+                placeholder="Informations supplémentaires sur ce dossier..."
+                rows={3}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
           </div>
+        </ScrollArea>
 
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes (optionnel)</Label>
-            <Textarea 
-              id="notes" 
-              placeholder="Informations supplémentaires sur ce dossier..."
-              rows={3}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
           <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={createMutation.isPending}>
             Annuler
           </Button>
