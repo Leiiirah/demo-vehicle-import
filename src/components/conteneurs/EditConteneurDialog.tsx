@@ -92,7 +92,7 @@ export function EditConteneurDialog({ open, onOpenChange, conteneur }: EditConte
       dossierId: formData.dossierId,
       type: formData.type,
       status: formData.status,
-      coutTransport: formData.coutTransport,
+      coutTransport: Number(formData.coutTransport) || 0,
       dateDepart: formData.dateDepart || undefined,
       dateArrivee: formData.dateArrivee || undefined,
     });
