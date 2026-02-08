@@ -98,7 +98,7 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+      <DialogContent className="max-w-md max-h-[90vh] min-h-0 flex flex-col p-0">
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <Container className="h-5 w-5 text-primary" />
@@ -109,7 +109,7 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="space-y-4 px-6 pb-4">
             {/* Sélection Dossier */}
             <div className="space-y-2">
