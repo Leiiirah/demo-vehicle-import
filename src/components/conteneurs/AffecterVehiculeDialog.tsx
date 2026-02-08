@@ -81,6 +81,7 @@ export const AffecterVehiculeDialog = ({
       api.updateVehicle(vehicleId, { conteneurId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conteneur', conteneurId] });
+      queryClient.invalidateQueries({ queryKey: ['conteneurs'] });
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       toast.success('Véhicule affecté au conteneur avec succès');
       handleClose();
@@ -104,6 +105,7 @@ export const AffecterVehiculeDialog = ({
     }) => api.createVehicle(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conteneur', conteneurId] });
+      queryClient.invalidateQueries({ queryKey: ['conteneurs'] });
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       toast.success('Véhicule créé et affecté au conteneur avec succès');
       handleClose();
