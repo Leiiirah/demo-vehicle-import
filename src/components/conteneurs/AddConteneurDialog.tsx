@@ -109,141 +109,141 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6">
-          <div className="space-y-4 pb-4">
-          {/* Sélection Dossier */}
-          <div className="space-y-2">
-            <Label htmlFor="dossier" className="flex items-center gap-2">
-              <FolderOpen className="h-4 w-4 text-muted-foreground" />
-              Dossier *
-            </Label>
-            <Select value={dossierId} onValueChange={setDossierId}>
-              <SelectTrigger id="dossier">
-                <SelectValue placeholder="Sélectionner un dossier" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border border-border shadow-lg z-50">
-                {dossiers.map((dossier) => (
-                  <SelectItem key={dossier.id} value={dossier.id}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{dossier.reference}</span>
-                      <span className="text-xs text-muted-foreground">{dossier.supplier?.name || 'Fournisseur inconnu'}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <ScrollArea className="flex-1">
+          <div className="space-y-4 px-6 pb-4">
+            {/* Sélection Dossier */}
+            <div className="space-y-2">
+              <Label htmlFor="dossier" className="flex items-center gap-2">
+                <FolderOpen className="h-4 w-4 text-muted-foreground" />
+                Dossier *
+              </Label>
+              <Select value={dossierId} onValueChange={setDossierId}>
+                <SelectTrigger id="dossier">
+                  <SelectValue placeholder="Sélectionner un dossier" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border border-border shadow-lg z-50">
+                  {dossiers.map((dossier) => (
+                    <SelectItem key={dossier.id} value={dossier.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{dossier.reference}</span>
+                        <span className="text-xs text-muted-foreground">{dossier.supplier?.name || 'Fournisseur inconnu'}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Info dossier sélectionné */}
-          {selectedDossier && (
-            <div className="p-3 bg-accent/50 rounded-lg">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Fournisseur</span>
-                <span className="font-medium">{selectedDossier.supplier?.name || 'Fournisseur inconnu'}</span>
+            {/* Info dossier sélectionné */}
+            {selectedDossier && (
+              <div className="p-3 bg-accent/50 rounded-lg">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Fournisseur</span>
+                  <span className="font-medium">{selectedDossier.supplier?.name || 'Fournisseur inconnu'}</span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Numéro conteneur */}
-          <div className="space-y-2">
-            <Label htmlFor="numero" className="flex items-center gap-2">
-              <Container className="h-4 w-4 text-muted-foreground" />
-              Numéro du conteneur *
-            </Label>
-            <Input 
-              id="numero" 
-              placeholder="Ex: MSKU1234567"
-              value={numero}
-              onChange={(e) => setNumero(e.target.value.toUpperCase())}
-              className="uppercase"
-            />
-            <p className="text-xs text-muted-foreground">
-              Code ISO du conteneur (11 caractères)
-            </p>
-          </div>
-
-          {/* Type de conteneur */}
-          <div className="space-y-2">
-            <Label htmlFor="type" className="flex items-center gap-2">
-              <Package className="h-4 w-4 text-muted-foreground" />
-              Type de conteneur *
-            </Label>
-            <Select value={type} onValueChange={(val) => setType(val as '20ft' | '40ft' | '40ft_hc')}>
-              <SelectTrigger id="type">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border border-border shadow-lg z-50">
-                <SelectItem value="20ft">20 pieds (TEU)</SelectItem>
-                <SelectItem value="40ft">40 pieds (FEU)</SelectItem>
-                <SelectItem value="40ft_hc">40 pieds High Cube</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Coût du transport */}
-          <div className="space-y-2">
-            <Label htmlFor="coutTransport" className="flex items-center gap-2">
-              <Ship className="h-4 w-4 text-muted-foreground" />
-              Coût du transport (USD) *
-            </Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+            {/* Numéro conteneur */}
+            <div className="space-y-2">
+              <Label htmlFor="numero" className="flex items-center gap-2">
+                <Container className="h-4 w-4 text-muted-foreground" />
+                Numéro du conteneur *
+              </Label>
               <Input 
-                id="coutTransport" 
-                type="number"
-                placeholder="Ex: 3500"
-                value={coutTransport}
-                onChange={(e) => setCoutTransport(e.target.value)}
-                className="pl-7"
+                id="numero" 
+                placeholder="Ex: MSKU1234567"
+                value={numero}
+                onChange={(e) => setNumero(e.target.value.toUpperCase())}
+                className="uppercase"
               />
+              <p className="text-xs text-muted-foreground">
+                Code ISO du conteneur (11 caractères)
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Fret + assurance maritime. Ce coût sera réparti sur les véhicules du conteneur.
-            </p>
-          </div>
 
-          {/* Dates de suivi */}
-          <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
-            <Label className="flex items-center gap-2 text-sm font-medium">
-              <Calendar className="h-4 w-4 text-primary" />
-              Suivi du transport
-            </Label>
-            
-            <div className="grid grid-cols-2 gap-3">
-              {/* Date de départ */}
-              <div className="space-y-2">
-                <Label htmlFor="dateDepart" className="text-xs flex items-center gap-1">
-                  <Ship className="h-3 w-3 text-muted-foreground" />
-                  Date de départ
-                </Label>
+            {/* Type de conteneur */}
+            <div className="space-y-2">
+              <Label htmlFor="type" className="flex items-center gap-2">
+                <Package className="h-4 w-4 text-muted-foreground" />
+                Type de conteneur *
+              </Label>
+              <Select value={type} onValueChange={(val) => setType(val as '20ft' | '40ft' | '40ft_hc')}>
+                <SelectTrigger id="type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border border-border shadow-lg z-50">
+                  <SelectItem value="20ft">20 pieds (TEU)</SelectItem>
+                  <SelectItem value="40ft">40 pieds (FEU)</SelectItem>
+                  <SelectItem value="40ft_hc">40 pieds High Cube</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Coût du transport */}
+            <div className="space-y-2">
+              <Label htmlFor="coutTransport" className="flex items-center gap-2">
+                <Ship className="h-4 w-4 text-muted-foreground" />
+                Coût du transport (USD) *
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                 <Input 
-                  id="dateDepart" 
-                  type="date"
-                  value={dateDepart}
-                  onChange={(e) => setDateDepart(e.target.value)}
+                  id="coutTransport" 
+                  type="number"
+                  placeholder="Ex: 3500"
+                  value={coutTransport}
+                  onChange={(e) => setCoutTransport(e.target.value)}
+                  className="pl-7"
                 />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Fret + assurance maritime. Ce coût sera réparti sur les véhicules du conteneur.
+              </p>
+            </div>
+
+            {/* Dates de suivi */}
+            <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
+              <Label className="flex items-center gap-2 text-sm font-medium">
+                <Calendar className="h-4 w-4 text-primary" />
+                Suivi du transport
+              </Label>
+              
+              <div className="grid grid-cols-2 gap-3">
+                {/* Date de départ */}
+                <div className="space-y-2">
+                  <Label htmlFor="dateDepart" className="text-xs flex items-center gap-1">
+                    <Ship className="h-3 w-3 text-muted-foreground" />
+                    Date de départ
+                  </Label>
+                  <Input 
+                    id="dateDepart" 
+                    type="date"
+                    value={dateDepart}
+                    onChange={(e) => setDateDepart(e.target.value)}
+                  />
+                </div>
+                
+                {/* Date d'arrivée */}
+                <div className="space-y-2">
+                  <Label htmlFor="dateArrivee" className="text-xs flex items-center gap-1">
+                    <Anchor className="h-3 w-3 text-muted-foreground" />
+                    Date d'arrivée
+                  </Label>
+                  <Input 
+                    id="dateArrivee" 
+                    type="date"
+                    value={dateArrivee}
+                    onChange={(e) => setDateArrivee(e.target.value)}
+                  />
+                </div>
               </div>
               
-              {/* Date d'arrivée */}
-              <div className="space-y-2">
-                <Label htmlFor="dateArrivee" className="text-xs flex items-center gap-1">
-                  <Anchor className="h-3 w-3 text-muted-foreground" />
-                  Date d'arrivée
-                </Label>
-                <Input 
-                  id="dateArrivee" 
-                  type="date"
-                  value={dateArrivee}
-                  onChange={(e) => setDateArrivee(e.target.value)}
-                />
-              </div>
+              <p className="text-xs text-muted-foreground">
+                À renseigner au fur et à mesure du transport
+              </p>
             </div>
-            
-            <p className="text-xs text-muted-foreground">
-              À renseigner au fur et à mesure du transport
-            </p>
           </div>
-        </div>
         </ScrollArea>
 
         <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
