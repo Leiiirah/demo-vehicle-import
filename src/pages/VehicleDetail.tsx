@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useVehicle } from '@/hooks/useApi';
+import { useVehicle, useVehiclePayments, useVehicleCharges, useCreateVehiclePayment, useDeleteVehiclePayment, useCreateVehicleCharge, useDeleteVehicleCharge, useUpdateVehiclePayment, useUpdateVehicleCharge } from '@/hooks/useApi';
 import { api } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,19 +38,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { EditVehicleDialog } from '@/components/vehicles/EditVehicleDialog';
-
-interface Versement {
-  id: string;
-  date: string;
-  montantUSD: number;
-  tauxChange: number;
-}
-
-interface ChargeDivers {
-  id: string;
-  libelle: string;
-  montant: number;
-}
+import type { VehiclePayment, VehicleCharge } from '@/services/api';
 
 const VehicleDetailPage = () => {
   const { id } = useParams();
@@ -60,6 +48,16 @@ const VehicleDetailPage = () => {
   const [hasChanges, setHasChanges] = useState(false);
 
   const { data: vehicle, isLoading, error } = useVehicle(id || '');
+  const { data: paymentsData } = useVehiclePayments(id || '');
+  const { data: chargesData } = useVehicleCharges(id || '');
+
+  const createPaymentMutation = useCreateVehiclePayment(id || '');
+  const deletePaymentMutation = useDeleteVehiclePayment(id || '');
+  const updatePaymentMutation = useUpdateVehiclePayment(id || '');
+  
+  const createChargeMutation = useCreateVehicleCharge(id || '');
+  const deleteChargeMutation = useDeleteVehicleCharge(id || '');
+  const updateChargeMutation = useUpdateVehicleCharge(id || '');
 
   // Mock client import associé
   const clientImport = {
@@ -75,10 +73,10 @@ const VehicleDetailPage = () => {
 
   // État pour les charges DZD
   const [chargesTransit, setChargesTransit] = useState<number>(0);
-  const [chargesDivers, setChargesDivers] = useState<ChargeDivers[]>([]);
 
-  // État pour les versements
-  const [versements, setVersements] = useState<Versement[]>([]);
+  // Local state for new payment/charge being added (before saving)
+  const [newPayment, setNewPayment] = useState<{ date: string; amountUSD: number; exchangeRate: number } | null>(null);
+  const [newCharge, setNewCharge] = useState<{ label: string; amount: number } | null>(null);
 
   // Initialize state from vehicle when loaded
   useEffect(() => {
@@ -89,6 +87,10 @@ const VehicleDetailPage = () => {
       setHasChanges(false);
     }
   }, [vehicle]);
+
+  // Convert API data to local format
+  const versements: VehiclePayment[] = paymentsData || [];
+  const chargesDivers: VehicleCharge[] = chargesData || [];
 
   // Mutation for saving vehicle updates with optimistic rollback
   const saveMutation = useMutation({
@@ -163,20 +165,20 @@ const VehicleDetailPage = () => {
 
   // Calculs
   const totalUSD = prixVehicule + prixTransport;
-  const totalVerse = versements.reduce((sum, v) => sum + v.montantUSD, 0);
+  const totalVerse = versements.reduce((sum, v) => sum + Number(v.amountUSD), 0);
   const resteAVerser = totalUSD - totalVerse;
 
   // Taux moyen pondéré
   const tauxMoyenPondere = versements.length > 0
-    ? versements.reduce((sum, v) => sum + v.montantUSD * v.tauxChange, 0) / 
-      versements.reduce((sum, v) => sum + v.montantUSD, 0) || 0
+    ? versements.reduce((sum, v) => sum + Number(v.amountUSD) * Number(v.exchangeRate), 0) / 
+      versements.reduce((sum, v) => sum + Number(v.amountUSD), 0) || 0
     : 0;
 
   // Total USD converti en DZD via taux moyen
   const totalUSDenDZD = totalUSD * tauxMoyenPondere;
 
   // Total charges diverses
-  const totalChargesDivers = chargesDivers.reduce((sum, c) => sum + c.montant, 0);
+  const totalChargesDivers = chargesDivers.reduce((sum, c) => sum + Number(c.amount), 0);
 
   // Prix de revient
   const prixRevient = totalUSDenDZD + chargesTransit + totalChargesDivers;
@@ -187,40 +189,76 @@ const VehicleDetailPage = () => {
   const clientShare = (benefice * clientImport.profitPercentage) / 100;
   const companyShare = benefice - clientShare;
 
-  // Gestion des versements
+  // Gestion des versements via API
   const addVersement = () => {
-    setVersements([
-      ...versements,
-      { id: `v-${Date.now()}`, date: '', montantUSD: 0, tauxChange: 0 },
-    ]);
+    setNewPayment({ date: '', amountUSD: 0, exchangeRate: 0 });
   };
 
-  const updateVersement = (id: string, field: keyof Versement, value: string | number) => {
-    setVersements(
-      versements.map((v) => (v.id === id ? { ...v, [field]: value } : v))
-    );
+  const saveNewPayment = () => {
+    if (newPayment && newPayment.date && newPayment.amountUSD > 0 && newPayment.exchangeRate > 0) {
+      createPaymentMutation.mutate(newPayment, {
+        onSuccess: () => {
+          setNewPayment(null);
+          toast.success('Versement ajouté');
+        },
+        onError: (error) => {
+          toast.error('Erreur lors de l\'ajout du versement');
+          console.error(error);
+        },
+      });
+    }
   };
 
-  const removeVersement = (id: string) => {
-    setVersements(versements.filter((v) => v.id !== id));
+  const cancelNewPayment = () => {
+    setNewPayment(null);
   };
 
-  // Gestion des charges diverses
+  const removeVersement = (paymentId: string) => {
+    deletePaymentMutation.mutate(paymentId, {
+      onSuccess: () => {
+        toast.success('Versement supprimé');
+      },
+      onError: (error) => {
+        toast.error('Erreur lors de la suppression');
+        console.error(error);
+      },
+    });
+  };
+
+  // Gestion des charges diverses via API
   const addChargeDivers = () => {
-    setChargesDivers([
-      ...chargesDivers,
-      { id: `cd-${Date.now()}`, libelle: '', montant: 0 },
-    ]);
+    setNewCharge({ label: '', amount: 0 });
   };
 
-  const updateChargeDivers = (id: string, field: keyof ChargeDivers, value: string | number) => {
-    setChargesDivers(
-      chargesDivers.map((c) => (c.id === id ? { ...c, [field]: value } : c))
-    );
+  const saveNewCharge = () => {
+    if (newCharge && newCharge.label && newCharge.amount > 0) {
+      createChargeMutation.mutate(newCharge, {
+        onSuccess: () => {
+          setNewCharge(null);
+          toast.success('Charge ajoutée');
+        },
+        onError: (error) => {
+          toast.error('Erreur lors de l\'ajout de la charge');
+          console.error(error);
+        },
+      });
+    }
   };
 
-  const removeChargeDivers = (id: string) => {
-    setChargesDivers(chargesDivers.filter((c) => c.id !== id));
+  const cancelNewCharge = () => {
+    setNewCharge(null);
+  };
+
+  const removeChargeDivers = (chargeId: string) => {
+    deleteChargeMutation.mutate(chargeId, {
+      onSuccess: () => {
+        toast.success('Charge supprimée');
+      },
+      onError: (error) => {
+        toast.error('Erreur lors de la suppression');
+        console.error(error);
+      },
+    });
   };
 
   if (isLoading) {
@@ -520,7 +558,7 @@ const VehicleDetailPage = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {chargesDivers.length === 0 ? (
+                    {chargesDivers.length === 0 && !newCharge ? (
                       <p className="text-sm text-muted-foreground text-center py-4">
                         Aucune charge diverse
                       </p>
@@ -531,29 +569,67 @@ const VehicleDetailPage = () => {
                             <Input
                               placeholder="Libellé"
                               className="flex-1"
-                              value={c.libelle}
-                              onChange={(e) => updateChargeDivers(c.id, 'libelle', e.target.value)}
+                              value={c.label}
+                              disabled
                             />
                             <Input
                               type="number"
                               placeholder="Montant"
                               className="w-32"
-                              value={c.montant || ''}
-                              onChange={(e) => updateChargeDivers(c.id, 'montant', Number(e.target.value))}
+                              value={c.amount || ''}
+                              disabled
                             />
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => removeChargeDivers(c.id)}
+                              disabled={deleteChargeMutation.isPending}
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           </div>
                         ))}
-                        <div className="pt-2 border-t border-border flex justify-between text-sm">
-                          <span className="text-muted-foreground">Total</span>
-                          <span className="font-medium">{formatCurrency(totalChargesDivers)}</span>
-                        </div>
+                        
+                        {/* New charge form */}
+                        {newCharge && (
+                          <div className="flex items-center gap-2 p-2 border border-dashed border-primary rounded">
+                            <Input
+                              placeholder="Libellé"
+                              className="flex-1"
+                              value={newCharge.label}
+                              onChange={(e) => setNewCharge({ ...newCharge, label: e.target.value })}
+                            />
+                            <Input
+                              type="number"
+                              placeholder="Montant"
+                              className="w-32"
+                              value={newCharge.amount || ''}
+                              onChange={(e) => setNewCharge({ ...newCharge, amount: Number(e.target.value) })}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={saveNewCharge}
+                              disabled={createChargeMutation.isPending}
+                            >
+                              <Save className="h-4 w-4 text-primary" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={cancelNewCharge}
+                            >
+                              <Trash2 className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </div>
+                        )}
+                        
+                        {chargesDivers.length > 0 && (
+                          <div className="pt-2 border-t border-border flex justify-between text-sm">
+                            <span className="text-muted-foreground">Total</span>
+                            <span className="font-medium">{formatCurrency(totalChargesDivers)}</span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </CardContent>
@@ -594,8 +670,65 @@ const VehicleDetailPage = () => {
                       </div>
                     </div>
 
+                    {/* New payment form */}
+                    {newPayment && (
+                      <div className="p-3 bg-primary/5 rounded-lg border border-dashed border-primary mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium">Nouveau versement</span>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={saveNewPayment}
+                              disabled={createPaymentMutation.isPending}
+                            >
+                              <Save className="h-4 w-4 text-primary" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={cancelNewPayment}
+                            >
+                              <Trash2 className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Date</Label>
+                            <Input
+                              type="date"
+                              value={newPayment.date}
+                              onChange={(e) => setNewPayment({ ...newPayment, date: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Montant USD</Label>
+                            <div className="relative">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
+                              <Input
+                                type="number"
+                                className="pl-5"
+                                value={newPayment.amountUSD || ''}
+                                onChange={(e) => setNewPayment({ ...newPayment, amountUSD: Number(e.target.value) })}
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Taux de change</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={newPayment.exchangeRate || ''}
+                              onChange={(e) => setNewPayment({ ...newPayment, exchangeRate: Number(e.target.value) })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Liste des versements */}
-                    {versements.length === 0 ? (
+                    {versements.length === 0 && !newPayment ? (
                       <p className="text-sm text-muted-foreground text-center py-4">
                         Aucun versement enregistré
                       </p>
@@ -609,6 +742,7 @@ const VehicleDetailPage = () => {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => removeVersement(v.id)}
+                                disabled={deletePaymentMutation.isPending}
                               >
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
@@ -619,7 +753,7 @@ const VehicleDetailPage = () => {
                                 <Input
                                   type="date"
                                   value={v.date}
-                                  onChange={(e) => updateVersement(v.id, 'date', e.target.value)}
+                                  disabled
                                 />
                               </div>
                               <div className="space-y-1">
@@ -629,8 +763,8 @@ const VehicleDetailPage = () => {
                                   <Input
                                     type="number"
                                     className="pl-5"
-                                    value={v.montantUSD || ''}
-                                    onChange={(e) => updateVersement(v.id, 'montantUSD', Number(e.target.value))}
+                                    value={v.amountUSD || ''}
+                                    disabled
                                   />
                                 </div>
                               </div>
@@ -639,14 +773,14 @@ const VehicleDetailPage = () => {
                                 <Input
                                   type="number"
                                   step="0.01"
-                                  value={v.tauxChange || ''}
-                                  onChange={(e) => updateVersement(v.id, 'tauxChange', Number(e.target.value))}
+                                  value={v.exchangeRate || ''}
+                                  disabled
                                 />
                               </div>
                             </div>
-                            {v.montantUSD > 0 && v.tauxChange > 0 && (
+                            {Number(v.amountUSD) > 0 && Number(v.exchangeRate) > 0 && (
                               <div className="mt-2 text-xs text-right text-muted-foreground">
-                                = {formatCurrency(v.montantUSD * v.tauxChange)}
+                                = {formatCurrency(Number(v.amountUSD) * Number(v.exchangeRate))}
                               </div>
                             )}
                           </div>

@@ -182,6 +182,52 @@ class ApiClient {
     return this.request(`/api/vehicles/${id}`, { method: 'DELETE' });
   }
 
+  // Vehicle Payments
+  async getVehiclePayments(vehicleId: string) {
+    return this.request<VehiclePayment[]>(`/api/vehicles/${vehicleId}/payments`);
+  }
+
+  async createVehiclePayment(vehicleId: string, data: CreateVehiclePaymentData) {
+    return this.request<VehiclePayment>(`/api/vehicles/${vehicleId}/payments`, {
+      method: 'POST',
+      body: data,
+    });
+  }
+
+  async updateVehiclePayment(id: string, data: Partial<CreateVehiclePaymentData>) {
+    return this.request<VehiclePayment>(`/api/vehicles/payments/${id}`, {
+      method: 'PATCH',
+      body: data,
+    });
+  }
+
+  async deleteVehiclePayment(id: string) {
+    return this.request(`/api/vehicles/payments/${id}`, { method: 'DELETE' });
+  }
+
+  // Vehicle Charges
+  async getVehicleCharges(vehicleId: string) {
+    return this.request<VehicleCharge[]>(`/api/vehicles/${vehicleId}/charges`);
+  }
+
+  async createVehicleCharge(vehicleId: string, data: CreateVehicleChargeData) {
+    return this.request<VehicleCharge>(`/api/vehicles/${vehicleId}/charges`, {
+      method: 'POST',
+      body: data,
+    });
+  }
+
+  async updateVehicleCharge(id: string, data: Partial<CreateVehicleChargeData>) {
+    return this.request<VehicleCharge>(`/api/vehicles/charges/${id}`, {
+      method: 'PATCH',
+      body: data,
+    });
+  }
+
+  async deleteVehicleCharge(id: string) {
+    return this.request(`/api/vehicles/charges/${id}`, { method: 'DELETE' });
+  }
+
   // Clients
   async getClients() {
     return this.request<Client[]>('/api/clients');
@@ -500,6 +546,36 @@ export interface TopVehicle {
   model: string;
   profit: number;
   margin: number;
+}
+
+export interface VehiclePayment {
+  id: string;
+  vehicleId: string;
+  date: string;
+  amountUSD: number;
+  exchangeRate: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateVehiclePaymentData {
+  date: string;
+  amountUSD: number;
+  exchangeRate: number;
+}
+
+export interface VehicleCharge {
+  id: string;
+  vehicleId: string;
+  label: string;
+  amount: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateVehicleChargeData {
+  label: string;
+  amount: number;
 }
 
 export const api = new ApiClient(API_URL);
