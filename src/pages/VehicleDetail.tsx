@@ -90,7 +90,7 @@ const VehicleDetailPage = () => {
     }
   }, [vehicle]);
 
-  // Mutation for saving vehicle updates
+  // Mutation for saving vehicle updates with optimistic rollback
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!id) throw new Error('Vehicle ID missing');
@@ -99,15 +99,35 @@ const VehicleDetailPage = () => {
         localFees: chargesTransit,
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicle', id] });
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['vehicle', id] });
+      
+      // Snapshot the previous value for rollback
+      const previousVehicle = queryClient.getQueryData(['vehicle', id]);
+      
+      return { previousVehicle };
+    },
+    onSuccess: (data) => {
+      // Update cache with server response
+      queryClient.setQueryData(['vehicle', id], data);
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       toast.success('Modifications enregistrées');
       setHasChanges(false);
     },
-    onError: (error) => {
+    onError: (error, _, context) => {
+      // Rollback to previous state on error
+      if (context?.previousVehicle) {
+        queryClient.setQueryData(['vehicle', id], context.previousVehicle);
+        // Reset local state to match rolled back data
+        const prev = context.previousVehicle as any;
+        setPrixVehicule(Number(prev.purchasePrice) || 0);
+        setPrixTransport(Number(prev.transportCost) || 0);
+        setChargesTransit(Number(prev.localFees) || 0);
+      }
       console.error('Save error:', error);
-      toast.error(error instanceof Error ? error.message : 'Erreur lors de la sauvegarde');
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la sauvegarde - vérifiez votre connexion');
+      setHasChanges(false);
     },
   });
 
