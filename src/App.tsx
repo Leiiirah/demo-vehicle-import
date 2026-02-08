@@ -22,6 +22,7 @@ import ConteneursPage from "./pages/Conteneurs";
 import ConteneurDetailPage from "./pages/ConteneurDetail";
 import ReportsPage from "./pages/Reports";
 import SalesPage from "./pages/Sales";
+import ClientSalesPage from "./pages/ClientSales";
 import UsersPage from "./pages/Users";
 import SettingsPage from "./pages/Settings";
 import SearchPage from "./pages/Search";
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/conteneurs/:id" element={<ProtectedRoute><ConteneurDetailPage /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
             <Route path="/sales" element={<ProtectedRoute><SalesPage /></ProtectedRoute>} />
+            <Route path="/client-sales" element={<ProtectedRoute><ClientSalesPage /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
