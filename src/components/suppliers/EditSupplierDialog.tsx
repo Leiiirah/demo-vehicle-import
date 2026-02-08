@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -69,11 +70,12 @@ export function EditSupplierDialog({ open, onOpenChange, supplier }: EditSupplie
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>Modifier le fournisseur</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <ScrollArea className="flex-1 px-6">
+          <form onSubmit={handleSubmit} className="space-y-4 pb-4">
           <div className="space-y-2">
             <Label htmlFor="name">Nom *</Label>
             <Input
@@ -120,16 +122,17 @@ export function EditSupplierDialog({ open, onOpenChange, supplier }: EditSupplie
               placeholder="+86 xxx xxx xxxx"
             />
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={updateMutation.isPending}>
-              {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Enregistrer
-            </Button>
-          </DialogFooter>
-        </form>
+          </form>
+        </ScrollArea>
+        <DialogFooter className="px-6 py-4 border-t border-border">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Annuler
+          </Button>
+          <Button type="submit" disabled={updateMutation.isPending}>
+            {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            Enregistrer
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
