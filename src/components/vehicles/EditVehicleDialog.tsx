@@ -104,13 +104,14 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
     mutationFn: (data: Partial<CreateVehicleData>) => api.updateVehicle(vehicle!.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      queryClient.invalidateQueries({ queryKey: ['vehicles', vehicle?.id] });
+      queryClient.invalidateQueries({ queryKey: ['vehicle', vehicle?.id] });
       queryClient.invalidateQueries({ queryKey: ['conteneurs'] });
       toast.success('Véhicule mis à jour avec succès');
       onOpenChange(false);
     },
-    onError: () => {
-      toast.error('Erreur lors de la mise à jour');
+    onError: (error) => {
+      console.error('Update vehicle error:', error);
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la mise à jour');
     },
   });
 
