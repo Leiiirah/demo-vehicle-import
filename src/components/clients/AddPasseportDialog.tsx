@@ -4,12 +4,13 @@ import { api, CreatePasseportData } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+  ScrollableDialogContent,
+  ScrollableDialogBody,
+  ScrollableDialogFooter,
+} from '@/components/ui/scrollable-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -124,7 +125,7 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+      <ScrollableDialogContent className="max-w-md">
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <BookUser className="h-5 w-5 text-primary" />
@@ -135,8 +136,8 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6">
-          <div className="space-y-4 pb-4">
+        <ScrollableDialogBody>
+          <div className="space-y-4">
             {/* Nom et Prénom */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -264,9 +265,9 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
               </div>
             </div>
           </div>
-        </ScrollArea>
+        </ScrollableDialogBody>
 
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
+        <ScrollableDialogFooter>
           <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={createMutation.isPending}>
             Annuler
           </Button>
@@ -283,8 +284,8 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
               'Enregistrer'
             )}
           </Button>
-        </div>
-      </DialogContent>
+        </ScrollableDialogFooter>
+      </ScrollableDialogContent>
     </Dialog>
   );
 };

@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, type CreateVehicleData } from '@/services/api';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Dialog,
+  DialogHeader,
+  DialogTitle,
+  ScrollableDialogContent,
+  ScrollableDialogBody,
+  ScrollableDialogFooter,
+} from '@/components/ui/scrollable-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -138,185 +144,185 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
+      <ScrollableDialogContent className="max-w-2xl">
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>Modifier le véhicule</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="flex-1 px-6">
-          <form onSubmit={handleSubmit} className="space-y-4 pb-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="brand">Marque *</Label>
-              <Input
-                id="brand"
-                value={formData.brand}
-                onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-              />
+        <ScrollableDialogBody>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="brand">Marque *</Label>
+                <Input
+                  id="brand"
+                  value={formData.brand}
+                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="model">Modèle *</Label>
+                <Input
+                  id="model"
+                  value={formData.model}
+                  onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="year">Année</Label>
+                <Input
+                  id="year"
+                  type="number"
+                  value={formData.year}
+                  onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vin">VIN *</Label>
+                <Input
+                  id="vin"
+                  value={formData.vin}
+                  onChange={(e) => setFormData({ ...formData, vin: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="supplierId">Fournisseur</Label>
+                <Select value={formData.supplierId} onValueChange={(value) => setFormData({ ...formData, supplierId: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(suppliers || []).map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="conteneurId">Conteneur</Label>
+                <Select value={formData.conteneurId} onValueChange={(value) => setFormData({ ...formData, conteneurId: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(conteneurs || []).map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.numero}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="model">Modèle *</Label>
-              <Input
-                id="model"
-                value={formData.model}
-                onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="year">Année</Label>
-              <Input
-                id="year"
-                type="number"
-                value={formData.year}
-                onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) || 0 })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="vin">VIN *</Label>
-              <Input
-                id="vin"
-                value={formData.vin}
-                onChange={(e) => setFormData({ ...formData, vin: e.target.value })}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="supplierId">Fournisseur</Label>
-              <Select value={formData.supplierId} onValueChange={(value) => setFormData({ ...formData, supplierId: value })}>
+              <Label htmlFor="clientId">Client</Label>
+              <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner" />
+                  <SelectValue placeholder="Sélectionner un client" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(suppliers || []).map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  {(clients || []).map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.prenom} {c.nom}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="conteneurId">Conteneur</Label>
-              <Select value={formData.conteneurId} onValueChange={(value) => setFormData({ ...formData, conteneurId: value })}>
+              <Label htmlFor="status">Statut</Label>
+              <Select value={formData.status} onValueChange={(value: VehicleStatus) => setFormData({ ...formData, status: value })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {(conteneurs || []).map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.numero}</SelectItem>
-                  ))}
+                  <SelectItem value="ordered">Commandé</SelectItem>
+                  <SelectItem value="in_transit">En transit</SelectItem>
+                  <SelectItem value="arrived">Arrivé</SelectItem>
+                  <SelectItem value="sold">Vendu</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="clientId">Client</Label>
-            <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un client" />
-              </SelectTrigger>
-              <SelectContent>
-                {(clients || []).map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.prenom} {c.nom}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="status">Statut</Label>
-            <Select value={formData.status} onValueChange={(value: VehicleStatus) => setFormData({ ...formData, status: value })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ordered">Commandé</SelectItem>
-                <SelectItem value="in_transit">En transit</SelectItem>
-                <SelectItem value="arrived">Arrivé</SelectItem>
-                <SelectItem value="sold">Vendu</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="purchasePrice">Prix d'achat (USD)</Label>
-              <Input
-                id="purchasePrice"
-                type="number"
-                value={formData.purchasePrice}
-                onChange={(e) => setFormData({ ...formData, purchasePrice: parseFloat(e.target.value) || 0 })}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="purchasePrice">Prix d'achat (USD)</Label>
+                <Input
+                  id="purchasePrice"
+                  type="number"
+                  value={formData.purchasePrice}
+                  onChange={(e) => setFormData({ ...formData, purchasePrice: parseFloat(e.target.value) || 0 })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="localFees">Frais locaux (DZD)</Label>
+                <Input
+                  id="localFees"
+                  type="number"
+                  value={formData.localFees}
+                  onChange={(e) => setFormData({ ...formData, localFees: parseFloat(e.target.value) || 0 })}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="localFees">Frais locaux (DZD)</Label>
-              <Input
-                id="localFees"
-                type="number"
-                value={formData.localFees}
-                onChange={(e) => setFormData({ ...formData, localFees: parseFloat(e.target.value) || 0 })}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="totalCost">Coût total (DZD)</Label>
+                <Input
+                  id="totalCost"
+                  type="number"
+                  value={formData.totalCost}
+                  onChange={(e) => setFormData({ ...formData, totalCost: parseFloat(e.target.value) || 0 })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sellingPrice">Prix de vente (DZD)</Label>
+                <Input
+                  id="sellingPrice"
+                  type="number"
+                  value={formData.sellingPrice}
+                  onChange={(e) => setFormData({ ...formData, sellingPrice: parseFloat(e.target.value) || 0 })}
+                />
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="totalCost">Coût total (DZD)</Label>
-              <Input
-                id="totalCost"
-                type="number"
-                value={formData.totalCost}
-                onChange={(e) => setFormData({ ...formData, totalCost: parseFloat(e.target.value) || 0 })}
-              />
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="orderDate">Date commande</Label>
+                <Input
+                  id="orderDate"
+                  type="date"
+                  value={formData.orderDate}
+                  onChange={(e) => setFormData({ ...formData, orderDate: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="arrivalDate">Date arrivée</Label>
+                <Input
+                  id="arrivalDate"
+                  type="date"
+                  value={formData.arrivalDate}
+                  onChange={(e) => setFormData({ ...formData, arrivalDate: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="soldDate">Date vente</Label>
+                <Input
+                  id="soldDate"
+                  type="date"
+                  value={formData.soldDate}
+                  onChange={(e) => setFormData({ ...formData, soldDate: e.target.value })}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="sellingPrice">Prix de vente (DZD)</Label>
-              <Input
-                id="sellingPrice"
-                type="number"
-                value={formData.sellingPrice}
-                onChange={(e) => setFormData({ ...formData, sellingPrice: parseFloat(e.target.value) || 0 })}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="orderDate">Date commande</Label>
-              <Input
-                id="orderDate"
-                type="date"
-                value={formData.orderDate}
-                onChange={(e) => setFormData({ ...formData, orderDate: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="arrivalDate">Date arrivée</Label>
-              <Input
-                id="arrivalDate"
-                type="date"
-                value={formData.arrivalDate}
-                onChange={(e) => setFormData({ ...formData, arrivalDate: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="soldDate">Date vente</Label>
-              <Input
-                id="soldDate"
-                type="date"
-                value={formData.soldDate}
-                onChange={(e) => setFormData({ ...formData, soldDate: e.target.value })}
-              />
-            </div>
-           </div>
           </form>
-        </ScrollArea>
-        <DialogFooter className="px-6 py-4 border-t border-border">
+        </ScrollableDialogBody>
+        <ScrollableDialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
-          <Button type="submit" disabled={updateMutation.isPending}>
+          <Button onClick={handleSubmit} disabled={updateMutation.isPending}>
             {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Enregistrer
           </Button>
-        </DialogFooter>
-      </DialogContent>
+        </ScrollableDialogFooter>
+      </ScrollableDialogContent>
     </Dialog>
   );
 }

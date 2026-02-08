@@ -5,12 +5,13 @@ import { z } from 'zod';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+  ScrollableDialogContent,
+  ScrollableDialogBody,
+  ScrollableDialogFooter,
+} from '@/components/ui/scrollable-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -112,7 +113,7 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col p-0">
+      <ScrollableDialogContent className="sm:max-w-[500px]">
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>Nouveau Paiement</DialogTitle>
           <DialogDescription>
@@ -120,118 +121,117 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pb-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date">Date *</Label>
-              <Input
-                id="date"
-                type="date"
-                {...register('date')}
-              />
-              {errors.date && (
-                <p className="text-sm text-destructive">{errors.date.message}</p>
-              )}
+        <ScrollableDialogBody>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="date">Date *</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  {...register('date')}
+                />
+                {errors.date && (
+                  <p className="text-sm text-destructive">{errors.date.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="reference">Référence *</Label>
+                <Input
+                  id="reference"
+                  placeholder="REF-001"
+                  {...register('reference')}
+                />
+                {errors.reference && (
+                  <p className="text-sm text-destructive">{errors.reference.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="amount">Montant *</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  placeholder="10000"
+                  {...register('amount', { valueAsNumber: true })}
+                />
+                {errors.amount && (
+                  <p className="text-sm text-destructive">{errors.amount.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="currency">Devise</Label>
+                <Select value={currency} onValueChange={(val) => setValue('currency', val as 'USD' | 'DZD')}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="DZD">DZD</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="exchangeRate">Taux de change (USD/DZD)</Label>
+                <Input
+                  id="exchangeRate"
+                  type="number"
+                  step="0.01"
+                  {...register('exchangeRate', { valueAsNumber: true })}
+                />
+                {errors.exchangeRate && (
+                  <p className="text-sm text-destructive">{errors.exchangeRate.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="type">Type</Label>
+                <Select value={type} onValueChange={(val) => setValue('type', val as PaymentFormData['type'])}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="supplier_payment">Paiement fournisseur</SelectItem>
+                    <SelectItem value="client_payment">Paiement client</SelectItem>
+                    <SelectItem value="transport">Transport</SelectItem>
+                    <SelectItem value="fees">Frais</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="reference">Référence *</Label>
-              <Input
-                id="reference"
-                placeholder="REF-001"
-                {...register('reference')}
-              />
-              {errors.reference && (
-                <p className="text-sm text-destructive">{errors.reference.message}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="amount">Montant *</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                placeholder="10000"
-                {...register('amount', { valueAsNumber: true })}
-              />
-              {errors.amount && (
-                <p className="text-sm text-destructive">{errors.amount.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="currency">Devise</Label>
-              <Select value={currency} onValueChange={(val) => setValue('currency', val as 'USD' | 'DZD')}>
+              <Label htmlFor="status">Statut</Label>
+              <Select value={status} onValueChange={(val) => setValue('status', val as 'completed' | 'pending')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="USD">USD</SelectItem>
-                  <SelectItem value="DZD">DZD</SelectItem>
+                  <SelectItem value="pending">En attente</SelectItem>
+                  <SelectItem value="completed">Complété</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          </form>
+        </ScrollableDialogBody>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="exchangeRate">Taux de change (USD/DZD)</Label>
-              <Input
-                id="exchangeRate"
-                type="number"
-                step="0.01"
-                {...register('exchangeRate', { valueAsNumber: true })}
-              />
-              {errors.exchangeRate && (
-                <p className="text-sm text-destructive">{errors.exchangeRate.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="type">Type</Label>
-              <Select value={type} onValueChange={(val) => setValue('type', val as PaymentFormData['type'])}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="supplier_payment">Paiement fournisseur</SelectItem>
-                  <SelectItem value="client_payment">Paiement client</SelectItem>
-                  <SelectItem value="transport">Transport</SelectItem>
-                  <SelectItem value="fees">Frais</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="status">Statut</Label>
-            <Select value={status} onValueChange={(val) => setValue('status', val as 'completed' | 'pending')}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">En attente</SelectItem>
-                <SelectItem value="completed">Complété</SelectItem>
-              </SelectContent>
-             </Select>
-           </div>
-
-           </form>
-         </div>
-
-         <DialogFooter className="px-6 py-4 border-t border-border">
-           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-             Annuler
-           </Button>
-           <Button type="submit" disabled={isSubmitting}>
-             {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
-           </Button>
-         </DialogFooter>
-       </DialogContent>
-     </Dialog>
-   );
+        <ScrollableDialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Annuler
+          </Button>
+          <Button onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>
+            {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+          </Button>
+        </ScrollableDialogFooter>
+      </ScrollableDialogContent>
+    </Dialog>
+  );
 }

@@ -2,18 +2,19 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+  ScrollableDialogContent,
+  ScrollableDialogBody,
+  ScrollableDialogFooter,
+} from '@/components/ui/scrollable-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -132,7 +133,7 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+      <ScrollableDialogContent className="max-w-md">
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5 text-success" />
@@ -143,190 +144,190 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6">
-          <div className="space-y-4 pb-4">
-          {/* Choix type de client */}
-          <div className="space-y-3">
-            <Label>Type de client</Label>
-            <RadioGroup 
-              value={clientType} 
-              onValueChange={(value) => setClientType(value as 'new' | 'existing')}
-              className="grid grid-cols-2 gap-3"
-            >
-              <Label
-                htmlFor="new-client"
-                className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                  clientType === 'new' 
-                    ? 'border-primary bg-primary/5' 
-                    : 'border-border hover:border-muted-foreground/50'
-                }`}
+        <ScrollableDialogBody>
+          <div className="space-y-4">
+            {/* Choix type de client */}
+            <div className="space-y-3">
+              <Label>Type de client</Label>
+              <RadioGroup 
+                value={clientType} 
+                onValueChange={(value) => setClientType(value as 'new' | 'existing')}
+                className="grid grid-cols-2 gap-3"
               >
-                <RadioGroupItem value="new" id="new-client" />
-                <div className="flex items-center gap-2">
-                  <UserPlus className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">Nouveau</span>
-                </div>
-              </Label>
-              <Label
-                htmlFor="existing-client"
-                className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                  clientType === 'existing' 
-                    ? 'border-primary bg-primary/5' 
-                    : 'border-border hover:border-muted-foreground/50'
-                }`}
-              >
-                <RadioGroupItem value="existing" id="existing-client" />
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">Existant</span>
-                </div>
-              </Label>
-            </RadioGroup>
-          </div>
+                <Label
+                  htmlFor="new-client"
+                  className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    clientType === 'new' 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-muted-foreground/50'
+                  }`}
+                >
+                  <RadioGroupItem value="new" id="new-client" />
+                  <div className="flex items-center gap-2">
+                    <UserPlus className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">Nouveau</span>
+                  </div>
+                </Label>
+                <Label
+                  htmlFor="existing-client"
+                  className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    clientType === 'existing' 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-muted-foreground/50'
+                  }`}
+                >
+                  <RadioGroupItem value="existing" id="existing-client" />
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">Existant</span>
+                  </div>
+                </Label>
+              </RadioGroup>
+            </div>
 
-          {/* Formulaire Nouveau Client */}
-          {clientType === 'new' && (
-            <>
-              {/* Nom et Prénom */}
-              <div className="grid grid-cols-2 gap-4">
+            {/* Formulaire Nouveau Client */}
+            {clientType === 'new' && (
+              <>
+                {/* Nom et Prénom */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="nom">Nom *</Label>
+                    <Input id="nom" placeholder="Ex: Kaci" value={nom} onChange={(e) => setNom(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="prenom">Prénom *</Label>
+                    <Input id="prenom" placeholder="Ex: Mohamed" value={prenom} onChange={(e) => setPrenom(e.target.value)} />
+                  </div>
+                </div>
+
+                {/* Téléphone */}
                 <div className="space-y-2">
-                  <Label htmlFor="nom">Nom *</Label>
-                  <Input id="nom" placeholder="Ex: Kaci" value={nom} onChange={(e) => setNom(e.target.value)} />
+                  <Label htmlFor="telephone">Téléphone *</Label>
+                  <Input id="telephone" placeholder="+213 XXX XXX XXX" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
                 </div>
+
+                {/* Adresse */}
                 <div className="space-y-2">
-                  <Label htmlFor="prenom">Prénom *</Label>
-                  <Input id="prenom" placeholder="Ex: Mohamed" value={prenom} onChange={(e) => setPrenom(e.target.value)} />
+                  <Label htmlFor="adresse">Adresse</Label>
+                  <Textarea 
+                    id="adresse" 
+                    placeholder="Adresse complète"
+                    rows={2}
+                    value={adresse}
+                    onChange={(e) => setAdresse(e.target.value)}
+                  />
                 </div>
-              </div>
+              </>
+            )}
 
-              {/* Téléphone */}
+            {/* Sélection Client Existant */}
+            {clientType === 'existing' && (
               <div className="space-y-2">
-                <Label htmlFor="telephone">Téléphone *</Label>
-                <Input id="telephone" placeholder="+213 XXX XXX XXX" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
-              </div>
-
-              {/* Adresse */}
-              <div className="space-y-2">
-                <Label htmlFor="adresse">Adresse</Label>
-                <Textarea 
-                  id="adresse" 
-                  placeholder="Adresse complète"
-                  rows={2}
-                  value={adresse}
-                  onChange={(e) => setAdresse(e.target.value)}
-                />
-              </div>
-            </>
-          )}
-
-          {/* Sélection Client Existant */}
-          {clientType === 'existing' && (
-            <div className="space-y-2">
-              <Label htmlFor="client-select">Sélectionner un client *</Label>
-              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                <SelectTrigger id="client-select">
-                  <SelectValue placeholder="Choisir un client existant" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border border-border shadow-lg z-50">
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{client.nom} {client.prenom}</span>
-                        <span className="text-xs text-muted-foreground">{client.telephone}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Séparateur - Calcul du bénéfice */}
-          <div className="border-t border-border pt-4">
-            <h3 className="font-medium text-sm mb-3 flex items-center gap-2">
-              <Percent className="h-4 w-4 text-primary" />
-              Calcul du bénéfice
-            </h3>
-            
-            {/* Pourcentage */}
-            <div className="space-y-2">
-              <Label htmlFor="pourcentage">Pourcentage sur bénéfice (%)</Label>
-              <div className="relative">
-                <Input 
-                  id="pourcentage" 
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={pourcentage}
-                  onChange={(e) => setPourcentage(e.target.value)}
-                  placeholder="5"
-                  className="pr-8"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  %
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mt-3">
-              <div className="space-y-2">
-                <Label htmlFor="prixVente">Prix de vente (DZD)</Label>
-                <Input 
-                  id="prixVente" 
-                  type="number"
-                  value={prixVente}
-                  onChange={(e) => setPrixVente(e.target.value)}
-                  placeholder="10 000 000"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="coutRevient">Coût de revient (DZD)</Label>
-                <Input 
-                  id="coutRevient" 
-                  type="number"
-                  value={coutRevient}
-                  onChange={(e) => setCoutRevient(e.target.value)}
-                  placeholder="8 500 000"
-                />
-              </div>
-            </div>
-
-            {/* Aperçu du calcul */}
-            {prixVente && coutRevient && (
-              <div className="mt-4 p-3 bg-accent/50 rounded-lg space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Bénéfice</span>
-                  <span className="font-medium text-success">
-                    {new Intl.NumberFormat('fr-DZ').format(benefice)} DZD
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    Part client ({pourcentage}%)
-                  </span>
-                  <span className="font-bold text-warning">
-                    {new Intl.NumberFormat('fr-DZ').format(dette)} DZD
-                  </span>
-                </div>
+                <Label htmlFor="client-select">Sélectionner un client *</Label>
+                <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                  <SelectTrigger id="client-select">
+                    <SelectValue placeholder="Choisir un client existant" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border border-border shadow-lg z-50">
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{client.nom} {client.prenom}</span>
+                          <span className="text-xs text-muted-foreground">{client.telephone}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
-          </div>
 
-          {/* Checkbox Payé */}
-          <div className="flex items-center space-x-2 pt-2">
-            <Checkbox 
-              id="paye" 
-              checked={paye}
-              onCheckedChange={(checked) => setPaye(checked === true)}
-            />
-            <Label htmlFor="paye" className="text-sm font-normal cursor-pointer">
-              Marquer la dette comme payée
-            </Label>
-          </div>
-        </div>
-        </ScrollArea>
+            {/* Séparateur - Calcul du bénéfice */}
+            <div className="border-t border-border pt-4">
+              <h3 className="font-medium text-sm mb-3 flex items-center gap-2">
+                <Percent className="h-4 w-4 text-primary" />
+                Calcul du bénéfice
+              </h3>
+              
+              {/* Pourcentage */}
+              <div className="space-y-2">
+                <Label htmlFor="pourcentage">Pourcentage sur bénéfice (%)</Label>
+                <div className="relative">
+                  <Input 
+                    id="pourcentage" 
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={pourcentage}
+                    onChange={(e) => setPourcentage(e.target.value)}
+                    placeholder="5"
+                    className="pr-8"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    %
+                  </span>
+                </div>
+              </div>
 
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <div className="space-y-2">
+                  <Label htmlFor="prixVente">Prix de vente (DZD)</Label>
+                  <Input 
+                    id="prixVente" 
+                    type="number"
+                    value={prixVente}
+                    onChange={(e) => setPrixVente(e.target.value)}
+                    placeholder="10 000 000"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="coutRevient">Coût de revient (DZD)</Label>
+                  <Input 
+                    id="coutRevient" 
+                    type="number"
+                    value={coutRevient}
+                    onChange={(e) => setCoutRevient(e.target.value)}
+                    placeholder="8 500 000"
+                  />
+                </div>
+              </div>
+
+              {/* Aperçu du calcul */}
+              {prixVente && coutRevient && (
+                <div className="mt-4 p-3 bg-accent/50 rounded-lg space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Bénéfice</span>
+                    <span className="font-medium text-success">
+                      {new Intl.NumberFormat('fr-DZ').format(benefice)} DZD
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      Part client ({pourcentage}%)
+                    </span>
+                    <span className="font-bold text-warning">
+                      {new Intl.NumberFormat('fr-DZ').format(dette)} DZD
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Checkbox Payé */}
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox 
+                id="paye" 
+                checked={paye}
+                onCheckedChange={(checked) => setPaye(checked === true)}
+              />
+              <Label htmlFor="paye" className="text-sm font-normal cursor-pointer">
+                Marquer la dette comme payée
+              </Label>
+            </div>
+          </div>
+        </ScrollableDialogBody>
+
+        <ScrollableDialogFooter>
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Annuler
           </Button>
@@ -338,8 +339,8 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
             {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Enregistrer le client
           </Button>
-        </div>
-      </DialogContent>
+        </ScrollableDialogFooter>
+      </ScrollableDialogContent>
     </Dialog>
   );
 };

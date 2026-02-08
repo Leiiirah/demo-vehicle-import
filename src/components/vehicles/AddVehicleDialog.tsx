@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+  ScrollableDialogContent,
+  ScrollableDialogBody,
+  ScrollableDialogFooter,
+} from '@/components/ui/scrollable-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -213,8 +214,8 @@ const AddVehicleDialog = ({ children }: AddVehicleDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <ScrollableDialogContent className="max-w-2xl">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <Car className="h-5 w-5" />
             Ajouter un véhicule
@@ -228,19 +229,20 @@ const AddVehicleDialog = ({ children }: AddVehicleDialogProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        {/* Progress bar */}
-        <div className="flex gap-2 mb-6">
-          {[1, 2, 3, 4].map((s) => (
-            <div
-              key={s}
-              className={`h-2 flex-1 rounded-full transition-colors ${
-                s <= step ? 'bg-primary' : 'bg-muted'
-              }`}
-            />
-          ))}
-        </div>
+        <ScrollableDialogBody>
+          {/* Progress bar */}
+          <div className="flex gap-2 mb-6">
+            {[1, 2, 3, 4].map((s) => (
+              <div
+                key={s}
+                className={`h-2 flex-1 rounded-full transition-colors ${
+                  s <= step ? 'bg-primary' : 'bg-muted'
+                }`}
+              />
+            ))}
+          </div>
 
-        <form onSubmit={handleSubmit}>
+          <form id="add-vehicle-form" onSubmit={handleSubmit}>
           {/* Étape 1: Informations véhicule */}
           {step === 1 && (
             <div className="space-y-4">
@@ -664,29 +666,30 @@ const AddVehicleDialog = ({ children }: AddVehicleDialogProps) => {
             </div>
           )}
 
-          {/* Navigation */}
-          <div className="flex justify-between mt-6 pt-4 border-t border-border">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={prevStep}
-              disabled={step === 1}
-            >
-              Précédent
+          </form>
+        </ScrollableDialogBody>
+
+        <ScrollableDialogFooter className="justify-between">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={prevStep}
+            disabled={step === 1}
+          >
+            Précédent
+          </Button>
+          {step < 4 ? (
+            <Button type="button" onClick={nextStep}>
+              Suivant
             </Button>
-            {step < 4 ? (
-              <Button type="button" onClick={nextStep}>
-                Suivant
-              </Button>
-            ) : (
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Ajouter le véhicule
-              </Button>
-            )}
-          </div>
-        </form>
-      </DialogContent>
+          ) : (
+            <Button type="submit" form="add-vehicle-form" disabled={createMutation.isPending}>
+              {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Ajouter le véhicule
+            </Button>
+          )}
+        </ScrollableDialogFooter>
+      </ScrollableDialogContent>
     </Dialog>
   );
 };
