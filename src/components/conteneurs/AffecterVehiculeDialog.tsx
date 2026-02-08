@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+  ScrollableDialogContent,
+  ScrollableDialogBody,
+  ScrollableDialogFooter,
+} from '@/components/ui/scrollable-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -87,7 +88,7 @@ export const AffecterVehiculeDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+      <ScrollableDialogContent className="max-w-md">
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <Car className="h-5 w-5 text-primary" />
@@ -98,8 +99,8 @@ export const AffecterVehiculeDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6">
-          <div className="space-y-4 pb-4">
+        <ScrollableDialogBody>
+          <div className="space-y-4">
             {/* Choix mode */}
             <div className="space-y-3">
               <Label>Type d'affectation</Label>
@@ -269,9 +270,9 @@ export const AffecterVehiculeDialog = ({
               </div>
             )}
           </div>
-        </ScrollArea>
+        </ScrollableDialogBody>
 
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
+        <ScrollableDialogFooter>
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Annuler
           </Button>
@@ -281,8 +282,8 @@ export const AffecterVehiculeDialog = ({
           >
             Affecter au conteneur
           </Button>
-        </div>
-      </DialogContent>
+        </ScrollableDialogFooter>
+      </ScrollableDialogContent>
     </Dialog>
   );
 };

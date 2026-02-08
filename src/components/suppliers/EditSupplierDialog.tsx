@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Dialog,
+  DialogHeader,
+  DialogTitle,
+  ScrollableDialogContent,
+  ScrollableDialogBody,
+  ScrollableDialogFooter,
+} from '@/components/ui/scrollable-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -70,70 +76,70 @@ export function EditSupplierDialog({ open, onOpenChange, supplier }: EditSupplie
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+      <ScrollableDialogContent className="max-w-md">
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>Modifier le fournisseur</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="flex-1 px-6">
-          <form onSubmit={handleSubmit} className="space-y-4 pb-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nom *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Nom du fournisseur"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="location">Localisation *</Label>
-            <Input
-              id="location"
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              placeholder="Ville, Pays"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contactName">Nom du contact</Label>
-            <Input
-              id="contactName"
-              value={formData.contactName}
-              onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
-              placeholder="Nom du contact"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contactEmail">Email</Label>
-            <Input
-              id="contactEmail"
-              type="email"
-              value={formData.contactEmail}
-              onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
-              placeholder="email@example.com"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contactPhone">Téléphone</Label>
-            <Input
-              id="contactPhone"
-              value={formData.contactPhone}
-              onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
-              placeholder="+86 xxx xxx xxxx"
-            />
-          </div>
+        <ScrollableDialogBody>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nom *</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Nom du fournisseur"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location">Localisation *</Label>
+              <Input
+                id="location"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                placeholder="Ville, Pays"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contactName">Nom du contact</Label>
+              <Input
+                id="contactName"
+                value={formData.contactName}
+                onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
+                placeholder="Nom du contact"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contactEmail">Email</Label>
+              <Input
+                id="contactEmail"
+                type="email"
+                value={formData.contactEmail}
+                onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+                placeholder="email@example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contactPhone">Téléphone</Label>
+              <Input
+                id="contactPhone"
+                value={formData.contactPhone}
+                onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
+                placeholder="+86 xxx xxx xxxx"
+              />
+            </div>
           </form>
-        </ScrollArea>
-        <DialogFooter className="px-6 py-4 border-t border-border">
+        </ScrollableDialogBody>
+        <ScrollableDialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
-          <Button type="submit" disabled={updateMutation.isPending}>
+          <Button onClick={handleSubmit} disabled={updateMutation.isPending}>
             {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Enregistrer
           </Button>
-        </DialogFooter>
-      </DialogContent>
+        </ScrollableDialogFooter>
+      </ScrollableDialogContent>
     </Dialog>
   );
 }

@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+  ScrollableDialogContent,
+  ScrollableDialogBody,
+  ScrollableDialogFooter,
+} from '@/components/ui/scrollable-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -98,7 +99,7 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] min-h-0 flex flex-col p-0">
+      <ScrollableDialogContent className="max-w-md">
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <Container className="h-5 w-5 text-primary" />
@@ -109,8 +110,8 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0">
-          <div className="space-y-4 px-6 pb-4">
+        <ScrollableDialogBody>
+          <div className="space-y-4">
             {/* Sélection Dossier */}
             <div className="space-y-2">
               <Label htmlFor="dossier" className="flex items-center gap-2">
@@ -244,9 +245,9 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
               </p>
             </div>
           </div>
-        </ScrollArea>
+        </ScrollableDialogBody>
 
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
+        <ScrollableDialogFooter>
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Annuler
           </Button>
@@ -257,8 +258,8 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
             {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Créer le conteneur
           </Button>
-        </div>
-      </DialogContent>
+        </ScrollableDialogFooter>
+      </ScrollableDialogContent>
     </Dialog>
   );
 };
