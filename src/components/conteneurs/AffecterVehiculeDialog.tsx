@@ -2,9 +2,9 @@ import { useState } from 'react';
 import {
   Dialog,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
   ScrollableDialogContent,
+  ScrollableDialogHeader,
   ScrollableDialogBody,
   ScrollableDialogFooter,
 } from '@/components/ui/scrollable-dialog';
@@ -89,7 +89,7 @@ export const AffecterVehiculeDialog = ({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <ScrollableDialogContent className="max-w-md">
-        <DialogHeader className="px-6 pt-6 pb-2">
+        <ScrollableDialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Car className="h-5 w-5 text-primary" />
             Affecter un véhicule
@@ -97,7 +97,7 @@ export const AffecterVehiculeDialog = ({
           <DialogDescription>
             Conteneur : <span className="font-medium text-foreground">{conteneurNumero}</span>
           </DialogDescription>
-        </DialogHeader>
+        </ScrollableDialogHeader>
 
         <ScrollableDialogBody>
           <div className="space-y-4">
