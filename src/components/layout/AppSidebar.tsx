@@ -29,10 +29,11 @@ const importItems = [
   { name: 'Dossiers', href: '/dossiers', icon: FolderOpen },
   { name: 'Conteneurs', href: '/conteneurs', icon: Container },
   { name: 'Véhicules', href: '/vehicles', icon: Car },
-  { name: 'Clients', href: '/clients', icon: ShoppingCart },
+  { name: 'Clients', href: '/clients', icon: Users },
 ];
 
 const comptabiliteItems = [
+  { name: 'Ventes Clients', href: '/client-sales', icon: ShoppingCart },
   { name: 'Ventes & Marges', href: '/sales', icon: TrendingUp },
   { name: 'Rapports', href: '/reports', icon: FileText },
 ];
