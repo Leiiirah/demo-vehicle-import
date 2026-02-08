@@ -112,15 +112,16 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>Nouveau Paiement</DialogTitle>
           <DialogDescription>
             Enregistrez un nouveau paiement pour ce dossier.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="flex-1 overflow-y-auto px-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pb-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="date">Date *</Label>
@@ -216,19 +217,21 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
                 <SelectItem value="pending">En attente</SelectItem>
                 <SelectItem value="completed">Complété</SelectItem>
               </SelectContent>
-            </Select>
-          </div>
+             </Select>
+           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
+           </form>
+         </div>
+
+         <DialogFooter className="px-6 py-4 border-t border-border">
+           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+             Annuler
+           </Button>
+           <Button type="submit" disabled={isSubmitting}>
+             {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+           </Button>
+         </DialogFooter>
+       </DialogContent>
+     </Dialog>
+   );
 }

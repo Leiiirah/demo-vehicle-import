@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -97,8 +98,8 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <Container className="h-5 w-5 text-primary" />
             Nouveau Conteneur
@@ -108,7 +109,8 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
+        <ScrollArea className="flex-1 px-6">
+          <div className="space-y-4 pb-4">
           {/* Sélection Dossier */}
           <div className="space-y-2">
             <Label htmlFor="dossier" className="flex items-center gap-2">
@@ -242,8 +244,9 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
             </p>
           </div>
         </div>
+        </ScrollArea>
 
-        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Annuler
           </Button>

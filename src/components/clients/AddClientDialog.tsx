@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -131,8 +132,8 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5 text-success" />
             Ajouter un client
@@ -142,7 +143,8 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
+        <ScrollArea className="flex-1 px-6">
+          <div className="space-y-4 pb-4">
           {/* Choix type de client */}
           <div className="space-y-3">
             <Label>Type de client</Label>
@@ -322,8 +324,9 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
             </Label>
           </div>
         </div>
+        </ScrollArea>
 
-        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Annuler
           </Button>
