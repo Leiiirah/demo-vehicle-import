@@ -123,8 +123,9 @@ const VehicleDetailPage = () => {
   // Prix de revient
   const prixRevient = totalUSDenDZD + chargesTransit + totalChargesDivers;
 
-  // Calcul de la répartition des bénéfices
-  const benefice = vehicle.sellingPrice - prixRevient;
+  // Calcul de la répartition des bénéfices (safe access after loading check)
+  const sellingPrice = vehicle?.sellingPrice ?? 0;
+  const benefice = sellingPrice - prixRevient;
   const clientShare = (benefice * clientImport.profitPercentage) / 100;
   const companyShare = benefice - clientShare;
 
@@ -322,7 +323,7 @@ const VehicleDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Prix de vente</p>
-                  <p className="text-xl font-semibold">{formatCurrency(vehicle.sellingPrice)}</p>
+                  <p className="text-xl font-semibold">{formatCurrency(sellingPrice)}</p>
                 </div>
               </div>
             </CardContent>
