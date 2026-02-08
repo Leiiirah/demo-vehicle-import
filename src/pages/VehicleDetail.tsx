@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useVehicle } from '@/hooks/useApi';
+import { api } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 import {
   ArrowLeft,
   Car,
@@ -30,6 +33,8 @@ import {
   TrendingUp,
   Truck,
   AlertCircle,
+  Save,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { EditVehicleDialog } from '@/components/vehicles/EditVehicleDialog';
@@ -50,7 +55,9 @@ interface ChargeDivers {
 const VehicleDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const { data: vehicle, isLoading, error } = useVehicle(id || '');
 
@@ -67,27 +74,58 @@ const VehicleDetailPage = () => {
   const [prixTransport, setPrixTransport] = useState<number>(0);
 
   // État pour les charges DZD
-  const [chargesTransit, setChargesTransit] = useState<number>(850000);
-  const [chargesDivers, setChargesDivers] = useState<ChargeDivers[]>([
-    { id: 'cd-1', libelle: 'Mise en conformité', montant: 45000 },
-    { id: 'cd-2', libelle: 'Frais transitaire', montant: 25000 },
-  ]);
+  const [chargesTransit, setChargesTransit] = useState<number>(0);
+  const [chargesDivers, setChargesDivers] = useState<ChargeDivers[]>([]);
 
-  // État pour les versements (mock data)
-  const [versements, setVersements] = useState<Versement[]>([
-    { id: 'v-1', date: '2026-01-15', montantUSD: 15000, tauxChange: 134.00 },
-    { id: 'v-2', date: '2026-01-22', montantUSD: 10000, tauxChange: 135.50 },
-    { id: 'v-3', date: '2026-01-28', montantUSD: 5000, tauxChange: 136.20 },
-  ]);
+  // État pour les versements
+  const [versements, setVersements] = useState<Versement[]>([]);
 
   // Initialize state from vehicle when loaded
-  useState(() => {
+  useEffect(() => {
     if (vehicle) {
-      setPrixVehicule(vehicle.purchasePrice || 0);
-      setPrixTransport(vehicle.transportCost || 0);
-      setChargesTransit(vehicle.localFees || 850000);
+      setPrixVehicule(Number(vehicle.purchasePrice) || 0);
+      setPrixTransport(Number(vehicle.transportCost) || 0);
+      setChargesTransit(Number(vehicle.localFees) || 0);
+      setHasChanges(false);
     }
+  }, [vehicle]);
+
+  // Mutation for saving vehicle updates
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (!id) throw new Error('Vehicle ID missing');
+      return api.updateVehicle(id, {
+        purchasePrice: prixVehicule,
+        localFees: chargesTransit,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle', id] });
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      toast.success('Modifications enregistrées');
+      setHasChanges(false);
+    },
+    onError: (error) => {
+      console.error('Save error:', error);
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la sauvegarde');
+    },
   });
+
+  // Track changes
+  const handlePrixVehiculeChange = (value: number) => {
+    setPrixVehicule(value);
+    setHasChanges(true);
+  };
+
+  const handlePrixTransportChange = (value: number) => {
+    setPrixTransport(value);
+    setHasChanges(true);
+  };
+
+  const handleChargesTransitChange = (value: number) => {
+    setChargesTransit(value);
+    setHasChanges(true);
+  };
 
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
     if (currency === 'USD') {
@@ -260,10 +298,22 @@ const VehicleDetailPage = () => {
               {vehicle.year} • {vehicle.id} • VIN: {vehicle.vin}
             </p>
           </div>
-          <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
-            <Edit className="h-4 w-4 mr-2" />
-            Modifier
-          </Button>
+          <div className="flex items-center gap-2">
+            {hasChanges && (
+              <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+                {saveMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                Enregistrer
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Modifier
+            </Button>
+          </div>
         </div>
 
         {/* Progress bar du statut */}
@@ -390,7 +440,7 @@ const VehicleDetailPage = () => {
                           type="number"
                           className="pl-7"
                           value={prixVehicule}
-                          onChange={(e) => setPrixVehicule(Number(e.target.value))}
+                          onChange={(e) => handlePrixVehiculeChange(Number(e.target.value))}
                         />
                       </div>
                     </div>
@@ -414,7 +464,7 @@ const VehicleDetailPage = () => {
                           type="number"
                           className="pl-7"
                           value={prixTransport}
-                          onChange={(e) => setPrixTransport(Number(e.target.value))}
+                          onChange={(e) => handlePrixTransportChange(Number(e.target.value))}
                         />
                       </div>
                     </div>
@@ -433,7 +483,7 @@ const VehicleDetailPage = () => {
                     <Input
                       type="number"
                       value={chargesTransit}
-                      onChange={(e) => setChargesTransit(Number(e.target.value))}
+                      onChange={(e) => handleChargesTransitChange(Number(e.target.value))}
                     />
                   </CardContent>
                 </Card>
