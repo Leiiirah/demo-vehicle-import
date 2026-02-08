@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogDescription,
@@ -19,14 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Car, Plus, Link2, DollarSign } from 'lucide-react';
-
-// Mock véhicules non affectés
-const mockVehiculesDisponibles = [
-  { id: 'VH010', brand: 'Mercedes', model: 'GLE 450', year: 2024, vin: 'W1N253486...', status: 'ordered', prix: 62000 },
-  { id: 'VH011', brand: 'BMW', model: 'X7', year: 2024, vin: '5UXCW2C5...', status: 'ordered', prix: 75000 },
-  { id: 'VH012', brand: 'Audi', model: 'Q7', year: 2024, vin: 'WAUZZZ4M...', status: 'ordered', prix: 58000 },
-];
+import { Car, Plus, Link2, DollarSign, Loader2 } from 'lucide-react';
+import { api, Vehicle, Conteneur } from '@/services/api';
+import { toast } from 'sonner';
 
 interface AffecterVehiculeDialogProps {
   open: boolean;
@@ -41,6 +37,7 @@ export const AffecterVehiculeDialog = ({
   conteneurId,
   conteneurNumero 
 }: AffecterVehiculeDialogProps) => {
+  const queryClient = useQueryClient();
   const [mode, setMode] = useState<'new' | 'existing'>('new');
   const [selectedVehicleId, setSelectedVehicleId] = useState('');
   
@@ -50,21 +47,101 @@ export const AffecterVehiculeDialog = ({
   const [year, setYear] = useState('2024');
   const [vin, setVin] = useState('');
   const [prixVehicule, setPrixVehicule] = useState('');
+  const [supplierId, setSupplierId] = useState('');
 
-  const handleSubmit = () => {
-    // TODO: Enregistrer l'affectation
-    console.log({
-      mode,
-      conteneurId,
-      vehicleId: mode === 'existing' ? selectedVehicleId : 'new',
-      brand,
-      model,
-      year,
-      vin,
-      prixVehicule,
-    });
-    onOpenChange(false);
-    resetForm();
+  // Fetch conteneur to get the dossier's supplierId
+  const { data: conteneur } = useQuery({
+    queryKey: ['conteneur', conteneurId],
+    queryFn: () => api.getConteneur(conteneurId),
+    enabled: open,
+  });
+
+  // Fetch all vehicles to find unassigned ones (no conteneurId or different conteneurId)
+  const { data: allVehicles = [], isLoading: isLoadingVehicles } = useQuery({
+    queryKey: ['vehicles'],
+    queryFn: () => api.getVehicles(),
+    enabled: open && mode === 'existing',
+  });
+
+  // Filter vehicles that don't have a conteneur assigned yet
+  const availableVehicles = allVehicles.filter(
+    (v) => !v.conteneurId || v.conteneurId === ''
+  );
+
+  // Fetch suppliers for the new vehicle form
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['suppliers'],
+    queryFn: () => api.getSuppliers(),
+    enabled: open && mode === 'new',
+  });
+
+  // Mutation for updating existing vehicle's conteneurId
+  const updateVehicleMutation = useMutation({
+    mutationFn: (vehicleId: string) => 
+      api.updateVehicle(vehicleId, { conteneurId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['conteneur', conteneurId] });
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      toast.success('Véhicule affecté au conteneur avec succès');
+      handleClose();
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur: ${error.message}`);
+    },
+  });
+
+  // Mutation for creating a new vehicle
+  const createVehicleMutation = useMutation({
+    mutationFn: (data: {
+      brand: string;
+      model: string;
+      year: number;
+      vin: string;
+      purchasePrice: number;
+      supplierId: string;
+      conteneurId: string;
+      orderDate: string;
+    }) => api.createVehicle(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['conteneur', conteneurId] });
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      toast.success('Véhicule créé et affecté au conteneur avec succès');
+      handleClose();
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur: ${error.message}`);
+    },
+  });
+
+  const isLoading = updateVehicleMutation.isPending || createVehicleMutation.isPending;
+
+  const handleSubmit = async () => {
+    try {
+      if (mode === 'existing') {
+        if (!selectedVehicleId) {
+          toast.error('Veuillez sélectionner un véhicule');
+          return;
+        }
+        await updateVehicleMutation.mutateAsync(selectedVehicleId);
+      } else {
+        if (!brand || !model || !vin || !prixVehicule || !supplierId) {
+          toast.error('Veuillez remplir tous les champs obligatoires');
+          return;
+        }
+        await createVehicleMutation.mutateAsync({
+          brand,
+          model,
+          year: parseInt(year, 10),
+          vin,
+          purchasePrice: parseFloat(prixVehicule),
+          supplierId,
+          conteneurId,
+          orderDate: new Date().toISOString(),
+        });
+      }
+    } catch (error) {
+      console.error('Error assigning vehicle:', error);
+    }
   };
 
   const resetForm = () => {
@@ -75,6 +152,12 @@ export const AffecterVehiculeDialog = ({
     setYear('2024');
     setVin('');
     setPrixVehicule('');
+    setSupplierId('');
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onOpenChange(false);
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -84,7 +167,7 @@ export const AffecterVehiculeDialog = ({
     onOpenChange(open);
   };
 
-  const selectedVehicle = mockVehiculesDisponibles.find(v => v.id === selectedVehicleId);
+  const selectedVehicle = availableVehicles.find(v => v.id === selectedVehicleId);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -151,13 +234,13 @@ export const AffecterVehiculeDialog = ({
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border border-border shadow-lg z-50">
-                        <SelectItem value="toyota">Toyota</SelectItem>
-                        <SelectItem value="mercedes">Mercedes</SelectItem>
-                        <SelectItem value="bmw">BMW</SelectItem>
-                        <SelectItem value="audi">Audi</SelectItem>
-                        <SelectItem value="porsche">Porsche</SelectItem>
-                        <SelectItem value="land-rover">Land Rover</SelectItem>
-                        <SelectItem value="volkswagen">Volkswagen</SelectItem>
+                        <SelectItem value="Toyota">Toyota</SelectItem>
+                        <SelectItem value="Mercedes">Mercedes</SelectItem>
+                        <SelectItem value="BMW">BMW</SelectItem>
+                        <SelectItem value="Audi">Audi</SelectItem>
+                        <SelectItem value="Porsche">Porsche</SelectItem>
+                        <SelectItem value="Land Rover">Land Rover</SelectItem>
+                        <SelectItem value="Volkswagen">Volkswagen</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -189,7 +272,7 @@ export const AffecterVehiculeDialog = ({
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="vin">Numéro VIN</Label>
+                    <Label htmlFor="vin">Numéro VIN *</Label>
                     <Input 
                       id="vin" 
                       placeholder="17 caractères" 
@@ -199,6 +282,23 @@ export const AffecterVehiculeDialog = ({
                       className="font-mono uppercase"
                     />
                   </div>
+                </div>
+
+                {/* Fournisseur */}
+                <div className="space-y-2">
+                  <Label htmlFor="supplier">Fournisseur *</Label>
+                  <Select value={supplierId} onValueChange={setSupplierId}>
+                    <SelectTrigger id="supplier">
+                      <SelectValue placeholder="Sélectionner un fournisseur" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border border-border shadow-lg z-50">
+                      {suppliers.map((supplier) => (
+                        <SelectItem key={supplier.id} value={supplier.id}>
+                          {supplier.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Prix du véhicule */}
@@ -229,43 +329,55 @@ export const AffecterVehiculeDialog = ({
             {mode === 'existing' && (
               <div className="space-y-2">
                 <Label htmlFor="vehicle-select">Véhicule disponible *</Label>
-                <Select value={selectedVehicleId} onValueChange={setSelectedVehicleId}>
-                  <SelectTrigger id="vehicle-select">
-                    <SelectValue placeholder="Sélectionner un véhicule" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border border-border shadow-lg z-50">
-                    {mockVehiculesDisponibles.map((vehicle) => (
-                      <SelectItem key={vehicle.id} value={vehicle.id}>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{vehicle.brand} {vehicle.model} ({vehicle.year})</span>
-                          <span className="text-xs text-muted-foreground font-mono">{vehicle.vin}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                {mockVehiculesDisponibles.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Aucun véhicule disponible. Créez-en un nouveau.
-                  </p>
-                )}
-
-                {selectedVehicle && (
-                  <div className="p-3 bg-accent/50 rounded-lg mt-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Véhicule</span>
-                      <span className="font-medium">{selectedVehicle.brand} {selectedVehicle.model}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Année</span>
-                      <span className="font-medium">{selectedVehicle.year}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">VIN</span>
-                      <span className="font-medium font-mono">{selectedVehicle.vin}</span>
-                    </div>
+                {isLoadingVehicles ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                   </div>
+                ) : (
+                  <>
+                    <Select value={selectedVehicleId} onValueChange={setSelectedVehicleId}>
+                      <SelectTrigger id="vehicle-select">
+                        <SelectValue placeholder="Sélectionner un véhicule" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border border-border shadow-lg z-50">
+                        {availableVehicles.map((vehicle) => (
+                          <SelectItem key={vehicle.id} value={vehicle.id}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{vehicle.brand} {vehicle.model} ({vehicle.year})</span>
+                              <span className="text-xs text-muted-foreground font-mono">{vehicle.vin}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    {availableVehicles.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Aucun véhicule disponible. Créez-en un nouveau.
+                      </p>
+                    )}
+
+                    {selectedVehicle && (
+                      <div className="p-3 bg-accent/50 rounded-lg mt-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Véhicule</span>
+                          <span className="font-medium">{selectedVehicle.brand} {selectedVehicle.model}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Année</span>
+                          <span className="font-medium">{selectedVehicle.year}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">VIN</span>
+                          <span className="font-medium font-mono">{selectedVehicle.vin}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Prix</span>
+                          <span className="font-medium">${selectedVehicle.purchasePrice?.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -273,13 +385,14 @@ export const AffecterVehiculeDialog = ({
         </ScrollableDialogBody>
 
         <ScrollableDialogFooter>
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isLoading}>
             Annuler
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={mode === 'new' ? !brand || !model : !selectedVehicleId}
+            disabled={isLoading || (mode === 'new' ? !brand || !model || !vin || !prixVehicule || !supplierId : !selectedVehicleId)}
           >
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Affecter au conteneur
           </Button>
         </ScrollableDialogFooter>
