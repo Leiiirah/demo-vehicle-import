@@ -4,8 +4,14 @@ import { Repository } from 'typeorm';
 import { Vehicle } from '../../entities/vehicle.entity';
 import { Conteneur } from '../../entities/conteneur.entity';
 import { Passeport } from '../../entities/passeport.entity';
+import { VehiclePayment } from '../../entities/vehicle-payment.entity';
+import { VehicleCharge } from '../../entities/vehicle-charge.entity';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
+import { CreateVehiclePaymentDto } from './dto/create-vehicle-payment.dto';
+import { UpdateVehiclePaymentDto } from './dto/update-vehicle-payment.dto';
+import { CreateVehicleChargeDto } from './dto/create-vehicle-charge.dto';
+import { UpdateVehicleChargeDto } from './dto/update-vehicle-charge.dto';
 
 const MAX_VEHICLES_PER_CONTAINER = 4;
 
@@ -18,6 +24,10 @@ export class VehiclesService {
     private conteneurRepository: Repository<Conteneur>,
     @InjectRepository(Passeport)
     private passeportRepository: Repository<Passeport>,
+    @InjectRepository(VehiclePayment)
+    private vehiclePaymentRepository: Repository<VehiclePayment>,
+    @InjectRepository(VehicleCharge)
+    private vehicleChargeRepository: Repository<VehicleCharge>,
   ) {}
 
   async findAll() {
@@ -180,5 +190,81 @@ export class VehiclesService {
         await this.vehicleRepository.save(vehicle);
       }
     }
+  }
+
+  // ============ VEHICLE PAYMENTS ============
+
+  async getVehiclePayments(vehicleId: string) {
+    return this.vehiclePaymentRepository.find({
+      where: { vehicleId },
+      order: { date: 'DESC' },
+    });
+  }
+
+  async createVehiclePayment(createDto: CreateVehiclePaymentDto) {
+    // Verify vehicle exists
+    const vehicle = await this.vehicleRepository.findOne({ where: { id: createDto.vehicleId } });
+    if (!vehicle) {
+      throw new NotFoundException('Vehicle not found');
+    }
+
+    const payment = this.vehiclePaymentRepository.create(createDto);
+    return this.vehiclePaymentRepository.save(payment);
+  }
+
+  async updateVehiclePayment(id: string, updateDto: UpdateVehiclePaymentDto) {
+    const payment = await this.vehiclePaymentRepository.findOne({ where: { id } });
+    if (!payment) {
+      throw new NotFoundException('Vehicle payment not found');
+    }
+    Object.assign(payment, updateDto);
+    return this.vehiclePaymentRepository.save(payment);
+  }
+
+  async deleteVehiclePayment(id: string) {
+    const payment = await this.vehiclePaymentRepository.findOne({ where: { id } });
+    if (!payment) {
+      throw new NotFoundException('Vehicle payment not found');
+    }
+    await this.vehiclePaymentRepository.remove(payment);
+    return { message: 'Payment deleted successfully' };
+  }
+
+  // ============ VEHICLE CHARGES ============
+
+  async getVehicleCharges(vehicleId: string) {
+    return this.vehicleChargeRepository.find({
+      where: { vehicleId },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async createVehicleCharge(createDto: CreateVehicleChargeDto) {
+    // Verify vehicle exists
+    const vehicle = await this.vehicleRepository.findOne({ where: { id: createDto.vehicleId } });
+    if (!vehicle) {
+      throw new NotFoundException('Vehicle not found');
+    }
+
+    const charge = this.vehicleChargeRepository.create(createDto);
+    return this.vehicleChargeRepository.save(charge);
+  }
+
+  async updateVehicleCharge(id: string, updateDto: UpdateVehicleChargeDto) {
+    const charge = await this.vehicleChargeRepository.findOne({ where: { id } });
+    if (!charge) {
+      throw new NotFoundException('Vehicle charge not found');
+    }
+    Object.assign(charge, updateDto);
+    return this.vehicleChargeRepository.save(charge);
+  }
+
+  async deleteVehicleCharge(id: string) {
+    const charge = await this.vehicleChargeRepository.findOne({ where: { id } });
+    if (!charge) {
+      throw new NotFoundException('Vehicle charge not found');
+    }
+    await this.vehicleChargeRepository.remove(charge);
+    return { message: 'Charge deleted successfully' };
   }
 }

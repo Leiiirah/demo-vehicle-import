@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api, type CreateUserData, type CreateSupplierData, type CreateDossierData, type CreateConteneurData, type CreateVehicleData, type CreateClientData, type CreatePasseportData, type CreatePaymentData } from '@/services/api';
+import { api, type CreateUserData, type CreateSupplierData, type CreateDossierData, type CreateConteneurData, type CreateVehicleData, type CreateClientData, type CreatePasseportData, type CreatePaymentData, type CreateVehiclePaymentData, type CreateVehicleChargeData } from '@/services/api';
 
 // Auth hooks
 export function useCurrentUser() {
@@ -229,7 +229,7 @@ export function useVehicles() {
 
 export function useVehicle(id: string) {
   return useQuery({
-    queryKey: ['vehicles', id],
+    queryKey: ['vehicle', id],
     queryFn: () => api.getVehicle(id),
     enabled: !!id,
   });
@@ -264,6 +264,86 @@ export function useDeleteVehicle() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       queryClient.invalidateQueries({ queryKey: ['conteneurs'] });
+    },
+  });
+}
+
+// Vehicle Payments hooks
+export function useVehiclePayments(vehicleId: string) {
+  return useQuery({
+    queryKey: ['vehiclePayments', vehicleId],
+    queryFn: () => api.getVehiclePayments(vehicleId),
+    enabled: !!vehicleId,
+  });
+}
+
+export function useCreateVehiclePayment(vehicleId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateVehiclePaymentData) => api.createVehiclePayment(vehicleId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehiclePayments', vehicleId] });
+    },
+  });
+}
+
+export function useUpdateVehiclePayment(vehicleId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateVehiclePaymentData> }) =>
+      api.updateVehiclePayment(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehiclePayments', vehicleId] });
+    },
+  });
+}
+
+export function useDeleteVehiclePayment(vehicleId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.deleteVehiclePayment(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehiclePayments', vehicleId] });
+    },
+  });
+}
+
+// Vehicle Charges hooks
+export function useVehicleCharges(vehicleId: string) {
+  return useQuery({
+    queryKey: ['vehicleCharges', vehicleId],
+    queryFn: () => api.getVehicleCharges(vehicleId),
+    enabled: !!vehicleId,
+  });
+}
+
+export function useCreateVehicleCharge(vehicleId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateVehicleChargeData) => api.createVehicleCharge(vehicleId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicleCharges', vehicleId] });
+    },
+  });
+}
+
+export function useUpdateVehicleCharge(vehicleId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateVehicleChargeData> }) =>
+      api.updateVehicleCharge(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicleCharges', vehicleId] });
+    },
+  });
+}
+
+export function useDeleteVehicleCharge(vehicleId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.deleteVehicleCharge(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicleCharges', vehicleId] });
     },
   });
 }

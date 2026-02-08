@@ -6,3 +6,5 @@ export * from './vehicle.entity';
 export * from './client.entity';
 export * from './passeport.entity';
 export * from './payment.entity';
+export * from './vehicle-payment.entity';
+export * from './vehicle-charge.entity';
