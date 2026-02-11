@@ -119,6 +119,7 @@ const AddVehicleDialog = ({ children }: AddVehicleDialogProps) => {
       totalCost: prixRevient,
       orderDate,
       arrivalDate: estimatedArrival || undefined,
+      photoUrl: photoPreview || undefined,
     });
   };
 

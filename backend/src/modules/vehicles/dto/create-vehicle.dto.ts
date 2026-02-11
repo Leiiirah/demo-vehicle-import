@@ -70,6 +70,10 @@ export class CreateVehicleDto {
   @IsOptional()
   sellingPrice?: number;
 
+  @IsString()
+  @IsOptional()
+  photoUrl?: string;
+
   @IsDateString()
   @IsNotEmpty()
   orderDate: string;
