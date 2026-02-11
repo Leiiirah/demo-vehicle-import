@@ -29,9 +29,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Auth check failed:', error);
       localStorage.removeItem('token');
-    } finally {
-      setIsLoading(false);
+      setUser(null);
     }
+    setIsLoading(false);
   };
 
   const login = async (email: string, password: string) => {
