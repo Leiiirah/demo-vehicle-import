@@ -102,12 +102,20 @@ const VehiclesPage = () => {
               Gérez vos importations et suivez leur statut
             </p>
           </div>
-          <AddVehicleDialog>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Car className="h-4 w-4 mr-2" />
-              Ajouter un véhicule
-            </Button>
-          </AddVehicleDialog>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">Montant total estimé</p>
+              <p className="text-lg font-semibold text-foreground">
+                {formatCurrency(filteredVehicles.reduce((sum, v) => sum + Number(v.totalCost || 0), 0))}
+              </p>
+            </div>
+            <AddVehicleDialog>
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Car className="h-4 w-4 mr-2" />
+                Ajouter un véhicule
+              </Button>
+            </AddVehicleDialog>
+          </div>
         </div>
 
         {/* Filtres */}
