@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Car, Plus, Link2, DollarSign, Loader2 } from 'lucide-react';
+import { Car, Plus, Link2, DollarSign, Loader2, Upload, X } from 'lucide-react';
 import { api, Vehicle, Conteneur } from '@/services/api';
 import { toast } from 'sonner';
 
@@ -46,6 +46,10 @@ export const AffecterVehiculeDialog = ({
   const [model, setModel] = useState('');
   const [year, setYear] = useState('2024');
   const [vin, setVin] = useState('');
+  const [color, setColor] = useState('');
+  const [transmission, setTransmission] = useState<'manual' | 'automatic'>('automatic');
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [prixVehicule, setPrixVehicule] = useState('');
   const [supplierId, setSupplierId] = useState('');
 
@@ -162,8 +166,22 @@ export const AffecterVehiculeDialog = ({
     setModel('');
     setYear('2024');
     setVin('');
+    setColor('');
+    setTransmission('automatic');
+    setPhotoPreview(null);
+    setPhotoFile(null);
     setPrixVehicule('');
     setSupplierId('');
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onload = () => setPhotoPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleClose = () => {
@@ -293,6 +311,63 @@ export const AffecterVehiculeDialog = ({
                       className="font-mono uppercase"
                     />
                   </div>
+                </div>
+
+                {/* Couleur et Transmission */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="color">Couleur</Label>
+                    <Input
+                      id="color"
+                      placeholder="Ex: Blanc, Noir"
+                      value={color}
+                      onChange={(e) => setColor(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="transmission">Boîte de vitesse</Label>
+                    <Select value={transmission} onValueChange={(v) => setTransmission(v as 'manual' | 'automatic')}>
+                      <SelectTrigger id="transmission">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border border-border shadow-lg z-50">
+                        <SelectItem value="automatic">Automatique</SelectItem>
+                        <SelectItem value="manual">Manuelle</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Photo */}
+                <div className="space-y-2">
+                  <Label>Photo du véhicule</Label>
+                  {photoPreview ? (
+                    <div className="relative w-full h-32 rounded-lg overflow-hidden border border-border">
+                      <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => { setPhotoPreview(null); setPhotoFile(null); }}
+                        className="absolute top-1 right-1 bg-background/80 rounded-full p-1 hover:bg-background"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label
+                      htmlFor="photo-upload"
+                      className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors"
+                    >
+                      <Upload className="h-5 w-5 text-muted-foreground mb-1" />
+                      <span className="text-xs text-muted-foreground">Cliquer pour ajouter une photo</span>
+                      <input
+                        id="photo-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePhotoChange}
+                      />
+                    </label>
+                  )}
                 </div>
 
                 {/* Fournisseur */}
