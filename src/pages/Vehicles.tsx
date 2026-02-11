@@ -193,6 +193,7 @@ const VehiclesPage = () => {
                   <tr>
                     <th>Véhicule</th>
                     <th>Client</th>
+                    <th>Passeport</th>
                     <th>Fournisseur</th>
                     <th>Conteneur</th>
                     <th>Statut</th>
@@ -203,7 +204,7 @@ const VehiclesPage = () => {
                 <tbody>
                   {filteredVehicles.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <td colSpan={8} className="text-center py-8 text-muted-foreground">
                         Aucun véhicule trouvé
                       </td>
                     </tr>
@@ -235,6 +236,21 @@ const VehiclesPage = () => {
                         </td>
                         <td className="text-foreground">
                           {vehicle.client ? `${vehicle.client.prenom} ${vehicle.client.nom}` : '-'}
+                        </td>
+                        <td>
+                          {vehicle.passeport ? (
+                            <span
+                              className="text-primary hover:underline cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/passeports/${vehicle.passeport.id}`);
+                              }}
+                            >
+                              {vehicle.passeport.prenom} {vehicle.passeport.nom}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
                         </td>
                         <td className="text-muted-foreground">
                           {vehicle.supplier?.name || '-'}
