@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
@@ -55,6 +55,15 @@ export const AffecterVehiculeDialog = ({
     queryFn: () => api.getConteneur(conteneurId),
     enabled: open,
   });
+
+  // Pre-select supplier from conteneur's dossier when data loads
+  const dossierSupplierId = conteneur?.dossier?.supplier?.id || conteneur?.dossier?.supplierId;
+  
+  useEffect(() => {
+    if (open && dossierSupplierId && !supplierId) {
+      setSupplierId(dossierSupplierId);
+    }
+  }, [open, dossierSupplierId]);
 
   // Fetch all vehicles to find unassigned ones (no conteneurId or different conteneurId)
   const { data: allVehicles = [], isLoading: isLoadingVehicles } = useQuery({
