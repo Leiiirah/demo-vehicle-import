@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useSuppliers } from '@/hooks/useApi';
-import { Building2, MoreVertical, Eye, FileText, AlertCircle } from 'lucide-react';
+import { api } from '@/services/api';
+import { Building2, MoreVertical, Eye, FileText, AlertCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -15,14 +17,39 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { AddSupplierDialog } from '@/components/suppliers/AddSupplierDialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 const SuppliersPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [supplierToDelete, setSupplierToDelete] = useState<{ id: string; name: string } | null>(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   const { data: suppliers, isLoading, error } = useSuppliers();
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.deleteSupplier(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      toast.success('Fournisseur supprimé avec succès');
+      setSupplierToDelete(null);
+    },
+    onError: () => {
+      toast.error('Erreur lors de la suppression');
+    },
+  });
 
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'USD') => {
     if (currency === 'USD') {
@@ -147,6 +174,16 @@ const SuppliersPage = () => {
                         <FileText className="h-4 w-4 mr-2" />
                         Historique paiements
                       </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSupplierToDelete({ id: supplier.id, name: supplier.name });
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Supprimer
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -194,6 +231,26 @@ const SuppliersPage = () => {
       </div>
 
       <AddSupplierDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+
+      <AlertDialog open={!!supplierToDelete} onOpenChange={(open) => !open && setSupplierToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer le fournisseur</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer <strong>{supplierToDelete?.name}</strong> ? Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => supplierToDelete && deleteMutation.mutate(supplierToDelete.id)}
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 };
