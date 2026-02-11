@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Car, DollarSign, Truck, FileText, Plus, Trash2, CreditCard, Loader2 } from 'lucide-react';
+import { Car, DollarSign, Truck, FileText, Plus, Trash2, CreditCard, Loader2, Upload, X } from 'lucide-react';
 import { api, type CreateVehicleData } from '@/services/api';
 import { toast } from '@/hooks/use-toast';
 
@@ -57,6 +57,9 @@ const AddVehicleDialog = ({ children }: AddVehicleDialogProps) => {
   const [supplierId, setSupplierId] = useState('');
   const [orderDate, setOrderDate] = useState('');
   const [estimatedArrival, setEstimatedArrival] = useState('');
+  const [transmission, setTransmission] = useState<'manual' | 'automatic'>('automatic');
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   // État pour les coûts USD
   const [prixVehicule, setPrixVehicule] = useState<number>(0);
@@ -136,6 +139,19 @@ const AddVehicleDialog = ({ children }: AddVehicleDialogProps) => {
     setChargesTransit(0);
     setChargesDivers([]);
     setVersements([]);
+    setTransmission('automatic');
+    setPhotoPreview(null);
+    setPhotoFile(null);
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onload = () => setPhotoPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   const nextStep = () => setStep((prev) => Math.min(prev + 1, 4));
@@ -314,18 +330,64 @@ const AddVehicleDialog = ({ children }: AddVehicleDialogProps) => {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="status">Statut initial *</Label>
+                  <Select value={status} onValueChange={(val) => setStatus(val as 'ordered' | 'in_transit' | 'arrived')}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ordered">Commandé</SelectItem>
+                      <SelectItem value="in_transit">En transit</SelectItem>
+                      <SelectItem value="arrived">Arrivé</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="transmission">Boîte de vitesse</Label>
+                  <Select value={transmission} onValueChange={(v) => setTransmission(v as 'manual' | 'automatic')}>
+                    <SelectTrigger id="transmission">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="automatic">Automatique</SelectItem>
+                      <SelectItem value="manual">Manuelle</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Photo */}
               <div className="space-y-2">
-                <Label htmlFor="status">Statut initial *</Label>
-                <Select value={status} onValueChange={(val) => setStatus(val as 'ordered' | 'in_transit' | 'arrived')}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ordered">Commandé</SelectItem>
-                    <SelectItem value="in_transit">En transit</SelectItem>
-                    <SelectItem value="arrived">Arrivé</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Photo du véhicule</Label>
+                {photoPreview ? (
+                  <div className="relative w-full h-32 rounded-lg overflow-hidden border border-border">
+                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => { setPhotoPreview(null); setPhotoFile(null); }}
+                      className="absolute top-1 right-1 bg-background/80 rounded-full p-1 hover:bg-background"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <label
+                    htmlFor="add-vehicle-photo-upload"
+                    className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors"
+                  >
+                    <Upload className="h-5 w-5 text-muted-foreground mb-1" />
+                    <span className="text-xs text-muted-foreground">Cliquer pour ajouter une photo</span>
+                    <input
+                      id="add-vehicle-photo-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handlePhotoChange}
+                    />
+                  </label>
+                )}
               </div>
             </div>
           )}
