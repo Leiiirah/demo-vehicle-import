@@ -14,6 +14,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
@@ -21,13 +22,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import AddVehicleDialog from '@/components/vehicles/AddVehicleDialog';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -36,7 +30,7 @@ const VehiclesPage = () => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilters, setStatusFilters] = useState<string[]>(['ordered', 'in_transit', 'arrived', 'sold']);
   
   const { data: vehicles, isLoading, error } = useVehicles();
 
@@ -80,8 +74,7 @@ const VehiclesPage = () => {
       vehicle.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (vehicle.client?.nom?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
       (vehicle.conteneur?.numero?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
-    const matchesStatus =
-      statusFilter === 'all' || vehicle.status === statusFilter;
+    const matchesStatus = statusFilters.includes(vehicle.status);
     return matchesSearch && matchesStatus;
   });
 
@@ -128,19 +121,38 @@ const VehiclesPage = () => {
               className="pl-10"
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filtrer par statut" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les statuts</SelectItem>
-              <SelectItem value="ordered">Commandé</SelectItem>
-              <SelectItem value="in_transit">En transit</SelectItem>
-              <SelectItem value="arrived">Arrivé</SelectItem>
-              <SelectItem value="sold">Vendu</SelectItem>
-            </SelectContent>
-          </Select>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-[200px] justify-start">
+                <Filter className="h-4 w-4 mr-2" />
+                {statusFilters.length === 4 ? 'Tous les statuts' : `${statusFilters.length} statut(s)`}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-[200px]">
+              {[
+                { value: 'ordered', label: 'Commandé' },
+                { value: 'in_transit', label: 'En transit' },
+                { value: 'arrived', label: 'Arrivé' },
+                { value: 'sold', label: 'Vendu' },
+              ].map((status) => (
+                <DropdownMenuItem
+                  key={status.value}
+                  onSelect={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setStatusFilters((prev) =>
+                      prev.includes(status.value)
+                        ? prev.filter((s) => s !== status.value)
+                        : [...prev, status.value]
+                    );
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Checkbox checked={statusFilters.includes(status.value)} />
+                  {status.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <div className="flex items-center border border-border rounded-lg p-1">
             <Button
               variant="ghost"
