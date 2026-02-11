@@ -92,6 +92,9 @@ export class Vehicle {
   @Column({ type: 'decimal', precision: 14, scale: 2, nullable: true })
   sellingPrice: number; // DZD
 
+  @Column({ nullable: true })
+  photoUrl: string;
+
   @Column({ type: 'date' })
   orderDate: Date;
 

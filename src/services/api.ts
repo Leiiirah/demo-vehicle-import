@@ -436,6 +436,7 @@ export interface CreateVehicleData {
   localFees?: number;
   totalCost?: number;
   sellingPrice?: number;
+  photoUrl?: string;
   orderDate: string;
   arrivalDate?: string;
   soldDate?: string;
