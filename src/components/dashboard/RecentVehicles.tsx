@@ -111,7 +111,7 @@ export function TopVehiclesByCount() {
               key={vehicle.name}
               className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/30 transition-colors"
             >
-              <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
+              <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center overflow-hidden">
                 <Car className="h-5 w-5 text-secondary-foreground" />
               </div>
               <div className="flex-1 min-w-0">
