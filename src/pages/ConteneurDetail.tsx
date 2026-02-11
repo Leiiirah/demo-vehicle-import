@@ -251,7 +251,11 @@ export default function ConteneurDetailPage() {
                         >
                           <TableCell className="font-medium">
                             <div className="flex items-center gap-2">
-                              <Car className="h-4 w-4 text-muted-foreground" />
+                              {vehicule.photoUrl ? (
+                                <img src={vehicule.photoUrl} alt={`${vehicule.brand} ${vehicule.model}`} className="h-8 w-8 rounded object-cover" />
+                              ) : (
+                                <Car className="h-4 w-4 text-muted-foreground" />
+                              )}
                               {vehicule.brand} {vehicule.model}
                             </div>
                           </TableCell>

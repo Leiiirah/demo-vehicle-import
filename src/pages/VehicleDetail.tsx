@@ -343,6 +343,13 @@ const VehicleDetailPage = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate('/vehicles')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
+          {vehicle.photoUrl ? (
+            <img src={vehicle.photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-16 w-16 rounded-xl object-cover border border-border" />
+          ) : (
+            <div className="h-16 w-16 rounded-xl bg-secondary flex items-center justify-center">
+              <Car className="h-8 w-8 text-secondary-foreground" />
+            </div>
+          )}
           <div className="flex-1">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-semibold text-foreground">

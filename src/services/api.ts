@@ -412,6 +412,9 @@ export interface Vehicle {
   localFees: number;
   totalCost: number;
   sellingPrice?: number;
+  photoUrl?: string;
+  color?: string;
+  transmission?: 'manual' | 'automatic';
   orderDate: string;
   arrivalDate?: string;
   soldDate?: string;

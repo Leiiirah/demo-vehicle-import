@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { TrendingUp, TrendingDown, DollarSign, Search, Download, Loader2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Search, Download, Loader2, Car } from 'lucide-react';
 import { useVehicles } from '@/hooks/useApi';
 
 const SalesPage = () => {
@@ -192,11 +192,22 @@ const SalesPage = () => {
                     return (
                       <TableRow key={vehicle.id}>
                         <TableCell>
-                          <div className="font-medium">
-                            {vehicle.brand} {vehicle.model}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {vehicle.year} • {vehicle.vin}
+                          <div className="flex items-center gap-3">
+                            {vehicle.photoUrl ? (
+                              <img src={vehicle.photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-10 w-10 rounded-lg object-cover" />
+                            ) : (
+                              <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
+                                <Car className="h-5 w-5 text-secondary-foreground" />
+                              </div>
+                            )}
+                            <div>
+                              <div className="font-medium">
+                                {vehicle.brand} {vehicle.model}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {vehicle.year} • {vehicle.vin}
+                              </div>
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>{vehicle.client?.name || '-'}</TableCell>
