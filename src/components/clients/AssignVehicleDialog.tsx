@@ -10,9 +10,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useDossiers, useVehicles, useUpdateVehicle } from '@/hooks/useApi';
-import { Car, Search, Loader2, Check, FolderOpen, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Car, Search, Loader2, Check, FolderOpen, ArrowRight, ArrowLeft, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AssignVehicleDialogProps {
@@ -27,11 +28,12 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles();
   const updateVehicle = useUpdateVehicle();
 
-  const [step, setStep] = useState<'dossier' | 'vehicle'>('dossier');
+  const [step, setStep] = useState<'dossier' | 'vehicle' | 'price'>('dossier');
   const [dossierSearch, setDossierSearch] = useState('');
   const [vehicleSearch, setVehicleSearch] = useState('');
   const [selectedDossier, setSelectedDossier] = useState<any>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  const [sellingPrice, setSellingPrice] = useState('');
 
   const filteredDossiers = dossiers.filter((d: any) => {
     if (d.status === 'termine') return false;
@@ -42,7 +44,6 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
     );
   });
 
-  // Vehicles inside the selected dossier that are not yet assigned to a client
   const dossierVehicles = vehicles.filter((v: any) => {
     if (!selectedDossier) return false;
     const belongsToDossier = v.conteneur?.dossier?.id === selectedDossier.id;
@@ -60,6 +61,8 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
     );
   });
 
+  const selectedVehicle = vehicles.find((v: any) => v.id === selectedVehicleId);
+
   const statusLabels: Record<string, string> = {
     ordered: 'Commandé',
     in_transit: 'En transit',
@@ -73,6 +76,7 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
     setVehicleSearch('');
     setSelectedDossier(null);
     setSelectedVehicleId(null);
+    setSellingPrice('');
   };
 
   const handleClose = (val: boolean) => {
@@ -80,10 +84,18 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
     onOpenChange(val);
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
+  };
+
   const handleAssign = () => {
     if (!selectedVehicleId) return;
+    const data: any = { clientId };
+    if (sellingPrice) {
+      data.sellingPrice = Number(sellingPrice);
+    }
     updateVehicle.mutate(
-      { id: selectedVehicleId, data: { clientId } },
+      { id: selectedVehicleId, data },
       {
         onSuccess: () => {
           toast.success('Véhicule affecté au client avec succès');
@@ -102,16 +114,18 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {step === 'dossier' ? 'Sélectionner un dossier' : 'Sélectionner un véhicule'}
+            {step === 'dossier' && 'Sélectionner un dossier'}
+            {step === 'vehicle' && 'Sélectionner un véhicule'}
+            {step === 'price' && 'Prix de vente'}
           </DialogTitle>
           <DialogDescription>
-            {step === 'dossier'
-              ? `Étape 1/2 — Choisissez le dossier pour ${clientName}`
-              : `Étape 2/2 — Choisissez un véhicule du dossier ${selectedDossier?.reference}`}
+            {step === 'dossier' && `Étape 1/3 — Choisissez le dossier pour ${clientName}`}
+            {step === 'vehicle' && `Étape 2/3 — Choisissez un véhicule du dossier ${selectedDossier?.reference}`}
+            {step === 'price' && `Étape 3/3 — Définissez le prix de vente`}
           </DialogDescription>
         </DialogHeader>
 
-        {step === 'dossier' ? (
+        {step === 'dossier' && (
           <>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -178,7 +192,9 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
               </Button>
             </DialogFooter>
           </>
-        ) : (
+        )}
+
+        {step === 'vehicle' && (
           <>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -247,9 +263,62 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
                 Retour
               </Button>
               <Button
-                onClick={handleAssign}
-                disabled={!selectedVehicleId || updateVehicle.isPending}
+                onClick={() => setStep('price')}
+                disabled={!selectedVehicleId}
+                className="gap-2"
               >
+                Suivant
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+
+        {step === 'price' && (
+          <>
+            <div className="space-y-4">
+              {selectedVehicle && (
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30">
+                  {selectedVehicle.photoUrl ? (
+                    <img src={selectedVehicle.photoUrl} alt={`${selectedVehicle.brand} ${selectedVehicle.model}`} className="h-10 w-10 rounded-lg object-cover" />
+                  ) : (
+                    <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                      <Car className="h-5 w-5 text-secondary-foreground" />
+                    </div>
+                  )}
+                  <div>
+                    <div className="font-medium text-sm">{selectedVehicle.brand} {selectedVehicle.model} ({selectedVehicle.year})</div>
+                    <div className="text-xs text-muted-foreground">Coût de revient : {formatCurrency(selectedVehicle.totalCost || 0)}</div>
+                  </div>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="sellingPrice">Prix de vente (DZD)</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="sellingPrice"
+                    type="number"
+                    placeholder="0"
+                    className="pl-9"
+                    value={sellingPrice}
+                    onChange={(e) => setSellingPrice(e.target.value)}
+                    min={0}
+                  />
+                </div>
+                {sellingPrice && selectedVehicle?.totalCost ? (
+                  <p className={`text-sm font-medium ${Number(sellingPrice) - Number(selectedVehicle.totalCost) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                    Bénéfice estimé : {formatCurrency(Number(sellingPrice) - Number(selectedVehicle.totalCost))}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setStep('vehicle')} className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Retour
+              </Button>
+              <Button onClick={handleAssign} disabled={!sellingPrice || updateVehicle.isPending}>
                 {updateVehicle.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Affecter
               </Button>
