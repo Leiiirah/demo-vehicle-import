@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useVehicle, useVehicleCharges, useCreateVehicleCharge, useDeleteVehicleCharge, useUpdateVehicleCharge } from '@/hooks/useApi';
-import { api } from '@/services/api';
+import { api, type Payment } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -49,6 +49,33 @@ const VehicleDetailPage = () => {
 
   const { data: vehicle, isLoading, error } = useVehicle(id || '');
   const { data: chargesData } = useVehicleCharges(id || '');
+
+  // Fetch dossier payment stats to determine if dossier is fully paid
+  const dossierId = vehicle?.conteneur?.dossier?.id;
+  const { data: dossierPaymentStats } = useQuery<{
+    totalDue: number;
+    totalPaid: number;
+    totalPaidDZD: number;
+    remaining: number;
+    progress: number;
+    payments: Payment[];
+  }>({
+    queryKey: ['payments', 'dossier', dossierId, 'stats'],
+    queryFn: () => api.request(`/api/payments/dossier/${dossierId}/stats`),
+    enabled: !!dossierId,
+  });
+
+  const isDossierSolde = (dossierPaymentStats?.progress ?? 0) >= 100;
+
+  // Calculate average exchange rate from all dossier payments
+  const tauxChangeFinal = (() => {
+    if (!dossierPaymentStats?.payments?.length) return 0;
+    const payments = dossierPaymentStats.payments;
+    const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+    if (totalAmount === 0) return 0;
+    const weightedRate = payments.reduce((sum, p) => sum + Number(p.amount) * Number(p.exchangeRate), 0);
+    return weightedRate / totalAmount;
+  })();
 
   const createChargeMutation = useCreateVehicleCharge(id || '');
   const deleteChargeMutation = useDeleteVehicleCharge(id || '');
@@ -653,6 +680,50 @@ const VehicleDetailPage = () => {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Prix de revient FINAL - only when dossier is soldé */}
+                {isDossierSolde && (
+                  <Card className="border-success/50 bg-success/10">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2 text-success">
+                        <CheckCircle2 className="h-5 w-5" />
+                        Prix de revient final — Dossier Soldé
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Taux de change réel (moyen pondéré)</span>
+                          <span className="font-semibold text-success">{tauxChangeFinal.toFixed(2)} DZD/$</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Total USD ({formatCurrency(totalUSD, 'USD')} × {tauxChangeFinal.toFixed(2)})
+                          </span>
+                          <span>{formatCurrency(totalUSD * tauxChangeFinal)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Charges Transit</span>
+                          <span>{formatCurrency(chargesTransit)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Charges Divers</span>
+                          <span>{formatCurrency(totalChargesDivers)}</span>
+                        </div>
+                        <div className="flex justify-between pt-3 border-t border-success/30">
+                          <span className="font-semibold text-success">Prix de revient final</span>
+                          <span className="text-xl font-bold text-success">
+                            {formatCurrency((totalUSD * tauxChangeFinal) + chargesTransit + totalChargesDivers)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 pt-2">
+                          <BadgeCheck className="h-4 w-4 text-success" />
+                          <span className="text-xs font-medium text-success">Véhicule Payé (Soldé)</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           </TabsContent>
