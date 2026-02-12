@@ -681,9 +681,9 @@ const VehicleDetailPage = () => {
                   </CardContent>
                 </Card>
 
-                {/* Prix de revient FINAL - only when dossier is soldé */}
-                {isDossierSolde && (
-                  <Card className="border-success/50 bg-success/10">
+                 {/* Prix de revient FINAL - only when dossier is soldé */}
+                 {isDossierSolde && (
+                   <Card className="border-success bg-success/20">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base flex items-center gap-2 text-success">
                         <CheckCircle2 className="h-5 w-5" />
