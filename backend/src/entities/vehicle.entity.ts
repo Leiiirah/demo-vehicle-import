@@ -37,7 +37,7 @@ export class Vehicle {
   vin: string;
 
   @Column({ nullable: true })
-  clientId: string;
+  clientId: string | null;
 
   @ManyToOne(() => Client, (client) => client.vehicles, { nullable: true })
   @JoinColumn({ name: 'clientId' })
