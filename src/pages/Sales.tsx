@@ -210,7 +210,7 @@ const SalesPage = () => {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>{vehicle.client?.name || '-'}</TableCell>
+                        <TableCell>{vehicle.client ? `${vehicle.client.nom} ${vehicle.client.prenom}` : '-'}</TableCell>
                         <TableCell className="text-right">
                           {formatCurrency(Number(vehicle.totalCost || 0))}
                         </TableCell>
