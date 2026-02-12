@@ -219,20 +219,7 @@ export const AffecterVehiculeDialog = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="brand">Marque *</Label>
-                    <Select value={brand} onValueChange={setBrand}>
-                      <SelectTrigger id="brand">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border border-border shadow-lg z-50">
-                        <SelectItem value="Toyota">Toyota</SelectItem>
-                        <SelectItem value="Mercedes">Mercedes</SelectItem>
-                        <SelectItem value="BMW">BMW</SelectItem>
-                        <SelectItem value="Audi">Audi</SelectItem>
-                        <SelectItem value="Porsche">Porsche</SelectItem>
-                        <SelectItem value="Land Rover">Land Rover</SelectItem>
-                        <SelectItem value="Volkswagen">Volkswagen</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input id="brand" placeholder="Ex: Toyota" value={brand} onChange={(e) => setBrand(e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="model">Modèle *</Label>
