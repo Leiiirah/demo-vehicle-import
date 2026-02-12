@@ -108,7 +108,7 @@ export default function DossierDetailPage() {
         </div>
 
         {/* Dossier Analytics */}
-        <DossierAnalytics conteneurs={conteneurs} />
+        <DossierAnalytics conteneurs={conteneurs} dossierId={dossier.id} />
 
         {/* Info Cards */}
         <div className="grid gap-4 md:grid-cols-3">
