@@ -39,8 +39,6 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
   const [telephone, setTelephone] = useState('');
   const [adresse, setAdresse] = useState('');
   const [pourcentage, setPourcentage] = useState('5');
-  const [prixVente, setPrixVente] = useState('');
-  const [coutRevient, setCoutRevient] = useState('');
   const [paye, setPaye] = useState(false);
 
   const queryClient = useQueryClient();
@@ -50,9 +48,6 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
     queryKey: ['clients'],
     queryFn: () => api.getClients(),
   });
-
-  const benefice = (Number(prixVente) || 0) - (Number(coutRevient) || 0);
-  const dette = benefice > 0 ? (benefice * Number(pourcentage)) / 100 : 0;
 
   const createMutation = useMutation({
     mutationFn: (data: CreateClientData) => api.createClient(data),
@@ -89,9 +84,9 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
         telephone,
         adresse: adresse || undefined,
         pourcentageBenefice: Number(pourcentage),
-        prixVente: Number(prixVente) || 0,
-        coutRevient: Number(coutRevient) || 0,
-        detteBenefice: dette,
+        prixVente: 0,
+        coutRevient: 0,
+        detteBenefice: 0,
         paye,
       });
     } else {
@@ -100,9 +95,6 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
         id: selectedClientId,
         data: {
           pourcentageBenefice: Number(pourcentage),
-          prixVente: Number(prixVente) || 0,
-          coutRevient: Number(coutRevient) || 0,
-          detteBenefice: dette,
           paye,
         },
       });
@@ -119,8 +111,6 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
     setTelephone('');
     setAdresse('');
     setPourcentage('5');
-    setPrixVente('');
-    setCoutRevient('');
     setPaye(false);
   };
 
@@ -267,50 +257,10 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
                     %
                   </span>
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Le bénéfice et la dette seront calculés automatiquement en fonction des véhicules assignés.
+                </p>
               </div>
-
-              <div className="grid grid-cols-2 gap-4 mt-3">
-                <div className="space-y-2">
-                  <Label htmlFor="prixVente">Prix de vente (DZD)</Label>
-                  <Input 
-                    id="prixVente" 
-                    type="number"
-                    value={prixVente}
-                    onChange={(e) => setPrixVente(e.target.value)}
-                    placeholder="10 000 000"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="coutRevient">Coût de revient (DZD)</Label>
-                  <Input 
-                    id="coutRevient" 
-                    type="number"
-                    value={coutRevient}
-                    onChange={(e) => setCoutRevient(e.target.value)}
-                    placeholder="8 500 000"
-                  />
-                </div>
-              </div>
-
-              {/* Aperçu du calcul */}
-              {prixVente && coutRevient && (
-                <div className="mt-4 p-3 bg-accent/50 rounded-lg space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Bénéfice</span>
-                    <span className="font-medium text-success">
-                      {new Intl.NumberFormat('fr-DZ').format(benefice)} DZD
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      Part client ({pourcentage}%)
-                    </span>
-                    <span className="font-bold text-warning">
-                      {new Intl.NumberFormat('fr-DZ').format(dette)} DZD
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Checkbox Payé */}
