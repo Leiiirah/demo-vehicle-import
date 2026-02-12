@@ -357,10 +357,13 @@ const VehiclesPage = () => {
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => deleteVehicle.mutate(vehicle.id, {
-                                      onSuccess: () => toast({ title: 'Véhicule supprimé' }),
-                                      onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
-                                    })}>
+                                     <AlertDialogAction onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteVehicle.mutate(vehicle.id, {
+                                        onSuccess: () => toast({ title: 'Véhicule supprimé' }),
+                                        onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+                                      });
+                                    }}>
                                       Supprimer
                                     </AlertDialogAction>
                                   </AlertDialogFooter>

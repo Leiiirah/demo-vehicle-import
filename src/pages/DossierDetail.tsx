@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useDossier } from '@/hooks/useApi';
+import { useDossier, useDeleteConteneur } from '@/hooks/useApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Building2, Container, Car, Plus, Calendar, Edit, AlertCircle, CreditCard, Pencil } from 'lucide-react';
+import { ArrowLeft, Building2, Container, Car, Plus, Calendar, Edit, AlertCircle, CreditCard, Pencil, Trash2 } from 'lucide-react';
 import { AddConteneurDialog } from '@/components/conteneurs/AddConteneurDialog';
 import { EditConteneurDialog } from '@/components/conteneurs/EditConteneurDialog';
 import { EditDossierDialog } from '@/components/dossiers/EditDossierDialog';
@@ -21,6 +21,12 @@ import { AddPaymentDialog } from '@/components/payments/AddPaymentDialog';
 import { DossierAnalytics } from '@/components/dossiers/DossierAnalytics';
 import { DossierPaymentLedger } from '@/components/dossiers/DossierPaymentLedger';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const statusConfig = {
   en_cours: { label: 'En cours', className: 'bg-primary/10 text-primary border-primary/30' },
@@ -51,6 +57,8 @@ export default function DossierDetailPage() {
   const [selectedConteneur, setSelectedConteneur] = useState<any>(null);
 
   const { data: dossier, isLoading, error } = useDossier(id || '');
+  const deleteConteneur = useDeleteConteneur();
+  const { toast } = useToast();
 
   if (isLoading) {
     return (
@@ -186,11 +194,11 @@ export default function DossierDetailPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Numéro</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Date Départ</TableHead>
-                    <TableHead className="text-center">Véhicules</TableHead>
+                     <TableHead>Type</TableHead>
+                     <TableHead>Date Départ</TableHead>
+                     <TableHead className="text-center">Véhicules</TableHead>
                      <TableHead>Statut</TableHead>
-                     <TableHead className="w-10"></TableHead>
+                     <TableHead className="w-20"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -228,18 +236,47 @@ export default function DossierDetailPage() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedConteneur(conteneur);
-                                setEditConteneurOpen(true);
-                              }}
-                            >
-                              <Pencil className="h-4 w-4 text-muted-foreground" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedConteneur(conteneur);
+                                  setEditConteneurOpen(true);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Supprimer ce conteneur ?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Cette action est irréversible. Le conteneur {conteneur.numero} sera définitivement supprimé.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                    <AlertDialogAction onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteConteneur.mutate(conteneur.id, {
+                                        onSuccess: () => toast({ title: 'Conteneur supprimé' }),
+                                        onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+                                      });
+                                    }}>
+                                      Supprimer
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
