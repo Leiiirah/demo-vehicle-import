@@ -1,62 +1,33 @@
 
 
-# Section "Ventes" sur la page Client
+# Fix the /sales page to display correct data
 
-## Objectif
-Ajouter une section complète "Ventes" sur la page de detail du client qui affiche tous les vehicules assignes avec leur statut de paiement (Solde/Non solde), les details financiers et la possibilite de filtrer.
+## Problem
+The Sales page filters vehicles by `v.status === 'sold'`, but in the system, vehicles assigned to clients may not have this exact status. The page shows "Aucune vente enregistree" because the filter is too restrictive. The page should display all vehicles that have been assigned to a client (have a `clientId`) as sales records.
 
-## Modifications
+## Changes
 
-### 1. Backend - Enrichir les relations chargees (clients.service.ts)
-Modifier `findOne()` pour charger les relations profondes necessaires :
-- `vehicles.conteneur.dossier` (pour acceder au dossierId et determiner le statut Solde)
-- `vehicles.charges` si necessaire pour les charges locales
+### File: `src/pages/Sales.tsx`
 
-### 2. Frontend - Nouvelle section "Ventes" (ClientDetail.tsx)
+1. **Broaden the "sold" filter**: Instead of only `status === 'sold'`, show all vehicles that have a `clientId` (assigned to a client). This captures all sales regardless of the vehicle's lifecycle status.
 
-Ajouter apres la section "Statut du paiement" une nouvelle Card pleine largeur :
+2. **Add a "Date de vente" column**: Display `soldDate` if available for each vehicle.
 
-**En-tete** : "Vehicules assignes" avec un compteur et des filtres (Tous / Solde / Non solde)
+3. **Improve profit display**: Handle negative profit with red color styling, not just green.
 
-**Tableau avec colonnes** :
-- Designation (marque + modele + annee)
-- VIN (raccourci)
-- Prix de revient approx. (base sur taux theorique)
-- Prix de revient final (si dossier solde, base sur taux moyen pondere)
-- Taux de change utilise
-- Date de vente (soldDate)
-- Statut : Badge vert "Solde" ou orange "Non solde"
+4. **Make search filter functional**: Wire up the search input to filter vehicles by brand, model, VIN, or client name.
 
-**Logique de calcul pour chaque vehicule** :
-- Recuperer les stats de paiement du dossier parent via `/api/payments/dossier/{dossierId}/stats`
-- Si progress >= 100% : afficher le prix de revient final avec le taux moyen pondere
-- Sinon : afficher uniquement le prix de revient approximatif
+5. **Make client filter functional**: Populate the client dropdown with actual clients from the sold vehicles list.
 
-**Filtre** : Un `TabsList` simple (Tous / Solde / Non solde) pour filtrer les vehicules affiches
+6. **Add click navigation**: Make rows clickable to navigate to the vehicle detail page.
 
-### Details techniques
+## Technical Details
 
-**Fichiers modifies** :
+- Change filter from `vehicles.filter(v => v.status === 'sold')` to `vehicles.filter(v => v.clientId)` to include all assigned vehicles
+- Add `useState` for `searchTerm` and `clientFilter`
+- Populate client `Select` dropdown dynamically from unique clients in the vehicle list
+- Apply search filtering on brand, model, VIN, and client name
+- Apply client filtering on `clientId`
+- Add `useNavigate` for row click navigation to `/vehicles/{id}`
+- Add `soldDate` column display with French date formatting
 
-1. `backend/src/modules/clients/clients.service.ts`
-   - Ajouter `vehicles.conteneur.dossier` aux relations dans `findOne()`
-
-2. `src/pages/ClientDetail.tsx`
-   - Ajouter un state `filter` pour le filtre (tous/solde/non-solde)
-   - Pour chaque vehicule ayant un `conteneur.dossier.id`, faire un appel aux stats de paiement du dossier via `useQuery`
-   - Creer un sous-composant `ClientVehicleRow` qui charge les stats du dossier et affiche la ligne avec le calcul du taux final
-   - Ajouter les imports necessaires : `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`, `Tabs`, `TabsList`, `TabsTrigger`
-   - Section placee en `md:col-span-2` apres le bloc "Statut du paiement"
-
-**Calcul du taux de change final (par vehicule)** :
-```text
-taux = somme(montant_i * taux_i) / somme(montant_i)  pour tous les versements du dossier
-prix_revient_final = (purchasePrice + transportCost) * taux + localFees
-```
-
-**Structure du sous-composant ClientVehicleRow** :
-- Recoit le vehicule en props
-- Fait un useQuery sur `/api/payments/dossier/{dossierId}/stats`
-- Calcule isDossierSolde et tauxChangeFinal
-- Rend une TableRow avec toutes les colonnes demandees
-- Le badge Solde/Non solde est cliquable pour naviguer vers la page du vehicule
