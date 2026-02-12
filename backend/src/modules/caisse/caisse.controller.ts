@@ -13,7 +13,7 @@ import { CaisseService } from './caisse.service';
 import { CreateCaisseEntryDto } from './dto/create-caisse-entry.dto';
 import { UpdateCaisseEntryDto } from './dto/update-caisse-entry.dto';
 
-@Controller('api/caisse')
+@Controller('caisse')
 @UseGuards(JwtAuthGuard)
 export class CaisseController {
   constructor(private readonly caisseService: CaisseService) {}
