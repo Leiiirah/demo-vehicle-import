@@ -46,6 +46,7 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
   });
 
   const filteredDossiers = dossiers.filter((d: any) => {
+    if (d.status === 'termine') return false;
     const term = dossierSearch.toLowerCase();
     return (
       d.reference?.toLowerCase().includes(term) ||
