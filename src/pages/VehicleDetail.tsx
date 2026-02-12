@@ -212,8 +212,15 @@ const VehicleDetailPage = () => {
   // Prix de revient approximatif
   const prixRevient = totalUSDenDZD + chargesTransit + totalChargesDivers;
 
+  // Prix de revient final (using real weighted exchange rate)
+  const prixRevientFinal = tauxChangeFinal > 0 ? (totalUSD * tauxChangeFinal) + chargesTransit + totalChargesDivers : null;
+
+  // Écart entre final et approximatif
+  const ecartPrixRevient = prixRevientFinal !== null && prixRevient > 0 ? prixRevientFinal - prixRevient : null;
+
   // Calcul de la répartition des bénéfices (safe access after loading check)
   const sellingPrice = vehicle?.sellingPrice ?? 0;
+  const hasBeneficeData = sellingPrice > 0 && prixRevient > 0;
   const benefice = sellingPrice - prixRevient;
   const clientShare = (benefice * clientImport.profitPercentage) / 100;
   const companyShare = benefice - clientShare;
@@ -435,7 +442,7 @@ const VehicleDetailPage = () => {
         </Card>
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
@@ -444,7 +451,7 @@ const VehicleDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Prix de revient</p>
-                  <p className="text-xl font-semibold">{formatCurrency(prixRevient)}</p>
+                  <p className="text-xl font-semibold">{prixRevient > 0 ? formatCurrency(prixRevient) : 'N/A'}</p>
                 </div>
               </div>
             </CardContent>
@@ -457,7 +464,7 @@ const VehicleDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Prix de vente</p>
-                  <p className="text-xl font-semibold">{formatCurrency(sellingPrice)}</p>
+                  <p className="text-xl font-semibold">{sellingPrice > 0 ? formatCurrency(sellingPrice) : 'N/A'}</p>
                 </div>
               </div>
             </CardContent>
@@ -470,8 +477,8 @@ const VehicleDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Bénéfice</p>
-                  <p className={cn('text-xl font-semibold', benefice > 0 ? 'text-success' : 'text-destructive')}>
-                    {formatCurrency(benefice)}
+                  <p className={cn('text-xl font-semibold', hasBeneficeData ? (benefice > 0 ? 'text-success' : 'text-destructive') : '')}>
+                    {hasBeneficeData ? formatCurrency(benefice) : 'N/A'}
                   </p>
                 </div>
               </div>
@@ -484,8 +491,23 @@ const VehicleDetailPage = () => {
                   <TrendingUp className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Taux approximatif</p>
-                  <p className="text-xl font-semibold">{tauxApproximatif.toFixed(2)} DZD/$</p>
+                  <p className="text-sm text-muted-foreground">Taux réel (moy. pondéré)</p>
+                  <p className="text-xl font-semibold">{tauxChangeFinal > 0 ? `${tauxChangeFinal.toFixed(2)} DZD/$` : 'N/A'}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className={cn('h-10 w-10 rounded-lg flex items-center justify-center', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'bg-destructive/10' : 'bg-success/10') : 'bg-muted')}>
+                  <TrendingUp className={cn('h-5 w-5', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'text-destructive' : 'text-success') : 'text-muted-foreground')} />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Écart réel / approx.</p>
+                  <p className={cn('text-xl font-semibold', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'text-destructive' : 'text-success') : '')}>
+                    {ecartPrixRevient !== null ? `${ecartPrixRevient >= 0 ? '+' : ''}${formatCurrency(ecartPrixRevient)}` : 'N/A'}
+                  </p>
                 </div>
               </div>
             </CardContent>
