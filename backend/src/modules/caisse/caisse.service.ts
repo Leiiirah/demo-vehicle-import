@@ -52,20 +52,30 @@ export class CaisseService {
   }
 
   async getSummary() {
-    const entries = await this.findAll();
-    
-    const totalEntrees = entries
-      .filter(e => e.type === CaisseEntryType.ENTREE || e.type === CaisseEntryType.VENTE_AUTO)
-      .reduce((sum, e) => sum + Number(e.montant), 0);
-    
-    const totalCharges = entries
-      .filter(e => e.type === CaisseEntryType.CHARGE)
-      .reduce((sum, e) => sum + Number(e.montant), 0);
-    
-    const totalBenefices = entries
-      .filter(e => e.type === CaisseEntryType.VENTE_AUTO && e.benefice)
-      .reduce((sum, e) => sum + Number(e.benefice), 0);
-    
+    const result = await this.caisseRepo
+      .createQueryBuilder('c')
+      .select([
+        `COALESCE(SUM(CASE WHEN c.type IN ('entree', 'vente_auto') THEN c.montant ELSE 0 END), 0)`,
+        `COALESCE(SUM(CASE WHEN c.type = 'charge' THEN c.montant ELSE 0 END), 0)`,
+        `COALESCE(SUM(CASE WHEN c.type = 'vente_auto' THEN COALESCE(c.benefice, 0) ELSE 0 END), 0)`,
+      ])
+      .addSelect(
+        `COALESCE(SUM(CASE WHEN c.type IN ('entree', 'vente_auto') THEN c.montant ELSE 0 END), 0)`,
+        'totalEntrees',
+      )
+      .addSelect(
+        `COALESCE(SUM(CASE WHEN c.type = 'charge' THEN c.montant ELSE 0 END), 0)`,
+        'totalCharges',
+      )
+      .addSelect(
+        `COALESCE(SUM(CASE WHEN c.type = 'vente_auto' THEN COALESCE(c.benefice, 0) ELSE 0 END), 0)`,
+        'totalBenefices',
+      )
+      .getRawOne();
+
+    const totalEntrees = Number(result.totalEntrees);
+    const totalCharges = Number(result.totalCharges);
+    const totalBenefices = Number(result.totalBenefices);
     const soldeActuel = totalEntrees - totalCharges;
 
     return {
