@@ -2,17 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useConteneurs } from '@/hooks/useApi';
+import { usePagination } from '@/hooks/usePagination';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { Plus, Search, Container, FolderOpen, Ship, Anchor, AlertCircle } from 'lucide-react';
 import { AddConteneurDialog } from '@/components/conteneurs/AddConteneurDialog';
@@ -43,6 +40,8 @@ export default function ConteneursPage() {
       conteneur.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (conteneur.dossier?.reference?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
+
+  const { paginatedItems: paginatedConteneurs, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredConteneurs);
 
   if (error) {
     return (
@@ -154,76 +153,79 @@ export default function ConteneursPage() {
                 ))}
               </div>
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Numéro</TableHead>
-                      <TableHead>Dossier</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Départ</TableHead>
-                      <TableHead>Arrivée</TableHead>
-                      <TableHead className="text-center">Véhicules</TableHead>
-                      <TableHead>Statut</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredConteneurs.length === 0 ? (
+              <>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                          {searchTerm ? `Aucun conteneur trouvé pour "${searchTerm}"` : 'Aucun conteneur'}
-                        </TableCell>
+                        <TableHead>Numéro</TableHead>
+                        <TableHead>Dossier</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Départ</TableHead>
+                        <TableHead>Arrivée</TableHead>
+                        <TableHead className="text-center">Véhicules</TableHead>
+                        <TableHead>Statut</TableHead>
                       </TableRow>
-                    ) : (
-                      filteredConteneurs.map((conteneur) => {
-                        const status = statusConfig[conteneur.status as keyof typeof statusConfig] || statusConfig.en_chargement;
-                        return (
-                          <TableRow
-                            key={conteneur.id}
-                            className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => navigate(`/conteneurs/${conteneur.id}`)}
-                          >
-                            <TableCell className="font-medium">
-                              <div className="flex items-center gap-2">
-                                <Container className="h-4 w-4 text-muted-foreground" />
-                                {conteneur.numero}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <button
-                                className="text-primary hover:underline"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(`/dossiers/${conteneur.dossierId}`);
-                                }}
-                              >
-                                {conteneur.dossier?.reference || '-'}
-                              </button>
-                            </TableCell>
-                            <TableCell>{typeLabels[conteneur.type as keyof typeof typeLabels] || conteneur.type}</TableCell>
-                            <TableCell>
-                              {conteneur.dateDepart
-                                ? new Date(conteneur.dateDepart).toLocaleDateString('fr-FR')
-                                : '-'}
-                            </TableCell>
-                            <TableCell>
-                              {conteneur.dateArrivee
-                                ? new Date(conteneur.dateArrivee).toLocaleDateString('fr-FR')
-                                : '-'}
-                            </TableCell>
-                            <TableCell className="text-center">{conteneur.vehicles?.length || 0}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className={status.className}>
-                                {status.label}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedConteneurs.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                            {searchTerm ? `Aucun conteneur trouvé pour "${searchTerm}"` : 'Aucun conteneur'}
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        paginatedConteneurs.map((conteneur) => {
+                          const status = statusConfig[conteneur.status as keyof typeof statusConfig] || statusConfig.en_chargement;
+                          return (
+                            <TableRow
+                              key={conteneur.id}
+                              className="cursor-pointer hover:bg-muted/50"
+                              onClick={() => navigate(`/conteneurs/${conteneur.id}`)}
+                            >
+                              <TableCell className="font-medium">
+                                <div className="flex items-center gap-2">
+                                  <Container className="h-4 w-4 text-muted-foreground" />
+                                  {conteneur.numero}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <button
+                                  className="text-primary hover:underline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/dossiers/${conteneur.dossierId}`);
+                                  }}
+                                >
+                                  {conteneur.dossier?.reference || '-'}
+                                </button>
+                              </TableCell>
+                              <TableCell>{typeLabels[conteneur.type as keyof typeof typeLabels] || conteneur.type}</TableCell>
+                              <TableCell>
+                                {conteneur.dateDepart
+                                  ? new Date(conteneur.dateDepart).toLocaleDateString('fr-FR')
+                                  : '-'}
+                              </TableCell>
+                              <TableCell>
+                                {conteneur.dateArrivee
+                                  ? new Date(conteneur.dateArrivee).toLocaleDateString('fr-FR')
+                                  : '-'}
+                              </TableCell>
+                              <TableCell className="text-center">{conteneur.vehicles?.length || 0}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className={status.className}>
+                                  {status.label}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                <TablePagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} startIndex={startIndex} endIndex={endIndex} onPageChange={goToPage} />
+              </>
             )}
           </CardContent>
         </Card>

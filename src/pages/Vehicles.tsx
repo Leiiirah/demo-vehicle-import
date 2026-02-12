@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueries } from '@tanstack/react-query';
+import { usePagination } from '@/hooks/usePagination';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useVehicles } from '@/hooks/useApi';
 import { api } from '@/services/api';
@@ -114,6 +116,8 @@ const VehiclesPage = () => {
     const matchesStatus = statusFilters.includes(vehicle.status);
     return matchesSearch && matchesStatus;
   });
+
+  const { paginatedItems: paginatedVehicles, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredVehicles);
 
   if (error) {
     return (
@@ -254,7 +258,7 @@ const VehiclesPage = () => {
                       </td>
                     </tr>
                   ) : (
-                    filteredVehicles.map((vehicle) => (
+                    paginatedVehicles.map((vehicle) => (
                       <tr 
                         key={vehicle.id} 
                         className="cursor-pointer hover:bg-muted/50"
@@ -338,69 +342,73 @@ const VehiclesPage = () => {
                 </tbody>
               </table>
             </div>
+            <TablePagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} startIndex={startIndex} endIndex={endIndex} onPageChange={goToPage} />
           </div>
         )}
 
         {/* Vue cartes */}
         {!isLoading && viewMode === 'cards' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredVehicles.length === 0 ? (
-              <div className="col-span-full text-center py-8 text-muted-foreground">
-                Aucun véhicule trouvé
-              </div>
-            ) : (
-              filteredVehicles.map((vehicle) => (
-                <div
-                  key={vehicle.id}
-                  className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => navigate(`/vehicles/${vehicle.id}`)}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      {vehicle.photoUrl ? (
-                        <img src={vehicle.photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-12 w-12 rounded-lg object-cover" />
-                      ) : (
-                        <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center">
-                          <Car className="h-6 w-6 text-secondary-foreground" />
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {paginatedVehicles.length === 0 ? (
+                <div className="col-span-full text-center py-8 text-muted-foreground">
+                  Aucun véhicule trouvé
+                </div>
+              ) : (
+                paginatedVehicles.map((vehicle) => (
+                  <div
+                    key={vehicle.id}
+                    className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => navigate(`/vehicles/${vehicle.id}`)}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        {vehicle.photoUrl ? (
+                          <img src={vehicle.photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-12 w-12 rounded-lg object-cover" />
+                        ) : (
+                          <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center">
+                            <Car className="h-6 w-6 text-secondary-foreground" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-semibold text-foreground">
+                            {vehicle.brand} {vehicle.model}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {vehicle.year} • {vehicle.vin}
+                          </p>
                         </div>
-                      )}
-                      <div>
-                        <p className="font-semibold text-foreground">
-                          {vehicle.brand} {vehicle.model}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {vehicle.year} • {vehicle.vin}
-                        </p>
+                      </div>
+                      {getStatusBadge(vehicle.status)}
+                    </div>
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Client</span>
+                        <span className="text-foreground font-medium">
+                          {vehicle.client ? `${vehicle.client.prenom} ${vehicle.client.nom}` : '-'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Conteneur</span>
+                        <code className="text-xs bg-muted px-2 py-0.5 rounded">
+                          {vehicle.conteneur?.numero || '-'}
+                        </code>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Coût total</span>
+                        <span className={`font-medium ${isVehiclePaid(vehicle) ? 'text-success' : 'text-foreground'}`}>
+                          {formatCurrency(vehicle.totalCost)}
+                          {isVehiclePaid(vehicle) && <span className="ml-1 text-xs">✓</span>}
+                        </span>
                       </div>
                     </div>
-                    {getStatusBadge(vehicle.status)}
                   </div>
-
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Client</span>
-                      <span className="text-foreground font-medium">
-                        {vehicle.client ? `${vehicle.client.prenom} ${vehicle.client.nom}` : '-'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Conteneur</span>
-                      <code className="text-xs bg-muted px-2 py-0.5 rounded">
-                        {vehicle.conteneur?.numero || '-'}
-                      </code>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Coût total</span>
-                      <span className={`font-medium ${isVehiclePaid(vehicle) ? 'text-success' : 'text-foreground'}`}>
-                        {formatCurrency(vehicle.totalCost)}
-                        {isVehiclePaid(vehicle) && <span className="ml-1 text-xs">✓</span>}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+                ))
+              )}
+            </div>
+            <TablePagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} startIndex={startIndex} endIndex={endIndex} onPageChange={goToPage} />
+          </>
         )}
       </div>
     </DashboardLayout>

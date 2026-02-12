@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { usePasseports, useUpdatePasseport } from '@/hooks/useApi';
+import { usePagination } from '@/hooks/usePagination';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { MoreVertical, Eye, Phone, Search, BookUser, Check, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +35,8 @@ const PasseportsPage = () => {
     p.numeroPasseport.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.telephone.includes(searchQuery)
   );
+
+  const { paginatedItems: paginatedPasseports, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredPasseports);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-DZ', {
@@ -148,7 +152,7 @@ const PasseportsPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPasseports.map((passeport) => (
+                  {paginatedPasseports.map((passeport) => (
                     <tr 
                       key={passeport.id}
                       onClick={() => navigate(`/passeports/${passeport.id}`)}
@@ -227,7 +231,7 @@ const PasseportsPage = () => {
                       </td>
                     </tr>
                   ))}
-                  {filteredPasseports.length === 0 && (
+                  {paginatedPasseports.length === 0 && (
                     <tr>
                       <td colSpan={7} className="text-center py-8 text-muted-foreground">
                         {searchQuery ? `Aucun passeport trouvé pour "${searchQuery}"` : 'Aucun passeport'}
@@ -237,6 +241,7 @@ const PasseportsPage = () => {
                 </tbody>
               </table>
             )}
+            <TablePagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} startIndex={startIndex} endIndex={endIndex} onPageChange={goToPage} />
           </div>
         </div>
       </div>

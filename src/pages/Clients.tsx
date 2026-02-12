@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useClients } from '@/hooks/useApi';
+import { usePagination } from '@/hooks/usePagination';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { MoreVertical, Eye, Phone, Search, ShoppingCart, Check, X, Percent, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +29,8 @@ const ClientsPage = () => {
     c.prenom.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.telephone.includes(searchQuery)
   );
+
+  const { paginatedItems: paginatedClients, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredClients);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-DZ', {
@@ -143,7 +147,7 @@ const ClientsPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredClients.map((client) => {
+                  {paginatedClients.map((client) => {
                     const benefice = (client.prixVente || 0) - (client.coutRevient || 0);
                     return (
                       <tr 
@@ -231,7 +235,7 @@ const ClientsPage = () => {
                       </tr>
                     );
                   })}
-                  {filteredClients.length === 0 && (
+                  {paginatedClients.length === 0 && (
                     <tr>
                       <td colSpan={8} className="text-center py-8 text-muted-foreground">
                         {searchQuery ? `Aucun client trouvé pour "${searchQuery}"` : 'Aucun client'}
@@ -241,6 +245,7 @@ const ClientsPage = () => {
                 </tbody>
               </table>
             )}
+            <TablePagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} startIndex={startIndex} endIndex={endIndex} onPageChange={goToPage} />
           </div>
         </div>
       </div>
