@@ -90,7 +90,7 @@ export class Vehicle {
   totalCost: number; // DZD - calculated prix de revient
 
   @Column({ type: 'decimal', precision: 14, scale: 2, nullable: true })
-  sellingPrice: number; // DZD
+  sellingPrice: number | null; // DZD
 
   @Column({ nullable: true })
   photoUrl: string;
