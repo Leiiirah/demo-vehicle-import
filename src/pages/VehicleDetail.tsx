@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useVehicle, useVehiclePayments, useVehicleCharges, useCreateVehiclePayment, useDeleteVehiclePayment, useCreateVehicleCharge, useDeleteVehicleCharge, useUpdateVehiclePayment, useUpdateVehicleCharge } from '@/hooks/useApi';
+import { useVehicle, useVehicleCharges, useCreateVehicleCharge, useDeleteVehicleCharge, useUpdateVehicleCharge } from '@/hooks/useApi';
 import { api } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,7 +38,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { EditVehicleDialog } from '@/components/vehicles/EditVehicleDialog';
-import type { VehiclePayment, VehicleCharge } from '@/services/api';
+import type { VehicleCharge } from '@/services/api';
 
 const VehicleDetailPage = () => {
   const { id } = useParams();
@@ -48,13 +48,8 @@ const VehicleDetailPage = () => {
   const [hasChanges, setHasChanges] = useState(false);
 
   const { data: vehicle, isLoading, error } = useVehicle(id || '');
-  const { data: paymentsData } = useVehiclePayments(id || '');
   const { data: chargesData } = useVehicleCharges(id || '');
 
-  const createPaymentMutation = useCreateVehiclePayment(id || '');
-  const deletePaymentMutation = useDeleteVehiclePayment(id || '');
-  const updatePaymentMutation = useUpdateVehiclePayment(id || '');
-  
   const createChargeMutation = useCreateVehicleCharge(id || '');
   const deleteChargeMutation = useDeleteVehicleCharge(id || '');
   const updateChargeMutation = useUpdateVehicleCharge(id || '');
@@ -74,8 +69,10 @@ const VehicleDetailPage = () => {
   // État pour les charges DZD
   const [chargesTransit, setChargesTransit] = useState<number>(0);
 
-  // Local state for new payment/charge being added (before saving)
-  const [newPayment, setNewPayment] = useState<{ date: string; amountUSD: number; exchangeRate: number } | null>(null);
+  // Taux de change approximatif
+  const [tauxApproximatif, setTauxApproximatif] = useState<number>(0);
+
+  // Local state for new charge being added (before saving)
   const [newCharge, setNewCharge] = useState<{ label: string; amount: number } | null>(null);
 
   // Initialize state from vehicle when loaded
@@ -84,12 +81,12 @@ const VehicleDetailPage = () => {
       setPrixVehicule(Number(vehicle.purchasePrice) || 0);
       setPrixTransport(Number(vehicle.transportCost) || 0);
       setChargesTransit(Number(vehicle.localFees) || 0);
+      setTauxApproximatif(Number(vehicle.theoreticalRate) || 0);
       setHasChanges(false);
     }
   }, [vehicle]);
 
   // Convert API data to local format
-  const versements: VehiclePayment[] = paymentsData || [];
   const chargesDivers: VehicleCharge[] = chargesData || [];
 
   // Mutation for saving vehicle updates with optimistic rollback
@@ -165,22 +162,14 @@ const VehicleDetailPage = () => {
 
   // Calculs
   const totalUSD = prixVehicule + prixTransport;
-  const totalVerse = versements.reduce((sum, v) => sum + Number(v.amountUSD), 0);
-  const resteAVerser = totalUSD - totalVerse;
 
-  // Taux moyen pondéré
-  const tauxMoyenPondere = versements.length > 0
-    ? versements.reduce((sum, v) => sum + Number(v.amountUSD) * Number(v.exchangeRate), 0) / 
-      versements.reduce((sum, v) => sum + Number(v.amountUSD), 0) || 0
-    : 0;
-
-  // Total USD converti en DZD via taux moyen
-  const totalUSDenDZD = totalUSD * tauxMoyenPondere;
+  // Total USD converti en DZD via taux approximatif
+  const totalUSDenDZD = totalUSD * tauxApproximatif;
 
   // Total charges diverses
   const totalChargesDivers = chargesDivers.reduce((sum, c) => sum + Number(c.amount), 0);
 
-  // Prix de revient
+  // Prix de revient approximatif
   const prixRevient = totalUSDenDZD + chargesTransit + totalChargesDivers;
 
   // Calcul de la répartition des bénéfices (safe access after loading check)
@@ -189,40 +178,9 @@ const VehicleDetailPage = () => {
   const clientShare = (benefice * clientImport.profitPercentage) / 100;
   const companyShare = benefice - clientShare;
 
-  // Gestion des versements via API
-  const addVersement = () => {
-    setNewPayment({ date: '', amountUSD: 0, exchangeRate: 0 });
-  };
-
-  const saveNewPayment = () => {
-    if (newPayment && newPayment.date && newPayment.amountUSD > 0 && newPayment.exchangeRate > 0) {
-      createPaymentMutation.mutate(newPayment, {
-        onSuccess: () => {
-          setNewPayment(null);
-          toast.success('Versement ajouté');
-        },
-        onError: (error) => {
-          toast.error('Erreur lors de l\'ajout du versement');
-          console.error(error);
-        },
-      });
-    }
-  };
-
-  const cancelNewPayment = () => {
-    setNewPayment(null);
-  };
-
-  const removeVersement = (paymentId: string) => {
-    deletePaymentMutation.mutate(paymentId, {
-      onSuccess: () => {
-        toast.success('Versement supprimé');
-      },
-      onError: (error) => {
-        toast.error('Erreur lors de la suppression');
-        console.error(error);
-      },
-    });
+  // Handle taux approximatif change
+  const handleTauxApproximatifChange = (value: number) => {
+    setTauxApproximatif(value);
   };
 
   // Gestion des charges diverses via API
@@ -465,8 +423,8 @@ const VehicleDetailPage = () => {
                   <TrendingUp className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Taux moyen</p>
-                  <p className="text-xl font-semibold">{tauxMoyenPondere.toFixed(2)} DZD/$</p>
+                  <p className="text-sm text-muted-foreground">Taux approximatif</p>
+                  <p className="text-xl font-semibold">{tauxApproximatif.toFixed(2)} DZD/$</p>
                 </div>
               </div>
             </CardContent>
@@ -643,180 +601,40 @@ const VehicleDetailPage = () => {
                 </Card>
               </div>
 
-              {/* Colonne droite : Versements */}
+              {/* Colonne droite : Taux + Prix de revient */}
               <div className="space-y-4">
+                {/* Taux de change approximatif */}
                 <Card>
                   <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <CreditCard className="h-4 w-4" />
-                        Versements USD
-                      </CardTitle>
-                      <Button variant="outline" size="sm" onClick={addVersement}>
-                        <Plus className="h-4 w-4 mr-1" />
-                        Ajouter
-                      </Button>
-                    </div>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4" />
+                      Taux de change approximatif
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {/* Récap */}
-                    <div className="p-3 bg-muted/50 rounded-lg mb-4 space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Total USD à payer</span>
-                        <span className="font-semibold">{formatCurrency(totalUSD, 'USD')}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Total versé</span>
-                        <span className="font-medium">{formatCurrency(totalVerse, 'USD')}</span>
-                      </div>
-                      <div className="flex justify-between text-sm pt-2 border-t border-border">
-                        <span className="text-muted-foreground">Reste à verser</span>
-                        <span className={cn('font-semibold', resteAVerser > 0 ? 'text-warning' : 'text-success')}>
-                          {formatCurrency(resteAVerser, 'USD')}
-                        </span>
-                      </div>
+                    <div className="space-y-2">
+                      <Label>Taux DZD / USD</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={tauxApproximatif || ''}
+                        onChange={(e) => handleTauxApproximatifChange(Number(e.target.value))}
+                        placeholder="Ex: 134.50"
+                      />
                     </div>
-
-                    {/* New payment form */}
-                    {newPayment && (
-                      <div className="p-3 bg-primary/5 rounded-lg border border-dashed border-primary mb-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium">Nouveau versement</span>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={saveNewPayment}
-                              disabled={createPaymentMutation.isPending}
-                            >
-                              <Save className="h-4 w-4 text-primary" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={cancelNewPayment}
-                            >
-                              <Trash2 className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2">
-                          <div className="space-y-1">
-                            <Label className="text-xs">Date</Label>
-                            <Input
-                              type="date"
-                              value={newPayment.date}
-                              onChange={(e) => setNewPayment({ ...newPayment, date: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-xs">Montant USD</Label>
-                            <div className="relative">
-                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
-                              <Input
-                                type="number"
-                                className="pl-5"
-                                value={newPayment.amountUSD || ''}
-                                onChange={(e) => setNewPayment({ ...newPayment, amountUSD: Number(e.target.value) })}
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-xs">Taux de change</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              value={newPayment.exchangeRate || ''}
-                              onChange={(e) => setNewPayment({ ...newPayment, exchangeRate: Number(e.target.value) })}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Liste des versements */}
-                    {versements.length === 0 && !newPayment ? (
-                      <p className="text-sm text-muted-foreground text-center py-4">
-                        Aucun versement enregistré
-                      </p>
-                    ) : (
-                      <div className="space-y-3">
-                        {versements.map((v, index) => (
-                          <div key={v.id} className="p-3 bg-muted/30 rounded-lg border border-border">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium">Versement {index + 1}</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeVersement(v.id)}
-                                disabled={deletePaymentMutation.isPending}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                            <div className="grid grid-cols-3 gap-2">
-                              <div className="space-y-1">
-                                <Label className="text-xs">Date</Label>
-                                <Input
-                                  type="date"
-                                  value={v.date}
-                                  disabled
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-xs">Montant USD</Label>
-                                <div className="relative">
-                                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
-                                  <Input
-                                    type="number"
-                                    className="pl-5"
-                                    value={v.amountUSD || ''}
-                                    disabled
-                                  />
-                                </div>
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-xs">Taux de change</Label>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  value={v.exchangeRate || ''}
-                                  disabled
-                                />
-                              </div>
-                            </div>
-                            {Number(v.amountUSD) > 0 && Number(v.exchangeRate) > 0 && (
-                              <div className="mt-2 text-xs text-right text-muted-foreground">
-                                = {formatCurrency(Number(v.amountUSD) * Number(v.exchangeRate))}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Taux moyen */}
-                    {versements.length > 0 && (
-                      <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">Taux moyen pondéré</span>
-                          <span className="text-lg font-bold">{tauxMoyenPondere.toFixed(2)} DZD/$</span>
-                        </div>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
 
                 {/* Récap prix de revient */}
                 <Card className="border-primary/30 bg-primary/5">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Prix de revient</CardTitle>
+                    <CardTitle className="text-base">Prix de revient approximatif</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">
-                          Total USD ({formatCurrency(totalUSD, 'USD')} × {tauxMoyenPondere.toFixed(2)})
+                          Total USD ({formatCurrency(totalUSD, 'USD')} × {tauxApproximatif.toFixed(2)})
                         </span>
                         <span>{formatCurrency(totalUSDenDZD)}</span>
                       </div>
@@ -829,8 +647,8 @@ const VehicleDetailPage = () => {
                         <span>{formatCurrency(totalChargesDivers)}</span>
                       </div>
                       <div className="flex justify-between pt-3 border-t border-primary/20">
-                        <span className="font-semibold">Total prix de revient</span>
-                        <span className="text-xl font-bold">{formatCurrency(prixRevient)}</span>
+                        <span className="font-semibold">Prix de revient approximatif</span>
+                        <span className="text-xl font-bold text-success">{formatCurrency(prixRevient)}</span>
                       </div>
                     </div>
                   </CardContent>
