@@ -22,11 +22,14 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { EditClientDialog } from '@/components/clients/EditClientDialog';
+import { AssignVehicleDialog } from '@/components/clients/AssignVehicleDialog';
+import { Car } from 'lucide-react';
 
 const ClientDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   
   const { data: client, isLoading, error } = useClient(id || '');
   const updateClient = useUpdateClient();
@@ -112,6 +115,13 @@ const ClientDetailPage = () => {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setAssignDialogOpen(true)}
+            >
+              <Car className="h-4 w-4 mr-2" />
+              Affecter un véhicule
+            </Button>
             <Button 
               className="bg-success text-success-foreground hover:bg-success/90"
               onClick={() => setEditDialogOpen(true)}
@@ -296,6 +306,12 @@ const ClientDetailPage = () => {
         open={editDialogOpen} 
         onOpenChange={setEditDialogOpen} 
         client={client}
+      />
+      <AssignVehicleDialog
+        open={assignDialogOpen}
+        onOpenChange={setAssignDialogOpen}
+        clientId={client.id}
+        clientName={`${client.nom} ${client.prenom}`}
       />
     </DashboardLayout>
   );

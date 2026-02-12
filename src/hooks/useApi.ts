@@ -253,6 +253,7 @@ export function useUpdateVehicle() {
       api.updateVehicle(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
     },
   });
 }
