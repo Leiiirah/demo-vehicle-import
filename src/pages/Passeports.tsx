@@ -234,13 +234,13 @@ const PasseportsPage = () => {
                               <Eye className="h-4 w-4 mr-2" />
                               Voir le détail
                             </DropdownMenuItem>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Supprimer
-                                </DropdownMenuItem>
-                              </AlertDialogTrigger>
+                             <AlertDialog>
+                               <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                   <Trash2 className="h-4 w-4 mr-2" />
+                                   Supprimer
+                                 </DropdownMenuItem>
+                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Supprimer ce passeport ?</AlertDialogTitle>
