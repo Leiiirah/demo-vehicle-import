@@ -251,8 +251,9 @@ export function useUpdateVehicle() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<CreateVehicleData> }) =>
       api.updateVehicle(id, data),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['vehicle', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['clients'] });
     },
   });
