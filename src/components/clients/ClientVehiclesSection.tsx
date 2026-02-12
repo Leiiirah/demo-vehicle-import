@@ -1,20 +1,25 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useQueries } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
 import { api } from '@/services/api';
+import { useUpdateVehicle } from '@/hooks/useApi';
+import { usePagination } from '@/hooks/usePagination';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { Car, CheckCircle2, Clock } from 'lucide-react';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Car, CheckCircle2, Clock, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 interface Payment {
   amount: number;
@@ -41,6 +46,7 @@ interface Vehicle {
   totalCost: number;
   sellingPrice?: number | null;
   soldDate?: string | null;
+  createdAt?: string;
   conteneur?: {
     dossier?: {
       id: string;
@@ -57,6 +63,7 @@ const formatCurrency = (amount: number) =>
 
 function ClientVehicleRow({ vehicle, dossierStats }: { vehicle: Vehicle; dossierStats?: DossierStats }) {
   const navigate = useNavigate();
+  const updateVehicle = useUpdateVehicle();
 
   const isDossierSolde = (dossierStats?.progress ?? 0) >= 100;
 
@@ -73,6 +80,17 @@ function ClientVehicleRow({ vehicle, dossierStats }: { vehicle: Vehicle; dossier
   const prixRevientFinal = isDossierSolde
     ? (totalUSD * tauxChangeFinal) + Number(vehicle.localFees || 0)
     : null;
+
+  const handleUnassign = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    updateVehicle.mutate(
+      { id: vehicle.id, data: { clientId: null as any, sellingPrice: null as any } },
+      {
+        onSuccess: () => toast.success('Véhicule retiré du client'),
+        onError: () => toast.error('Erreur lors du retrait'),
+      }
+    );
+  };
 
   return (
     <TableRow
@@ -118,12 +136,40 @@ function ClientVehicleRow({ vehicle, dossierStats }: { vehicle: Vehicle; dossier
           </Badge>
         )}
       </TableCell>
+      <TableCell>
+        <AlertDialog>
+          <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Retirer ce véhicule ?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Le véhicule {vehicle.brand} {vehicle.model} ({vehicle.year}) sera dissocié de ce client. Cette action ne supprime pas le véhicule.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={handleUnassign} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Retirer
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </TableCell>
     </TableRow>
   );
 }
 
 export function ClientVehiclesSection({ vehicles }: ClientVehiclesSectionProps) {
   const [filter, setFilter] = useState('tous');
+
+  // Sort vehicles: last added first
+  const sortedVehicles = useMemo(() => {
+    return [...vehicles].reverse();
+  }, [vehicles]);
 
   // Collect unique dossier IDs
   const dossierIds = useMemo(() => {
@@ -157,14 +203,16 @@ export function ClientVehiclesSection({ vehicles }: ClientVehiclesSectionProps) 
 
   // Filter vehicles
   const filteredVehicles = useMemo(() => {
-    if (filter === 'tous') return vehicles;
-    return vehicles.filter((v) => {
+    if (filter === 'tous') return sortedVehicles;
+    return sortedVehicles.filter((v) => {
       const did = v.conteneur?.dossier?.id;
       const stats = did ? dossierStatsMap[did] : undefined;
       const solde = (stats?.progress ?? 0) >= 100;
       return filter === 'solde' ? solde : !solde;
     });
-  }, [vehicles, filter, dossierStatsMap]);
+  }, [sortedVehicles, filter, dossierStatsMap]);
+
+  const { paginatedItems, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredVehicles);
 
   if (!vehicles.length) return null;
 
@@ -192,30 +240,41 @@ export function ClientVehiclesSection({ vehicles }: ClientVehiclesSectionProps) 
         ) : filteredVehicles.length === 0 ? (
           <p className="text-muted-foreground text-center py-6">Aucun véhicule trouvé</p>
         ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Désignation</TableHead>
-                  <TableHead>VIN</TableHead>
-                  <TableHead className="text-right">P. Revient Approx.</TableHead>
-                  <TableHead className="text-right">P. Revient Final</TableHead>
-                  <TableHead className="text-right">Taux</TableHead>
-                  <TableHead>Date vente</TableHead>
-                  <TableHead>Statut</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredVehicles.map((vehicle) => (
-                  <ClientVehicleRow
-                    key={vehicle.id}
-                    vehicle={vehicle}
-                    dossierStats={dossierStatsMap[vehicle.conteneur?.dossier?.id || '']}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Désignation</TableHead>
+                    <TableHead>VIN</TableHead>
+                    <TableHead className="text-right">P. Revient Approx.</TableHead>
+                    <TableHead className="text-right">P. Revient Final</TableHead>
+                    <TableHead className="text-right">Taux</TableHead>
+                    <TableHead>Date vente</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead className="w-12"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedItems.map((vehicle) => (
+                    <ClientVehicleRow
+                      key={vehicle.id}
+                      vehicle={vehicle}
+                      dossierStats={dossierStatsMap[vehicle.conteneur?.dossier?.id || '']}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              onPageChange={goToPage}
+            />
+          </>
         )}
       </CardContent>
     </Card>
