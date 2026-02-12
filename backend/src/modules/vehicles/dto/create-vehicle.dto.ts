@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  ValidateIf,
 } from 'class-validator';
 import { VehicleStatus } from '../../../entities/vehicle.entity';
 
@@ -26,9 +27,10 @@ export class CreateVehicleDto {
   @IsNotEmpty()
   vin: string;
 
+  @ValidateIf((o) => o.clientId !== null)
   @IsUUID()
   @IsOptional()
-  clientId?: string;
+  clientId?: string | null;
 
   @IsUUID()
   @IsNotEmpty()
@@ -66,9 +68,10 @@ export class CreateVehicleDto {
   @IsOptional()
   totalCost?: number;
 
+  @ValidateIf((o) => o.sellingPrice !== null)
   @IsNumber()
   @IsOptional()
-  sellingPrice?: number;
+  sellingPrice?: number | null;
 
   @IsString()
   @IsOptional()
