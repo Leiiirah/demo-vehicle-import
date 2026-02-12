@@ -291,6 +291,31 @@ class ApiClient {
     return this.request(`/api/payments/${id}`, { method: 'DELETE' });
   }
 
+  // Caisse
+  async getCaisseEntries() {
+    return this.request<CaisseEntry[]>('/api/caisse');
+  }
+
+  async getCaisseEntry(id: string) {
+    return this.request<CaisseEntry>(`/api/caisse/${id}`);
+  }
+
+  async getCaisseSummary() {
+    return this.request<CaisseSummary>('/api/caisse/summary');
+  }
+
+  async createCaisseEntry(data: CreateCaisseEntryData) {
+    return this.request<CaisseEntry>('/api/caisse', { method: 'POST', body: data });
+  }
+
+  async updateCaisseEntry(id: string, data: Partial<CreateCaisseEntryData>) {
+    return this.request<CaisseEntry>(`/api/caisse/${id}`, { method: 'PATCH', body: data });
+  }
+
+  async deleteCaisseEntry(id: string) {
+    return this.request(`/api/caisse/${id}`, { method: 'DELETE' });
+  }
+
   // Dashboard
   async getDashboardStats() {
     return this.request<DashboardStats>('/api/dashboard/stats');
@@ -580,6 +605,39 @@ export interface VehicleCharge {
 export interface CreateVehicleChargeData {
   label: string;
   amount: number;
+}
+
+export interface CaisseEntry {
+  id: string;
+  type: 'entree' | 'charge' | 'vente_auto';
+  montant: number;
+  date: string;
+  description?: string;
+  reference?: string;
+  vehicleId?: string;
+  vehicle?: Vehicle;
+  clientId?: string;
+  client?: Client;
+  prixVente?: number;
+  prixRevient?: number;
+  benefice?: number;
+  createdAt?: string;
+}
+
+export interface CreateCaisseEntryData {
+  type: 'entree' | 'charge';
+  montant: number;
+  date: string;
+  description?: string;
+  reference?: string;
+  vehicleId?: string;
+}
+
+export interface CaisseSummary {
+  totalEntrees: number;
+  totalCharges: number;
+  totalBenefices: number;
+  soldeActuel: number;
 }
 
 export const api = new ApiClient(API_URL);

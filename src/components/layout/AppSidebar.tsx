@@ -19,6 +19,7 @@ import {
   FolderOpen,
   Container,
   Receipt,
+  Wallet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +34,7 @@ const importItems = [
 ];
 
 const comptabiliteItems = [
+  { name: 'Caisse', href: '/caisse', icon: Wallet },
   { name: 'Ventes Clients', href: '/client-sales', icon: ShoppingCart },
   { name: 'Ventes & Marges', href: '/sales', icon: TrendingUp },
   { name: 'Rapports', href: '/reports', icon: FileText },

@@ -26,6 +26,7 @@ import ClientSalesPage from "./pages/ClientSales";
 import UsersPage from "./pages/Users";
 import SettingsPage from "./pages/Settings";
 import SearchPage from "./pages/Search";
+import CaissePage from "./pages/Caisse";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+            <Route path="/caisse" element={<ProtectedRoute><CaissePage /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
