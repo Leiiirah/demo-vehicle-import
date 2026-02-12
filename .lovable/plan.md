@@ -1,33 +1,24 @@
 
 
-# Fix the /sales page to display correct data
+# Simplifier le formulaire "Ajouter Client" - Section Calcul du benefice
 
-## Problem
-The Sales page filters vehicles by `v.status === 'sold'`, but in the system, vehicles assigned to clients may not have this exact status. The page shows "Aucune vente enregistree" because the filter is too restrictive. The page should display all vehicles that have been assigned to a client (have a `clientId`) as sales records.
+## Probleme actuel
+Le formulaire de creation de client contient des champs manuels "Prix de vente (DZD)" et "Cout de revient (DZD)" qui ne devraient pas etre saisis a la main. Ces valeurs sont calculees automatiquement a partir des vehicules assignes au client (prix de revient = cout calcule du vehicule, prix de vente = prix de vente defini sur le vehicule).
 
-## Changes
+Au moment de la creation du client, aucun vehicule n'est encore assigne, donc ces champs n'ont pas de sens.
 
-### File: `src/pages/Sales.tsx`
+## Modification prevue
 
-1. **Broaden the "sold" filter**: Instead of only `status === 'sold'`, show all vehicles that have a `clientId` (assigned to a client). This captures all sales regardless of the vehicle's lifecycle status.
+### Fichier : `src/components/clients/AddClientDialog.tsx`
 
-2. **Add a "Date de vente" column**: Display `soldDate` if available for each vehicle.
+1. **Supprimer les champs manuels** : Retirer les inputs "Prix de vente (DZD)" et "Coût de revient (DZD)" du formulaire
+2. **Supprimer les states associes** : Retirer `prixVente`, `setPrixVente`, `coutRevient`, `setCoutRevient`
+3. **Supprimer le calcul local** : Retirer les variables `benefice` et `dette` et le bloc d'apercu conditionnel
+4. **Garder uniquement le pourcentage** : Le champ "Pourcentage sur benefice (%)" reste le seul champ dans la section "Calcul du benefice"
+5. **Ajouter une note explicative** : Un texte d'information sous le champ pourcentage indiquant que le benefice sera calcule automatiquement une fois les vehicules assignes
+6. **Nettoyer le submit** : Ne plus envoyer `prixVente`, `coutRevient`, ni `detteBenefice` lors de la creation (envoyer 0 par defaut)
 
-3. **Improve profit display**: Handle negative profit with red color styling, not just green.
-
-4. **Make search filter functional**: Wire up the search input to filter vehicles by brand, model, VIN, or client name.
-
-5. **Make client filter functional**: Populate the client dropdown with actual clients from the sold vehicles list.
-
-6. **Add click navigation**: Make rows clickable to navigate to the vehicle detail page.
-
-## Technical Details
-
-- Change filter from `vehicles.filter(v => v.status === 'sold')` to `vehicles.filter(v => v.clientId)` to include all assigned vehicles
-- Add `useState` for `searchTerm` and `clientFilter`
-- Populate client `Select` dropdown dynamically from unique clients in the vehicle list
-- Apply search filtering on brand, model, VIN, and client name
-- Apply client filtering on `clientId`
-- Add `useNavigate` for row click navigation to `/vehicles/{id}`
-- Add `soldDate` column display with French date formatting
-
+### Resultat visuel
+La section "Calcul du benefice" affichera uniquement :
+- Le champ pourcentage (avec son input numerique et le symbole %)
+- Une note : "Le benefice et la dette seront calcules automatiquement en fonction des vehicules assignes."
