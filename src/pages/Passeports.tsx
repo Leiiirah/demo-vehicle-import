@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { usePasseports, useUpdatePasseport } from '@/hooks/useApi';
+import { usePasseports, useUpdatePasseport, useDeletePasseport } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
-import { MoreVertical, Eye, Phone, Search, BookUser, Check, X, AlertCircle } from 'lucide-react';
+import { MoreVertical, Eye, Phone, Search, BookUser, Check, X, AlertCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,6 +16,12 @@ import {
 import { cn } from '@/lib/utils';
 import { AddPasseportDialog } from '@/components/clients/AddPasseportDialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const PasseportsPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -24,6 +30,8 @@ const PasseportsPage = () => {
 
   const { data: passeports, isLoading, error } = usePasseports();
   const updatePasseport = useUpdatePasseport();
+  const deletePasseport = useDeletePasseport();
+  const { toast } = useToast();
 
   const togglePaiement = (id: string, currentPaye: boolean) => {
     updatePasseport.mutate({ id, data: { paye: !currentPaye } });
@@ -226,6 +234,31 @@ const PasseportsPage = () => {
                               <Eye className="h-4 w-4 mr-2" />
                               Voir le détail
                             </DropdownMenuItem>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Supprimer
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Supprimer ce passeport ?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Cette action est irréversible. Le passeport de {passeport.nom} {passeport.prenom} sera définitivement supprimé.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deletePasseport.mutate(passeport.id, {
+                                    onSuccess: () => toast({ title: 'Passeport supprimé' }),
+                                    onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+                                  })}>
+                                    Supprimer
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </td>

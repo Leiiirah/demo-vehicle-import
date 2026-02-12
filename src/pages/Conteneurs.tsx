@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useConteneurs } from '@/hooks/useApi';
+import { useConteneurs, useDeleteConteneur } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,9 +11,18 @@ import { Badge } from '@/components/ui/badge';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { Plus, Search, Container, FolderOpen, Ship, Anchor, AlertCircle } from 'lucide-react';
+import { Plus, Search, Container, FolderOpen, Ship, Anchor, AlertCircle, MoreVertical, Eye, Trash2 } from 'lucide-react';
 import { AddConteneurDialog } from '@/components/conteneurs/AddConteneurDialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const statusConfig = {
   en_chargement: { label: 'En chargement', className: 'bg-warning/10 text-warning border-warning/30' },
@@ -34,6 +43,8 @@ export default function ConteneursPage() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   const { data: conteneurs, isLoading, error } = useConteneurs();
+  const deleteConteneur = useDeleteConteneur();
+  const { toast } = useToast();
 
   const filteredConteneurs = (conteneurs || []).filter(
     (conteneur) =>
@@ -165,6 +176,7 @@ export default function ConteneursPage() {
                         <TableHead>Arrivée</TableHead>
                         <TableHead className="text-center">Véhicules</TableHead>
                         <TableHead>Statut</TableHead>
+                        <TableHead className="w-12"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -216,6 +228,46 @@ export default function ConteneursPage() {
                                 <Badge variant="outline" className={status.className}>
                                   {status.label}
                                 </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/conteneurs/${conteneur.id}`); }}>
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      Voir le détail
+                                    </DropdownMenuItem>
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                          <Trash2 className="h-4 w-4 mr-2" />
+                                          Supprimer
+                                        </DropdownMenuItem>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Supprimer ce conteneur ?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Cette action est irréversible. Le conteneur {conteneur.numero} sera définitivement supprimé.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                          <AlertDialogAction onClick={() => deleteConteneur.mutate(conteneur.id, {
+                                            onSuccess: () => toast({ title: 'Conteneur supprimé' }),
+                                            onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+                                          })}>
+                                            Supprimer
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </TableCell>
                             </TableRow>
                           );

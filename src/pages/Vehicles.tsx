@@ -4,7 +4,7 @@ import { useQueries } from '@tanstack/react-query';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useVehicles } from '@/hooks/useApi';
+import { useVehicles, useDeleteVehicle } from '@/hooks/useApi';
 import { api } from '@/services/api';
 import {
   Search,
@@ -16,6 +16,7 @@ import {
   Grid3X3,
   List,
   AlertCircle,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -29,14 +30,21 @@ import {
 import { cn } from '@/lib/utils';
 import AddVehicleDialog from '@/components/vehicles/AddVehicleDialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const VehiclesPage = () => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilters, setStatusFilters] = useState<string[]>(['ordered', 'in_transit', 'arrived', 'sold']);
-  
   const { data: vehicles, isLoading, error } = useVehicles();
+  const deleteVehicle = useDeleteVehicle();
+  const { toast } = useToast();
 
   // Collect unique dossier IDs from vehicles
   const dossierIds = useMemo(() => {
@@ -333,6 +341,31 @@ const VehiclesPage = () => {
                                 <Edit className="h-4 w-4 mr-2" />
                                 Modifier
                               </DropdownMenuItem>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Supprimer
+                                  </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Supprimer ce véhicule ?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Cette action est irréversible. Le véhicule {vehicle.brand} {vehicle.model} sera définitivement supprimé.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => deleteVehicle.mutate(vehicle.id, {
+                                      onSuccess: () => toast({ title: 'Véhicule supprimé' }),
+                                      onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+                                    })}>
+                                      Supprimer
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </td>
