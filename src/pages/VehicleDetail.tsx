@@ -442,7 +442,7 @@ const VehicleDetailPage = () => {
         </Card>
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
           <Card>
             <CardContent className="pt-3 sm:pt-4">
               <div className="flex items-center gap-2 sm:gap-3">
@@ -457,12 +457,12 @@ const VehicleDetailPage = () => {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
-                  <DollarSign className="h-5 w-5 text-success" />
+            <CardContent className="pt-3 sm:pt-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="h-8 sm:h-9 w-8 sm:w-9 rounded-lg bg-success/10 flex items-center justify-center flex-shrink-0">
+                  <DollarSign className="h-4 w-4 text-success" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">Prix de vente</p>
                   <p className="text-sm sm:text-base font-semibold truncate">{sellingPrice > 0 ? formatCurrency(sellingPrice) : 'N/A'}</p>
                 </div>
@@ -470,12 +470,12 @@ const VehicleDetailPage = () => {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
-                  <CheckCircle2 className="h-5 w-5 text-success" />
+            <CardContent className="pt-3 sm:pt-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="h-8 sm:h-9 w-8 sm:w-9 rounded-lg bg-success/10 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">Bénéfice</p>
                   <p className={cn('text-sm sm:text-base font-semibold truncate', hasBeneficeData ? (benefice > 0 ? 'text-success' : 'text-destructive') : '')}>
                     {hasBeneficeData ? formatCurrency(benefice) : 'N/A'}
@@ -497,22 +497,24 @@ const VehicleDetailPage = () => {
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="pt-3 sm:pt-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className={cn('h-8 sm:h-9 w-8 sm:w-9 rounded-lg flex items-center justify-center flex-shrink-0', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'bg-destructive/10' : 'bg-success/10') : 'bg-muted')}>
-                  <TrendingUp className={cn('h-4 w-4', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'text-destructive' : 'text-success') : 'text-muted-foreground')} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Écart réel / approx.</p>
-                  <p className={cn('text-sm sm:text-base font-semibold truncate', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'text-destructive' : 'text-success') : '')}>
-                    {ecartPrixRevient !== null ? `${ecartPrixRevient >= 0 ? '+' : ''}${formatCurrency(ecartPrixRevient)}` : 'N/A'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
+
+        {/* Écart réel / approx. */}
+        <Card>
+          <CardContent className="pt-3 sm:pt-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className={cn('h-8 sm:h-9 w-8 sm:w-9 rounded-lg flex items-center justify-center flex-shrink-0', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'bg-destructive/10' : 'bg-success/10') : 'bg-muted')}>
+                <TrendingUp className={cn('h-4 w-4', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'text-destructive' : 'text-success') : 'text-muted-foreground')} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Écart réel / approx.</p>
+                <p className={cn('text-sm sm:text-base font-semibold truncate', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'text-destructive' : 'text-success') : '')}>
+                  {ecartPrixRevient !== null ? `${ecartPrixRevient >= 0 ? '+' : ''}${formatCurrency(ecartPrixRevient)}` : 'N/A'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Tabs */}
         <Tabs defaultValue="costs" className="space-y-4">
