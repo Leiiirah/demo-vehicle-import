@@ -116,32 +116,6 @@ export function AddCaisseEntryDialog() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Référence</Label>
-            <Input
-              value={reference}
-              onChange={(e) => setReference(e.target.value)}
-              placeholder="N° facture, référence..."
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Véhicule associé (optionnel)</Label>
-            <Select value={vehicleId} onValueChange={setVehicleId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Aucun" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Aucun</SelectItem>
-                {(vehicles as any[]).map((v) => (
-                  <SelectItem key={v.id} value={v.id}>
-                    {v.brand} {v.model} — {v.vin}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Annuler
