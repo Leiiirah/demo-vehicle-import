@@ -354,10 +354,13 @@ const ClientSalesPage = () => {
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => deleteClient.mutate(client.id, {
-                                  onSuccess: () => toast({ title: 'Client supprimé' }),
-                                  onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
-                                })}>
+                                <AlertDialogAction onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteClient.mutate(client.id, {
+                                    onSuccess: () => toast({ title: 'Client supprimé' }),
+                                    onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+                                  });
+                                }}>
                                   Supprimer
                                 </AlertDialogAction>
                               </AlertDialogFooter>

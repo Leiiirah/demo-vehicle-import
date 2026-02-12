@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useConteneur, useDeleteConteneur } from '@/hooks/useApi';
+import { useConteneur, useDeleteConteneur, useDeleteVehicle } from '@/hooks/useApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -48,6 +48,7 @@ export default function ConteneurDetailPage() {
 
   const { data: conteneur, isLoading, error } = useConteneur(id || '');
   const deleteConteneur = useDeleteConteneur();
+  const deleteVehicle = useDeleteVehicle();
 
   const handleDelete = () => {
     if (!id) return;
@@ -262,16 +263,17 @@ export default function ConteneurDetailPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Véhicule</TableHead>
-                    <TableHead>VIN</TableHead>
-                    <TableHead>Année</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Statut</TableHead>
+                     <TableHead>VIN</TableHead>
+                     <TableHead>Année</TableHead>
+                     <TableHead>Client</TableHead>
+                     <TableHead>Statut</TableHead>
+                     <TableHead className="w-12"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {vehicules.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         Aucun véhicule dans ce conteneur
                       </TableCell>
                     </TableRow>
@@ -303,6 +305,35 @@ export default function ConteneurDetailPage() {
                             <Badge variant="outline" className={vStatus.className}>
                               {vStatus.label}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Supprimer ce véhicule ?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Cette action est irréversible. Le véhicule {vehicule.brand} {vehicule.model} sera définitivement supprimé.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteVehicle.mutate(vehicule.id, {
+                                      onSuccess: () => toast.success('Véhicule supprimé'),
+                                      onError: () => toast.error('Erreur lors de la suppression'),
+                                    });
+                                  }}>
+                                    Supprimer
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </TableCell>
                         </TableRow>
                       );

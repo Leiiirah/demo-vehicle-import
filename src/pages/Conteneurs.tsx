@@ -257,10 +257,13 @@ export default function ConteneursPage() {
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
                                           <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                          <AlertDialogAction onClick={() => deleteConteneur.mutate(conteneur.id, {
-                                            onSuccess: () => toast({ title: 'Conteneur supprimé' }),
-                                            onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
-                                          })}>
+                                          <AlertDialogAction onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteConteneur.mutate(conteneur.id, {
+                                              onSuccess: () => toast({ title: 'Conteneur supprimé' }),
+                                              onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+                                            });
+                                          }}>
                                             Supprimer
                                           </AlertDialogAction>
                                         </AlertDialogFooter>

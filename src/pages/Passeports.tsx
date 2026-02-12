@@ -250,10 +250,13 @@ const PasseportsPage = () => {
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => deletePasseport.mutate(passeport.id, {
-                                    onSuccess: () => toast({ title: 'Passeport supprimé' }),
-                                    onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
-                                  })}>
+                                   <AlertDialogAction onClick={(e) => {
+                                    e.stopPropagation();
+                                    deletePasseport.mutate(passeport.id, {
+                                      onSuccess: () => toast({ title: 'Passeport supprimé' }),
+                                      onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+                                    });
+                                  }}>
                                     Supprimer
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
