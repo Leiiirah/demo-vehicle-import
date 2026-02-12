@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useConteneur } from '@/hooks/useApi';
+import { useConteneur, useDeleteConteneur } from '@/hooks/useApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,10 +13,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Container, FolderOpen, Car, Edit, Plus, Ship, Anchor, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Container, FolderOpen, Car, Edit, Plus, Ship, Anchor, AlertCircle, Trash2 } from 'lucide-react';
 import { AffecterVehiculeDialog } from '@/components/conteneurs/AffecterVehiculeDialog';
 import { EditConteneurDialog } from '@/components/conteneurs/EditConteneurDialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 const statusConfig = {
   en_chargement: { label: 'En chargement', className: 'bg-warning/10 text-warning border-warning/30' },
@@ -45,6 +47,18 @@ export default function ConteneurDetailPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data: conteneur, isLoading, error } = useConteneur(id || '');
+  const deleteConteneur = useDeleteConteneur();
+
+  const handleDelete = () => {
+    if (!id) return;
+    deleteConteneur.mutate(id, {
+      onSuccess: () => {
+        toast.success('Conteneur supprimé');
+        navigate('/conteneurs');
+      },
+      onError: () => toast.error('Erreur lors de la suppression'),
+    });
+  };
 
   if (isLoading) {
     return (
@@ -101,6 +115,27 @@ export default function ConteneurDetailPage() {
             <Edit className="h-4 w-4" />
             Modifier
           </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="icon">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Supprimer ce conteneur ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Cette action est irréversible. Le conteneur {conteneur.numero} et ses données seront définitivement supprimés.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Supprimer
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         {/* Info Cards */}

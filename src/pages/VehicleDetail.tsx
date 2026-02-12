@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useVehicle, useVehicleCharges, useCreateVehicleCharge, useDeleteVehicleCharge, useUpdateVehicleCharge } from '@/hooks/useApi';
+import { useVehicle, useVehicleCharges, useCreateVehicleCharge, useDeleteVehicleCharge, useUpdateVehicleCharge, useDeleteVehicle } from '@/hooks/useApi';
 import { api, type Payment } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,6 +39,7 @@ import {
 import { cn } from '@/lib/utils';
 import { EditVehicleDialog } from '@/components/vehicles/EditVehicleDialog';
 import type { VehicleCharge } from '@/services/api';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const VehicleDetailPage = () => {
   const { id } = useParams();
@@ -49,6 +50,18 @@ const VehicleDetailPage = () => {
 
   const { data: vehicle, isLoading, error } = useVehicle(id || '');
   const { data: chargesData } = useVehicleCharges(id || '');
+  const deleteVehicle = useDeleteVehicle();
+
+  const handleDelete = () => {
+    if (!id) return;
+    deleteVehicle.mutate(id, {
+      onSuccess: () => {
+        toast.success('Véhicule supprimé');
+        navigate('/vehicles');
+      },
+      onError: () => toast.error('Erreur lors de la suppression'),
+    });
+  };
 
   // Fetch dossier payment stats to determine if dossier is fully paid
   const dossierId = vehicle?.conteneur?.dossier?.id;
@@ -363,6 +376,27 @@ const VehicleDetailPage = () => {
               <Edit className="h-4 w-4 mr-2" />
               Modifier
             </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="icon">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Supprimer ce véhicule ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Cette action est irréversible. Le véhicule {vehicle.brand} {vehicle.model} sera définitivement supprimé.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Supprimer
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 

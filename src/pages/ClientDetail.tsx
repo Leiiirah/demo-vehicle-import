@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useClient, useUpdateClient } from '@/hooks/useApi';
+import { useClient, useUpdateClient, useDeleteClient } from '@/hooks/useApi';
 import { 
   ArrowLeft, 
   Phone, 
@@ -14,7 +14,8 @@ import {
   TrendingUp,
   AlertCircle,
   Mail,
-  Building2
+  Building2,
+  Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +26,8 @@ import { EditClientDialog } from '@/components/clients/EditClientDialog';
 import { AssignVehicleDialog } from '@/components/clients/AssignVehicleDialog';
 import { ClientVehiclesSection } from '@/components/clients/ClientVehiclesSection';
 import { Car } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 const ClientDetailPage = () => {
   const { id } = useParams();
@@ -34,6 +37,18 @@ const ClientDetailPage = () => {
   
   const { data: client, isLoading, error } = useClient(id || '');
   const updateClient = useUpdateClient();
+  const deleteClient = useDeleteClient();
+
+  const handleDelete = () => {
+    if (!id) return;
+    deleteClient.mutate(id, {
+      onSuccess: () => {
+        toast.success('Client supprimé');
+        navigate('/clients');
+      },
+      onError: () => toast.error('Erreur lors de la suppression'),
+    });
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-DZ', {
@@ -130,6 +145,27 @@ const ClientDetailPage = () => {
               <Edit className="h-4 w-4 mr-2" />
               Modifier
             </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="icon">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Supprimer ce client ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Cette action est irréversible. Le client {client.nom} {client.prenom} sera définitivement supprimé.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Supprimer
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 
