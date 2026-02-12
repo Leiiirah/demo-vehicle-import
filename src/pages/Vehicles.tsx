@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueries } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useVehicles } from '@/hooks/useApi';
+import { api } from '@/services/api';
 import {
   Search,
   Filter,
@@ -33,6 +35,41 @@ const VehiclesPage = () => {
   const [statusFilters, setStatusFilters] = useState<string[]>(['ordered', 'in_transit', 'arrived', 'sold']);
   
   const { data: vehicles, isLoading, error } = useVehicles();
+
+  // Collect unique dossier IDs from vehicles
+  const dossierIds = useMemo(() => {
+    if (!vehicles) return [];
+    const ids = new Set<string>();
+    vehicles.forEach((v: any) => {
+      if (v.conteneur?.dossier?.id) ids.add(v.conteneur.dossier.id);
+    });
+    return Array.from(ids);
+  }, [vehicles]);
+
+  // Fetch payment stats for all dossiers
+  const dossierStatsQueries = useQueries({
+    queries: dossierIds.map((dossierId) => ({
+      queryKey: ['payments', 'dossier', dossierId, 'stats'],
+      queryFn: () => api.request<{ progress: number }>(`/api/payments/dossier/${dossierId}/stats`),
+      enabled: !!dossierId,
+      staleTime: 30000,
+    })),
+  });
+
+  // Map dossier ID → fully paid boolean
+  const dossierPaidMap = useMemo(() => {
+    const map: Record<string, boolean> = {};
+    dossierIds.forEach((id, idx) => {
+      const data = dossierStatsQueries[idx]?.data;
+      map[id] = data ? data.progress >= 100 : false;
+    });
+    return map;
+  }, [dossierIds, dossierStatsQueries]);
+
+  const isVehiclePaid = (vehicle: any) => {
+    const dossierId = vehicle.conteneur?.dossier?.id;
+    return dossierId ? dossierPaidMap[dossierId] === true : false;
+  };
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -269,8 +306,9 @@ const VehiclesPage = () => {
                           </code>
                         </td>
                         <td>{getStatusBadge(vehicle.status)}</td>
-                        <td className="font-medium text-foreground">
+                        <td className={`font-medium ${isVehiclePaid(vehicle) ? 'text-success' : 'text-foreground'}`}>
                           {formatCurrency(vehicle.totalCost)}
+                          {isVehiclePaid(vehicle) && <span className="ml-1 text-xs">✓</span>}
                         </td>
                         <td>
                           <DropdownMenu>
@@ -353,8 +391,9 @@ const VehiclesPage = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Coût total</span>
-                      <span className="text-foreground font-medium">
+                      <span className={`font-medium ${isVehiclePaid(vehicle) ? 'text-success' : 'text-foreground'}`}>
                         {formatCurrency(vehicle.totalCost)}
+                        {isVehiclePaid(vehicle) && <span className="ml-1 text-xs">✓</span>}
                       </span>
                     </div>
                   </div>
