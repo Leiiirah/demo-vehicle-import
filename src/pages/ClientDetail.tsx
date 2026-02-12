@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { EditClientDialog } from '@/components/clients/EditClientDialog';
 import { AssignVehicleDialog } from '@/components/clients/AssignVehicleDialog';
+import { ClientVehiclesSection } from '@/components/clients/ClientVehiclesSection';
 import { Car } from 'lucide-react';
 
 const ClientDetailPage = () => {
@@ -299,6 +300,11 @@ const ClientDetailPage = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Véhicules assignés / Ventes */}
+          {client.vehicles && client.vehicles.length > 0 && (
+            <ClientVehiclesSection vehicles={client.vehicles} />
+          )}
         </div>
       </div>
 
