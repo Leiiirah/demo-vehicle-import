@@ -33,6 +33,8 @@ import {
   Eye
 } from 'lucide-react';
 import { useClients, useVehicles } from '@/hooks/useApi';
+import { AssignVehicleDialog } from '@/components/clients/AssignVehicleDialog';
+import { NewSaleDialog } from '@/components/clients/NewSaleDialog';
 
 const ClientSalesPage = () => {
   const navigate = useNavigate();
@@ -40,6 +42,9 @@ const ClientSalesPage = () => {
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [newSaleDialogOpen, setNewSaleDialogOpen] = useState(false);
+  const [selectedClientForAssign, setSelectedClientForAssign] = useState<any>(null);
 
   const isLoading = clientsLoading || vehiclesLoading;
 
@@ -121,10 +126,19 @@ const ClientSalesPage = () => {
               Suivi des ventes et encaissements par client
             </p>
           </div>
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            Exporter
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+              onClick={() => setNewSaleDialogOpen(true)}
+            >
+              <Car className="h-4 w-4" />
+              Nouvelle vente
+            </Button>
+            <Button variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+              Exporter
+            </Button>
+          </div>
         </div>
 
         {/* KPIs */}
@@ -233,7 +247,7 @@ const ClientSalesPage = () => {
                   <TableHead className="text-right">Chiffre d'affaires</TableHead>
                   <TableHead className="text-right">Bénéfice</TableHead>
                   <TableHead className="text-center">Statut</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -296,14 +310,27 @@ const ClientSalesPage = () => {
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(`/clients/${client.id}`)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedClientForAssign(client);
+                              setAssignDialogOpen(true);
+                            }}
+                            title="Affecter un véhicule"
+                          >
+                            <Car className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/clients/${client.id}`)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -319,6 +346,20 @@ const ClientSalesPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {selectedClientForAssign && (
+        <AssignVehicleDialog
+          open={assignDialogOpen}
+          onOpenChange={setAssignDialogOpen}
+          clientId={selectedClientForAssign.id}
+          clientName={`${selectedClientForAssign.nom} ${selectedClientForAssign.prenom}`}
+        />
+      )}
+
+      <NewSaleDialog
+        open={newSaleDialogOpen}
+        onOpenChange={setNewSaleDialogOpen}
+      />
     </DashboardLayout>
   );
 };
