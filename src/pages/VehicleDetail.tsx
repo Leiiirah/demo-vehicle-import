@@ -683,7 +683,7 @@ const VehicleDetailPage = () => {
 
                  {/* Prix de revient FINAL - only when dossier is soldé */}
                  {isDossierSolde && (
-                   <Card className="border-success bg-success/20">
+                   <Card className="border-2" style={{ borderColor: 'hsl(142, 71%, 45%)', backgroundColor: 'hsl(142, 71%, 45%, 0.12)' }}>
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base flex items-center gap-2 text-success">
                         <CheckCircle2 className="h-5 w-5" />
