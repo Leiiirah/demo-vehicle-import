@@ -34,6 +34,7 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
 
   const filteredDossiers = dossiers.filter((d: any) => {
+    if (d.status === 'termine') return false;
     const term = dossierSearch.toLowerCase();
     return (
       d.reference?.toLowerCase().includes(term) ||
