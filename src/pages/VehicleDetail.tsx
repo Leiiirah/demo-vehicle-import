@@ -442,16 +442,16 @@ const VehicleDetailPage = () => {
         </Card>
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <DollarSign className="h-5 w-5 text-primary" />
+            <CardContent className="pt-3 sm:pt-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="h-8 sm:h-9 w-8 sm:w-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <DollarSign className="h-4 w-4 text-primary" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Prix de revient</p>
-                  <p className="text-xl font-semibold">{prixRevient > 0 ? formatCurrency(prixRevient) : 'N/A'}</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Prix de revient</p>
+                  <p className="text-sm sm:text-base font-semibold truncate">{prixRevient > 0 ? formatCurrency(prixRevient) : 'N/A'}</p>
                 </div>
               </div>
             </CardContent>
@@ -463,8 +463,8 @@ const VehicleDetailPage = () => {
                   <DollarSign className="h-5 w-5 text-success" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Prix de vente</p>
-                  <p className="text-xl font-semibold">{sellingPrice > 0 ? formatCurrency(sellingPrice) : 'N/A'}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Prix de vente</p>
+                  <p className="text-sm sm:text-base font-semibold truncate">{sellingPrice > 0 ? formatCurrency(sellingPrice) : 'N/A'}</p>
                 </div>
               </div>
             </CardContent>
@@ -476,8 +476,8 @@ const VehicleDetailPage = () => {
                   <CheckCircle2 className="h-5 w-5 text-success" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Bénéfice</p>
-                  <p className={cn('text-xl font-semibold', hasBeneficeData ? (benefice > 0 ? 'text-success' : 'text-destructive') : '')}>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Bénéfice</p>
+                  <p className={cn('text-sm sm:text-base font-semibold truncate', hasBeneficeData ? (benefice > 0 ? 'text-success' : 'text-destructive') : '')}>
                     {hasBeneficeData ? formatCurrency(benefice) : 'N/A'}
                   </p>
                 </div>
@@ -485,27 +485,27 @@ const VehicleDetailPage = () => {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-primary" />
+            <CardContent className="pt-3 sm:pt-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="h-8 sm:h-9 w-8 sm:w-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="h-4 w-4 text-primary" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Taux réel (moy. pondéré)</p>
-                  <p className="text-xl font-semibold">{tauxChangeFinal > 0 ? `${tauxChangeFinal.toFixed(2)} DZD/$` : 'N/A'}</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Taux réel (moy. pondéré)</p>
+                  <p className="text-sm sm:text-base font-semibold truncate">{tauxChangeFinal > 0 ? `${tauxChangeFinal.toFixed(2)} DZD/$` : 'N/A'}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className={cn('h-10 w-10 rounded-lg flex items-center justify-center', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'bg-destructive/10' : 'bg-success/10') : 'bg-muted')}>
-                  <TrendingUp className={cn('h-5 w-5', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'text-destructive' : 'text-success') : 'text-muted-foreground')} />
+            <CardContent className="pt-3 sm:pt-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className={cn('h-8 sm:h-9 w-8 sm:w-9 rounded-lg flex items-center justify-center flex-shrink-0', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'bg-destructive/10' : 'bg-success/10') : 'bg-muted')}>
+                  <TrendingUp className={cn('h-4 w-4', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'text-destructive' : 'text-success') : 'text-muted-foreground')} />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Écart réel / approx.</p>
-                  <p className={cn('text-xl font-semibold', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'text-destructive' : 'text-success') : '')}>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Écart réel / approx.</p>
+                  <p className={cn('text-sm sm:text-base font-semibold truncate', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'text-destructive' : 'text-success') : '')}>
                     {ecartPrixRevient !== null ? `${ecartPrixRevient >= 0 ? '+' : ''}${formatCurrency(ecartPrixRevient)}` : 'N/A'}
                   </p>
                 </div>
