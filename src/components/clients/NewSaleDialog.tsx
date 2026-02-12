@@ -10,9 +10,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useClients, useDossiers, useVehicles, useUpdateVehicle } from '@/hooks/useApi';
-import { Car, Search, Loader2, Check, Users, FolderOpen, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Car, Search, Loader2, Check, Users, FolderOpen, ArrowRight, ArrowLeft, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface NewSaleDialogProps {
@@ -20,7 +21,7 @@ interface NewSaleDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type Step = 'client' | 'dossier' | 'vehicle';
+type Step = 'client' | 'dossier' | 'vehicle' | 'price';
 
 export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
   const { data: clients = [], isLoading: clientsLoading } = useClients();
@@ -35,6 +36,7 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [selectedDossier, setSelectedDossier] = useState<any>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  const [sellingPrice, setSellingPrice] = useState('');
 
   const filteredClients = clients.filter((c: any) => {
     const term = clientSearch.toLowerCase();
@@ -69,14 +71,14 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
     );
   });
 
+  const selectedVehicle = vehicles.find((v: any) => v.id === selectedVehicleId);
+
   const statusLabels: Record<string, string> = {
     ordered: 'Commandé',
     in_transit: 'En transit',
     arrived: 'Arrivé',
     sold: 'Vendu',
   };
-
-  const stepNumber = step === 'client' ? 1 : step === 'dossier' ? 2 : 3;
 
   const handleReset = () => {
     setStep('client');
@@ -86,6 +88,7 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
     setSelectedClient(null);
     setSelectedDossier(null);
     setSelectedVehicleId(null);
+    setSellingPrice('');
   };
 
   const handleClose = (val: boolean) => {
@@ -93,10 +96,18 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
     onOpenChange(val);
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
+  };
+
   const handleAssign = () => {
     if (!selectedClient || !selectedVehicleId) return;
+    const data: any = { clientId: selectedClient.id };
+    if (sellingPrice) {
+      data.sellingPrice = Number(sellingPrice);
+    }
     updateVehicle.mutate(
-      { id: selectedVehicleId, data: { clientId: selectedClient.id } },
+      { id: selectedVehicleId, data },
       {
         onSuccess: () => {
           toast.success(`Véhicule affecté à ${selectedClient.nom} ${selectedClient.prenom}`);
@@ -116,11 +127,13 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
             {step === 'client' && 'Sélectionner un client'}
             {step === 'dossier' && 'Sélectionner un dossier'}
             {step === 'vehicle' && 'Sélectionner un véhicule'}
+            {step === 'price' && 'Prix de vente'}
           </DialogTitle>
           <DialogDescription>
-            {step === 'client' && 'Étape 1/3 — Choisissez le client acheteur'}
-            {step === 'dossier' && `Étape 2/3 — Choisissez le dossier pour ${selectedClient?.nom} ${selectedClient?.prenom}`}
-            {step === 'vehicle' && `Étape 3/3 — Choisissez un véhicule du dossier ${selectedDossier?.reference}`}
+            {step === 'client' && 'Étape 1/4 — Choisissez le client acheteur'}
+            {step === 'dossier' && `Étape 2/4 — Choisissez le dossier pour ${selectedClient?.nom} ${selectedClient?.prenom}`}
+            {step === 'vehicle' && `Étape 3/4 — Choisissez un véhicule du dossier ${selectedDossier?.reference}`}
+            {step === 'price' && 'Étape 4/4 — Définissez le prix de vente'}
           </DialogDescription>
         </DialogHeader>
 
@@ -286,7 +299,57 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
               <Button variant="outline" onClick={() => setStep('dossier')} className="gap-2">
                 <ArrowLeft className="h-4 w-4" /> Retour
               </Button>
-              <Button onClick={handleAssign} disabled={!selectedVehicleId || updateVehicle.isPending}>
+              <Button onClick={() => setStep('price')} disabled={!selectedVehicleId} className="gap-2">
+                Suivant <ArrowRight className="h-4 w-4" />
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+
+        {step === 'price' && (
+          <>
+            <div className="space-y-4">
+              {selectedVehicle && (
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30">
+                  {selectedVehicle.photoUrl ? (
+                    <img src={selectedVehicle.photoUrl} alt={`${selectedVehicle.brand} ${selectedVehicle.model}`} className="h-10 w-10 rounded-lg object-cover" />
+                  ) : (
+                    <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                      <Car className="h-5 w-5 text-secondary-foreground" />
+                    </div>
+                  )}
+                  <div>
+                    <div className="font-medium text-sm">{selectedVehicle.brand} {selectedVehicle.model} ({selectedVehicle.year})</div>
+                    <div className="text-xs text-muted-foreground">Coût de revient : {formatCurrency(selectedVehicle.totalCost || 0)}</div>
+                  </div>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="sellingPriceSale">Prix de vente (DZD)</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="sellingPriceSale"
+                    type="number"
+                    placeholder="0"
+                    className="pl-9"
+                    value={sellingPrice}
+                    onChange={(e) => setSellingPrice(e.target.value)}
+                    min={0}
+                  />
+                </div>
+                {sellingPrice && selectedVehicle?.totalCost ? (
+                  <p className={`text-sm font-medium ${Number(sellingPrice) - Number(selectedVehicle.totalCost) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                    Bénéfice estimé : {formatCurrency(Number(sellingPrice) - Number(selectedVehicle.totalCost))}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setStep('vehicle')} className="gap-2">
+                <ArrowLeft className="h-4 w-4" /> Retour
+              </Button>
+              <Button onClick={handleAssign} disabled={!sellingPrice || updateVehicle.isPending}>
                 {updateVehicle.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Affecter
               </Button>
