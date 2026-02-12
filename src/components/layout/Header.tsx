@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, LogOut, User, Wallet, Loader2, Search } from 'lucide-react';
-import { useDashboardStats } from '@/hooks/useApi';
+import { LogOut, User, Search } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   DropdownMenu,
@@ -13,31 +12,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 export function Header() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { data: stats, isLoading } = useDashboardStats();
   const [searchQuery, setSearchQuery] = useState('');
-
-  const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
-    if (currency === 'USD') {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-      }).format(amount);
-    }
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
 
   const handleLogout = async () => {
     await logout();
@@ -67,56 +46,8 @@ export function Header() {
           </div>
         </form>
 
-        {/* Stats rapides & Utilisateur */}
+        {/* Utilisateur */}
         <div className="flex items-center gap-4">
-          {/* Solde global */}
-          <div className="hidden md:flex items-center gap-4 mr-4">
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-            ) : (
-              <>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-2">
-                      <Wallet className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Solde :</span>
-                      <span className="font-semibold text-success">
-                        {formatCurrency(stats?.totalProfit || 0)}
-                      </span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Profit total sur toutes les opérations</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <div className="h-6 w-px bg-border" />
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Dettes :</span>
-                      <span className="font-semibold text-danger">
-                        {formatCurrency(stats?.outstandingDebts || 0, 'USD')}
-                      </span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Dettes fournisseurs en cours</p>
-                  </TooltipContent>
-                </Tooltip>
-              </>
-            )}
-          </div>
-
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-danger text-[10px] font-medium text-danger-foreground flex items-center justify-center">
-              3
-            </span>
-          </Button>
-
           {/* Menu utilisateur */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -136,10 +67,6 @@ export function Header() {
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
                 Profil
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell className="mr-2 h-4 w-4" />
-                Notifications
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-danger" onClick={handleLogout}>

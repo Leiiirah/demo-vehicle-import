@@ -158,10 +158,6 @@ const SupplierDetailPage = () => {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline">
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Contacter
-            </Button>
             <Button 
               className="bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={() => setEditDialogOpen(true)}
@@ -241,7 +237,6 @@ const SupplierDetailPage = () => {
           <TabsList>
             <TabsTrigger value="vehicles">Véhicules ({supplierVehicles.length})</TabsTrigger>
             <TabsTrigger value="payments">Paiements</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
           </TabsList>
 
           <TabsContent value="vehicles">
@@ -308,19 +303,6 @@ const SupplierDetailPage = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="documents">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Documents</CardTitle>
-                <CardDescription>Contrats, factures et documents associés</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-center text-muted-foreground py-8">
-                  Aucun document enregistré
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
 

@@ -213,47 +213,8 @@ export const AffecterVehiculeDialog = ({
 
         <ScrollableDialogBody>
           <div className="space-y-4">
-            {/* Choix mode */}
-            <div className="space-y-3">
-              <Label>Type d'affectation</Label>
-              <RadioGroup 
-                value={mode} 
-                onValueChange={(value) => setMode(value as 'new' | 'existing')}
-                className="grid grid-cols-2 gap-3"
-              >
-                <Label
-                  htmlFor="new-vehicle"
-                  className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                    mode === 'new' 
-                      ? 'border-primary bg-primary/5' 
-                      : 'border-border hover:border-muted-foreground/50'
-                  }`}
-                >
-                  <RadioGroupItem value="new" id="new-vehicle" />
-                  <div className="flex items-center gap-2">
-                    <Plus className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">Nouveau</span>
-                  </div>
-                </Label>
-                <Label
-                  htmlFor="existing-vehicle"
-                  className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                    mode === 'existing' 
-                      ? 'border-primary bg-primary/5' 
-                      : 'border-border hover:border-muted-foreground/50'
-                  }`}
-                >
-                  <RadioGroupItem value="existing" id="existing-vehicle" />
-                  <div className="flex items-center gap-2">
-                    <Link2 className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">Existant</span>
-                  </div>
-                </Label>
-              </RadioGroup>
-            </div>
-
             {/* Formulaire nouveau véhicule */}
-            {mode === 'new' && (
+            {true && (
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -411,62 +372,6 @@ export const AffecterVehiculeDialog = ({
               </>
             )}
 
-            {/* Sélection véhicule existant */}
-            {mode === 'existing' && (
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-select">Véhicule disponible *</Label>
-                {isLoadingVehicles ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  </div>
-                ) : (
-                  <>
-                    <Select value={selectedVehicleId} onValueChange={setSelectedVehicleId}>
-                      <SelectTrigger id="vehicle-select">
-                        <SelectValue placeholder="Sélectionner un véhicule" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border border-border shadow-lg z-50">
-                        {availableVehicles.map((vehicle) => (
-                          <SelectItem key={vehicle.id} value={vehicle.id}>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{vehicle.brand} {vehicle.model} ({vehicle.year})</span>
-                              <span className="text-xs text-muted-foreground font-mono">{vehicle.vin}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    
-                    {availableVehicles.length === 0 && (
-                      <p className="text-sm text-muted-foreground text-center py-4">
-                        Aucun véhicule disponible. Créez-en un nouveau.
-                      </p>
-                    )}
-
-                    {selectedVehicle && (
-                      <div className="p-3 bg-accent/50 rounded-lg mt-3">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Véhicule</span>
-                          <span className="font-medium">{selectedVehicle.brand} {selectedVehicle.model}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Année</span>
-                          <span className="font-medium">{selectedVehicle.year}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">VIN</span>
-                          <span className="font-medium font-mono">{selectedVehicle.vin}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Prix</span>
-                          <span className="font-medium">${selectedVehicle.purchasePrice?.toLocaleString()}</span>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
           </div>
         </ScrollableDialogBody>
 
@@ -476,7 +381,7 @@ export const AffecterVehiculeDialog = ({
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={isLoading || (mode === 'new' ? !brand || !model || !vin || !prixVehicule || !supplierId : !selectedVehicleId)}
+            disabled={isLoading || !brand || !model || !vin || !prixVehicule || !supplierId}
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Affecter au conteneur

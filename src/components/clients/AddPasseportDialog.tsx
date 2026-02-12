@@ -171,18 +171,6 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
               />
             </div>
 
-            {/* Adresse */}
-            <div className="space-y-2">
-              <Label htmlFor="adresse">Adresse</Label>
-              <Textarea 
-                id="adresse" 
-                placeholder="Adresse complète"
-                rows={2}
-                value={adresse}
-                onChange={(e) => setAdresse(e.target.value)}
-              />
-            </div>
-
             {/* Numéro de passeport */}
             <div className="space-y-2">
               <Label htmlFor="numeroPasseport">Numéro de passeport *</Label>

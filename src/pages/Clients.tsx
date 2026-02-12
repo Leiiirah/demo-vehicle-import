@@ -71,7 +71,6 @@ const ClientsPage = () => {
             className="bg-success text-success-foreground hover:bg-success/90"
             onClick={() => setIsDialogOpen(true)}
           >
-            <ShoppingCart className="h-4 w-4 mr-2" />
             Ajouter client
           </Button>
         </div>
