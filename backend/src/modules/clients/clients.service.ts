@@ -22,7 +22,7 @@ export class ClientsService {
   async findOne(id: string) {
     const client = await this.clientRepository.findOne({
       where: { id },
-      relations: ['vehicles', 'vehicles.conteneur', 'payments'],
+      relations: ['vehicles', 'vehicles.conteneur', 'vehicles.conteneur.dossier', 'payments'],
     });
     if (!client) {
       throw new NotFoundException('Client not found');
