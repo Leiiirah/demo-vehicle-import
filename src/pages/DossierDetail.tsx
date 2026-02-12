@@ -13,8 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Building2, Container, Car, Plus, Calendar, Edit, AlertCircle, CreditCard } from 'lucide-react';
+import { ArrowLeft, Building2, Container, Car, Plus, Calendar, Edit, AlertCircle, CreditCard, Pencil } from 'lucide-react';
 import { AddConteneurDialog } from '@/components/conteneurs/AddConteneurDialog';
+import { EditConteneurDialog } from '@/components/conteneurs/EditConteneurDialog';
 import { EditDossierDialog } from '@/components/dossiers/EditDossierDialog';
 import { AddPaymentDialog } from '@/components/payments/AddPaymentDialog';
 import { DossierAnalytics } from '@/components/dossiers/DossierAnalytics';
@@ -46,6 +47,8 @@ export default function DossierDetailPage() {
   const [addConteneurOpen, setAddConteneurOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addPaymentOpen, setAddPaymentOpen] = useState(false);
+  const [editConteneurOpen, setEditConteneurOpen] = useState(false);
+  const [selectedConteneur, setSelectedConteneur] = useState<any>(null);
 
   const { data: dossier, isLoading, error } = useDossier(id || '');
 
@@ -186,13 +189,14 @@ export default function DossierDetailPage() {
                     <TableHead>Type</TableHead>
                     <TableHead>Date Départ</TableHead>
                     <TableHead className="text-center">Véhicules</TableHead>
-                    <TableHead>Statut</TableHead>
+                     <TableHead>Statut</TableHead>
+                     <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {conteneurs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         Aucun conteneur dans ce dossier
                       </TableCell>
                     </TableRow>
@@ -222,6 +226,20 @@ export default function DossierDetailPage() {
                             <Badge variant="outline" className={cStatus.className}>
                               {cStatus.label}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedConteneur(conteneur);
+                                setEditConteneurOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4 text-muted-foreground" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       );
@@ -262,6 +280,12 @@ export default function DossierDetailPage() {
         onOpenChange={setAddPaymentOpen}
         preSelectedSupplierId={dossier.supplierId}
         preSelectedDossierId={dossier.id}
+      />
+
+      <EditConteneurDialog
+        open={editConteneurOpen}
+        onOpenChange={setEditConteneurOpen}
+        conteneur={selectedConteneur}
       />
     </DashboardLayout>
   );
