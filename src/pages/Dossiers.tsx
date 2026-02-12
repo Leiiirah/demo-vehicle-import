@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useDossiers } from '@/hooks/useApi';
+import { useDossiers, useDeleteDossier } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,9 +11,12 @@ import { Badge } from '@/components/ui/badge';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { Plus, Search, FolderOpen, Building2, Container, Car, AlertCircle } from 'lucide-react';
+import { Plus, Search, FolderOpen, Building2, Container, Car, AlertCircle, Trash2, MoreVertical } from 'lucide-react';
 import { AddDossierDialog } from '@/components/dossiers/AddDossierDialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
 
 const statusConfig = {
   en_cours: { label: 'En cours', className: 'bg-primary/10 text-primary border-primary/30' },
@@ -23,10 +26,13 @@ const statusConfig = {
 
 export default function DossiersPage() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const { data: dossiers, isLoading, error } = useDossiers();
+  const deleteMutation = useDeleteDossier();
 
   const filteredDossiers = (dossiers || []).filter(
     (dossier) =>
@@ -149,16 +155,17 @@ export default function DossiersPage() {
                         <TableHead className="text-center">Conteneurs</TableHead>
                         <TableHead className="text-center">Véhicules</TableHead>
                         <TableHead>Statut</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {paginatedDossiers.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                            {searchTerm ? `Aucun dossier trouvé pour "${searchTerm}"` : 'Aucun dossier'}
-                          </TableCell>
-                        </TableRow>
-                      ) : (
+                       {paginatedDossiers.length === 0 ? (
+                         <TableRow>
+                           <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                             {searchTerm ? `Aucun dossier trouvé pour "${searchTerm}"` : 'Aucun dossier'}
+                           </TableCell>
+                         </TableRow>
+                       ) : (
                         paginatedDossiers.map((dossier) => {
                           const status = statusConfig[dossier.status as keyof typeof statusConfig] || statusConfig.en_cours;
                           const conteneurCount = dossier.conteneurs?.length || 0;
@@ -184,12 +191,55 @@ export default function DossiersPage() {
                                   {status.label}
                                 </Badge>
                               </TableCell>
-                            </TableRow>
-                          );
-                        })
-                      )}
-                    </TableBody>
-                  </Table>
+                              <TableCell className="text-right">
+                                <AlertDialog open={deleteConfirmId === dossier.id} onOpenChange={(open) => setDeleteConfirmId(open ? dossier.id : null)}>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Supprimer le dossier</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Êtes-vous sûr de vouloir supprimer le dossier "{dossier.reference}"? Cette action est irréversible.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <div className="flex gap-3 justify-end">
+                                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        onClick={() => {
+                                          deleteMutation.mutate(dossier.id, {
+                                            onSuccess: () => {
+                                              toast({
+                                                title: 'Succès',
+                                                description: 'Dossier supprimé avec succès',
+                                              });
+                                              setDeleteConfirmId(null);
+                                            },
+                                            onError: (error: any) => {
+                                              toast({
+                                                title: 'Erreur',
+                                                description: error.message || 'Erreur lors de la suppression',
+                                                variant: 'destructive',
+                                              });
+                                            },
+                                          });
+                                        }}
+                                      >
+                                        Supprimer
+                                      </AlertDialogAction>
+                                    </div>
+                                   </AlertDialogContent>
+                                 </AlertDialog>
+                               </TableCell>
+                             </TableRow>
+                           );
+                         })
+                       )}
+                     </TableBody>
+                   </Table>
                 </div>
                 <TablePagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} startIndex={startIndex} endIndex={endIndex} onPageChange={goToPage} />
               </>
