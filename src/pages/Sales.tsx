@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { usePagination } from '@/hooks/usePagination';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,6 +44,8 @@ const SalesPage = () => {
       return searchMatch && clientMatch;
     });
   }, [soldVehicles, searchTerm, clientFilter]);
+
+  const { paginatedItems: paginatedVehicles, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredVehicles);
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
@@ -167,7 +171,7 @@ const SalesPage = () => {
               </TableHeader>
               <TableBody>
                 {filteredVehicles.length > 0 ? (
-                  filteredVehicles.map((vehicle: any) => {
+                  paginatedVehicles.map((vehicle: any) => {
                     const profit = Number(vehicle.sellingPrice || 0) - Number(vehicle.totalCost || 0);
                     const margin = vehicle.sellingPrice > 0
                       ? ((profit / Number(vehicle.sellingPrice)) * 100).toFixed(1)
@@ -226,6 +230,7 @@ const SalesPage = () => {
                 )}
               </TableBody>
             </Table>
+            <TablePagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} startIndex={startIndex} endIndex={endIndex} onPageChange={goToPage} />
           </CardContent>
         </Card>
       </div>

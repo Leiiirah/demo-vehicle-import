@@ -2,17 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useDossiers } from '@/hooks/useApi';
+import { usePagination } from '@/hooks/usePagination';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { Plus, Search, FolderOpen, Building2, Container, Car, AlertCircle } from 'lucide-react';
 import { AddDossierDialog } from '@/components/dossiers/AddDossierDialog';
@@ -36,6 +33,8 @@ export default function DossiersPage() {
       dossier.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (dossier.supplier?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
+
+  const { paginatedItems: paginatedDossiers, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredDossiers);
 
   if (error) {
     return (
@@ -139,58 +138,61 @@ export default function DossiersPage() {
                 ))}
               </div>
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Référence</TableHead>
-                      <TableHead>Fournisseur</TableHead>
-                      <TableHead>Date Création</TableHead>
-                      <TableHead className="text-center">Conteneurs</TableHead>
-                      <TableHead className="text-center">Véhicules</TableHead>
-                      <TableHead>Statut</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredDossiers.length === 0 ? (
+              <>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          {searchTerm ? `Aucun dossier trouvé pour "${searchTerm}"` : 'Aucun dossier'}
-                        </TableCell>
+                        <TableHead>Référence</TableHead>
+                        <TableHead>Fournisseur</TableHead>
+                        <TableHead>Date Création</TableHead>
+                        <TableHead className="text-center">Conteneurs</TableHead>
+                        <TableHead className="text-center">Véhicules</TableHead>
+                        <TableHead>Statut</TableHead>
                       </TableRow>
-                    ) : (
-                      filteredDossiers.map((dossier) => {
-                        const status = statusConfig[dossier.status as keyof typeof statusConfig] || statusConfig.en_cours;
-                        const conteneurCount = dossier.conteneurs?.length || 0;
-                        const vehicleCount = dossier.conteneurs?.reduce((sum, c) => sum + (c.vehicles?.length || 0), 0) || 0;
-                        return (
-                          <TableRow
-                            key={dossier.id}
-                            className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => navigate(`/dossiers/${dossier.id}`)}
-                          >
-                            <TableCell className="font-medium">{dossier.reference}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Building2 className="h-4 w-4 text-muted-foreground" />
-                                {dossier.supplier?.name || '-'}
-                              </div>
-                            </TableCell>
-                            <TableCell>{new Date(dossier.dateCreation).toLocaleDateString('fr-FR')}</TableCell>
-                            <TableCell className="text-center">{conteneurCount}</TableCell>
-                            <TableCell className="text-center">{vehicleCount}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className={status.className}>
-                                {status.label}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedDossiers.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                            {searchTerm ? `Aucun dossier trouvé pour "${searchTerm}"` : 'Aucun dossier'}
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        paginatedDossiers.map((dossier) => {
+                          const status = statusConfig[dossier.status as keyof typeof statusConfig] || statusConfig.en_cours;
+                          const conteneurCount = dossier.conteneurs?.length || 0;
+                          const vehicleCount = dossier.conteneurs?.reduce((sum, c) => sum + (c.vehicles?.length || 0), 0) || 0;
+                          return (
+                            <TableRow
+                              key={dossier.id}
+                              className="cursor-pointer hover:bg-muted/50"
+                              onClick={() => navigate(`/dossiers/${dossier.id}`)}
+                            >
+                              <TableCell className="font-medium">{dossier.reference}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                                  {dossier.supplier?.name || '-'}
+                                </div>
+                              </TableCell>
+                              <TableCell>{new Date(dossier.dateCreation).toLocaleDateString('fr-FR')}</TableCell>
+                              <TableCell className="text-center">{conteneurCount}</TableCell>
+                              <TableCell className="text-center">{vehicleCount}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className={status.className}>
+                                  {status.label}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                <TablePagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} startIndex={startIndex} endIndex={endIndex} onPageChange={goToPage} />
+              </>
             )}
           </CardContent>
         </Card>

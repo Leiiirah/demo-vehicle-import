@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useSuppliers } from '@/hooks/useApi';
+import { usePagination } from '@/hooks/usePagination';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { api } from '@/services/api';
 import { Building2, MoreVertical, Eye, FileText, AlertCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -79,6 +81,7 @@ const SuppliersPage = () => {
   }
 
   const suppliersList = suppliers || [];
+  const { paginatedItems: paginatedSuppliers, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(suppliersList);
 
   return (
     <DashboardLayout>
@@ -142,8 +145,9 @@ const SuppliersPage = () => {
             Aucun fournisseur trouvé
           </div>
         ) : (
+          <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {suppliersList.map((supplier) => (
+            {paginatedSuppliers.map((supplier) => (
               <div
                 key={supplier.id}
                 onClick={() => navigate(`/suppliers/${supplier.id}`)}
@@ -227,6 +231,8 @@ const SuppliersPage = () => {
               </div>
             ))}
           </div>
+          <TablePagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} startIndex={startIndex} endIndex={endIndex} onPageChange={goToPage} />
+          </>
         )}
       </div>
 
