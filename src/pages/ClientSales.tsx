@@ -30,15 +30,24 @@ import {
   Car,
   CheckCircle,
   Clock,
-  Eye
+  Eye,
+  Trash2,
 } from 'lucide-react';
-import { useClients, useVehicles } from '@/hooks/useApi';
+import { useClients, useVehicles, useDeleteClient } from '@/hooks/useApi';
 import { AssignVehicleDialog } from '@/components/clients/AssignVehicleDialog';
 import { NewSaleDialog } from '@/components/clients/NewSaleDialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const ClientSalesPage = () => {
   const navigate = useNavigate();
   const { data: clients = [], isLoading: clientsLoading } = useClients();
+  const deleteClient = useDeleteClient();
+  const { toast } = useToast();
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -330,6 +339,30 @@ const ClientSalesPage = () => {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Supprimer ce client ?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Cette action est irréversible. Le client {client.nom} {client.prenom} sera définitivement supprimé.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteClient.mutate(client.id, {
+                                  onSuccess: () => toast({ title: 'Client supprimé' }),
+                                  onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+                                })}>
+                                  Supprimer
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </TableCell>
                     </TableRow>

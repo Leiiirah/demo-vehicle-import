@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useClients } from '@/hooks/useApi';
+import { useClients, useDeleteClient } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
-import { MoreVertical, Eye, Phone, Search, ShoppingCart, Check, X, Percent, AlertCircle } from 'lucide-react';
+import { MoreVertical, Eye, Phone, Search, ShoppingCart, Check, X, Percent, AlertCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,6 +16,12 @@ import {
 import { cn } from '@/lib/utils';
 import { AddClientDialog } from '@/components/clients/AddClientDialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const ClientsPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -23,6 +29,8 @@ const ClientsPage = () => {
   const navigate = useNavigate();
 
   const { data: clients, isLoading, error } = useClients();
+  const deleteClient = useDeleteClient();
+  const { toast } = useToast();
 
   const filteredClients = (clients || []).filter(c => 
     c.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -224,10 +232,35 @@ const ClientsPage = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}`)}>
+                            <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}`)}>
                                 <Eye className="h-4 w-4 mr-2" />
                                 Voir le détail
                               </DropdownMenuItem>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Supprimer
+                                  </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Supprimer ce client ?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Cette action est irréversible. Le client {client.nom} {client.prenom} sera définitivement supprimé.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => deleteClient.mutate(client.id, {
+                                      onSuccess: () => toast({ title: 'Client supprimé' }),
+                                      onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+                                    })}>
+                                      Supprimer
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </td>
