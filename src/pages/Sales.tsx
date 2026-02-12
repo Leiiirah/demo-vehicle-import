@@ -1,46 +1,53 @@
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { TrendingUp, TrendingDown, DollarSign, Search, Download, Loader2, Car } from 'lucide-react';
 import { useVehicles } from '@/hooks/useApi';
 
 const SalesPage = () => {
+  const navigate = useNavigate();
   const { data: vehicles = [], isLoading } = useVehicles();
-  const soldVehicles = vehicles.filter((v: any) => v.status === 'sold');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [clientFilter, setClientFilter] = useState('all');
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
-    if (currency === 'USD') {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-      }).format(amount);
-    }
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
+  const soldVehicles = useMemo(() => (vehicles as any[]).filter((v) => v.clientId), [vehicles]);
 
-  const totalSales = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.sellingPrice || 0), 0);
-  const totalCost = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0);
+  const uniqueClients = useMemo(() => {
+    const map = new Map<string, { id: string; name: string }>();
+    soldVehicles.forEach((v: any) => {
+      if (v.client && !map.has(v.clientId)) {
+        map.set(v.clientId, { id: v.clientId, name: `${v.client.nom} ${v.client.prenom}` });
+      }
+    });
+    return Array.from(map.values());
+  }, [soldVehicles]);
+
+  const filteredVehicles = useMemo(() => {
+    return soldVehicles.filter((v: any) => {
+      const term = searchTerm.toLowerCase();
+      const searchMatch = !term ||
+        `${v.brand} ${v.model} ${v.vin}`.toLowerCase().includes(term) ||
+        (v.client && `${v.client.nom} ${v.client.prenom}`.toLowerCase().includes(term));
+      const clientMatch = clientFilter === 'all' || v.clientId === clientFilter;
+      return searchMatch && clientMatch;
+    });
+  }, [soldVehicles, searchTerm, clientFilter]);
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
+
+  const totalSales = filteredVehicles.reduce((s: number, v: any) => s + Number(v.sellingPrice || 0), 0);
+  const totalCost = filteredVehicles.reduce((s: number, v: any) => s + Number(v.totalCost || 0), 0);
   const totalProfit = totalSales - totalCost;
   const averageMargin = totalSales > 0 ? ((totalProfit / totalSales) * 100).toFixed(1) : '0';
 
@@ -57,13 +64,10 @@ const SalesPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* En-tête */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Ventes & Marges</h1>
-            <p className="text-muted-foreground">
-              Suivi des ventes et analyse des marges bénéficiaires
-            </p>
+            <p className="text-muted-foreground">Suivi des ventes et analyse des marges bénéficiaires</p>
           </div>
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
@@ -71,65 +75,46 @@ const SalesPage = () => {
           </Button>
         </div>
 
-        {/* KPIs Ventes */}
+        {/* KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total des ventes
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total des ventes</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(totalSales)}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {soldVehicles.length} véhicules vendus
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">{filteredVehicles.length} véhicules vendus</p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Coût total
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Coût total</CardTitle>
               <TrendingDown className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(totalCost)}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Investissement total
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Investissement total</p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Profit total
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-success" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Profit total</CardTitle>
+              <TrendingUp className={`h-4 w-4 ${totalProfit >= 0 ? 'text-success' : 'text-destructive'}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">{formatCurrency(totalProfit)}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Bénéfice net
-              </p>
+              <div className={`text-2xl font-bold ${totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{formatCurrency(totalProfit)}</div>
+              <p className="text-xs text-muted-foreground mt-1">Bénéfice net</p>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Marge moyenne
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Marge moyenne</CardTitle>
               <TrendingUp className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">{averageMargin}%</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Sur toutes les ventes
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Sur toutes les ventes</p>
             </CardContent>
           </Card>
         </div>
@@ -140,32 +125,29 @@ const SalesPage = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Rechercher une vente..." className="pl-9" />
+                <Input
+                  placeholder="Rechercher par marque, modèle, VIN ou client..."
+                  className="pl-9"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-              <Select defaultValue="all">
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Période" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toutes les périodes</SelectItem>
-                  <SelectItem value="month">Ce mois</SelectItem>
-                  <SelectItem value="quarter">Ce trimestre</SelectItem>
-                  <SelectItem value="year">Cette année</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select defaultValue="all">
-                <SelectTrigger className="w-full sm:w-[180px]">
+              <Select value={clientFilter} onValueChange={setClientFilter}>
+                <SelectTrigger className="w-full sm:w-[220px]">
                   <SelectValue placeholder="Client" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les clients</SelectItem>
+                  {uniqueClients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </CardContent>
         </Card>
 
-        {/* Tableau des ventes */}
+        {/* Tableau */}
         <Card>
           <CardHeader>
             <CardTitle>Historique des ventes</CardTitle>
@@ -180,17 +162,22 @@ const SalesPage = () => {
                   <TableHead className="text-right">Prix de vente</TableHead>
                   <TableHead className="text-right">Profit</TableHead>
                   <TableHead className="text-right">Marge</TableHead>
+                  <TableHead>Date de vente</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {soldVehicles.length > 0 ? (
-                  soldVehicles.map((vehicle: any) => {
+                {filteredVehicles.length > 0 ? (
+                  filteredVehicles.map((vehicle: any) => {
                     const profit = Number(vehicle.sellingPrice || 0) - Number(vehicle.totalCost || 0);
-                    const margin = vehicle.sellingPrice > 0 
-                      ? ((profit / Number(vehicle.sellingPrice)) * 100).toFixed(1) 
+                    const margin = vehicle.sellingPrice > 0
+                      ? ((profit / Number(vehicle.sellingPrice)) * 100).toFixed(1)
                       : '0';
                     return (
-                      <TableRow key={vehicle.id}>
+                      <TableRow
+                        key={vehicle.id}
+                        className="cursor-pointer"
+                        onClick={() => navigate(`/vehicles/${vehicle.id}`)}
+                      >
                         <TableCell>
                           <div className="flex items-center gap-3">
                             {vehicle.photoUrl ? (
@@ -201,41 +188,38 @@ const SalesPage = () => {
                               </div>
                             )}
                             <div>
-                              <div className="font-medium">
-                                {vehicle.brand} {vehicle.model}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {vehicle.year} • {vehicle.vin}
-                              </div>
+                              <div className="font-medium">{vehicle.brand} {vehicle.model}</div>
+                              <div className="text-sm text-muted-foreground">{vehicle.year} • {vehicle.vin}</div>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>{vehicle.client ? `${vehicle.client.nom} ${vehicle.client.prenom}` : '-'}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(Number(vehicle.totalCost || 0))}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(Number(vehicle.sellingPrice || 0))}</TableCell>
                         <TableCell className="text-right">
-                          {formatCurrency(Number(vehicle.totalCost || 0))}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(Number(vehicle.sellingPrice || 0))}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <span className="text-success font-medium">
+                          <span className={`font-medium ${profit >= 0 ? 'text-success' : 'text-destructive'}`}>
                             {formatCurrency(profit)}
                           </span>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Badge 
+                          <Badge
                             variant={Number(margin) >= 10 ? 'default' : 'secondary'}
                             className={Number(margin) >= 10 ? 'bg-success' : ''}
                           >
                             {margin}%
                           </Badge>
                         </TableCell>
+                        <TableCell>
+                          {vehicle.soldDate
+                            ? new Date(vehicle.soldDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+                            : '-'}
+                        </TableCell>
                       </TableRow>
                     );
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       Aucune vente enregistrée
                     </TableCell>
                   </TableRow>
