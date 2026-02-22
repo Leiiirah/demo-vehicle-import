@@ -4,7 +4,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { usePasseports, useDeletePasseport } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
-import { MoreVertical, Eye, Phone, Search, BookUser, AlertCircle, Trash2 } from 'lucide-react';
+import { MoreVertical, Eye, Phone, Search, BookUser, AlertCircle, Trash2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -162,6 +162,25 @@ const PasseportsPage = () => {
                             <DropdownMenuItem onClick={() => navigate(`/passeports/${passeport.id}`)}>
                               <Eye className="h-4 w-4 mr-2" />
                               Voir le détail
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              const content = `
+                                <html><head><title>Passeport - ${passeport.nom} ${passeport.prenom}</title>
+                                <style>body{font-family:Arial,sans-serif;padding:40px;color:#333}h1{color:#1a1a2e;border-bottom:2px solid #1a1a2e;padding-bottom:10px}.row{padding:8px 0;border-bottom:1px solid #eee}.label{font-weight:bold;color:#555;display:inline-block;width:220px}.value{display:inline-block}.header{text-align:center;margin-bottom:30px}.header p{color:#666}</style></head><body>
+                                <div class="header"><h1>Fiche Passeport</h1><p>Date d'export : ${new Date().toLocaleDateString('fr-FR')}</p></div>
+                                <div class="row"><span class="label">Nom :</span><span class="value">${passeport.nom}</span></div>
+                                <div class="row"><span class="label">Prénom :</span><span class="value">${passeport.prenom}</span></div>
+                                <div class="row"><span class="label">Téléphone :</span><span class="value">${passeport.telephone}</span></div>
+                                <div class="row"><span class="label">Adresse :</span><span class="value">${passeport.adresse || '-'}</span></div>
+                                <div class="row"><span class="label">Numéro de passeport :</span><span class="value">${passeport.numeroPasseport}</span></div>
+                                <div class="row"><span class="label">NIN :</span><span class="value">${passeport.nin || '-'}</span></div>
+                                </body></html>`;
+                              const w = window.open('', '_blank');
+                              if (w) { w.document.write(content); w.document.close(); w.print(); }
+                            }}>
+                              <Download className="h-4 w-4 mr-2" />
+                              Exporter PDF
                             </DropdownMenuItem>
                              <AlertDialog>
                                <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>
