@@ -315,7 +315,7 @@ const VehiclesPage = () => {
                           {formatCurrency(Number(vehicle.purchasePrice || 0), 'USD')}
                         </td>
                         <td className="text-foreground">
-                          {formatCurrency(Number(vehicle.transportCost || 0), 'USD')}
+                          {formatCurrency(Number(vehicle.transportCost || 0))}
                         </td>
                         <td className={`font-medium ${isVehiclePaid(vehicle) ? 'text-success' : 'text-foreground'}`}>
                           {formatCurrency(vehicle.totalCost)}
