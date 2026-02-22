@@ -19,6 +19,11 @@ export enum VehicleStatus {
   SOLD = 'sold',
 }
 
+export enum VehiclePaymentStatus {
+  VERSEMENT = 'versement',
+  SOLDE = 'solde',
+}
+
 @Entity('vehicles')
 export class Vehicle {
   @PrimaryGeneratedColumn('uuid')
@@ -103,6 +108,16 @@ export class Vehicle {
 
   @Column({ type: 'date', nullable: true })
   soldDate: Date;
+
+  @Column({
+    type: 'enum',
+    enum: VehiclePaymentStatus,
+    nullable: true,
+  })
+  paymentStatus: VehiclePaymentStatus | null;
+
+  @Column({ type: 'decimal', precision: 14, scale: 2, default: 0 })
+  amountPaid: number;
 
   @CreateDateColumn()
   createdAt: Date;

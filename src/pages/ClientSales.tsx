@@ -6,34 +6,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { 
-  Users, 
-  Search, 
-  Download, 
-  Loader2, 
-  TrendingUp, 
-  DollarSign,
-  Car,
-  CheckCircle,
-  Clock,
-  Eye,
-  Trash2,
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+  Users, Search, Download, Loader2, TrendingUp, DollarSign,
+  Car, CheckCircle, Clock, Eye, Trash2,
 } from 'lucide-react';
-import { useClients, useVehicles, useDeleteClient } from '@/hooks/useApi';
+import { useClients, useVehicles, useDeleteClient, useUpdateVehicle } from '@/hooks/useApi';
+import { useCreateCaisseEntry } from '@/hooks/useCaisse';
 import { AssignVehicleDialog } from '@/components/clients/AssignVehicleDialog';
 import { NewSaleDialog } from '@/components/clients/NewSaleDialog';
 import {
@@ -47,6 +34,8 @@ const ClientSalesPage = () => {
   const navigate = useNavigate();
   const { data: clients = [], isLoading: clientsLoading } = useClients();
   const deleteClient = useDeleteClient();
+  const updateVehicle = useUpdateVehicle();
+  const createCaisseEntry = useCreateCaisseEntry();
   const { toast } = useToast();
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles();
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,64 +44,132 @@ const ClientSalesPage = () => {
   const [newSaleDialogOpen, setNewSaleDialogOpen] = useState(false);
   const [selectedClientForAssign, setSelectedClientForAssign] = useState<any>(null);
 
+  // Versement dialog state
+  const [versementDialogOpen, setVersementDialogOpen] = useState(false);
+  const [versementVehicle, setVersementVehicle] = useState<any>(null);
+  const [versementAmount, setVersementAmount] = useState('');
+
   const isLoading = clientsLoading || vehiclesLoading;
 
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
     if (currency === 'USD') {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-      }).format(amount);
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(amount);
     }
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
+    return new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
   };
 
-  // Enrichir les clients avec leurs statistiques de vente
-  const clientsWithStats = clients.map((client: any) => {
-    const clientVehicles = vehicles.filter((v: any) => v.clientId === client.id);
-    const soldVehicles = clientVehicles.filter((v: any) => v.status === 'sold');
-    const pendingVehicles = clientVehicles.filter((v: any) => v.status !== 'sold');
-    
-    const totalSales = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.sellingPrice || 0), 0);
-    const totalCost = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0);
-    const totalProfit = totalSales - totalCost;
-    
-    return {
-      ...client,
-      vehicleCount: clientVehicles.length,
-      soldCount: soldVehicles.length,
-      pendingCount: pendingVehicles.length,
-      totalSales,
-      totalProfit,
-      isPaid: client.paye,
-    };
-  });
+  // Get all vehicles that have a client (= sales)
+  const soldVehicles = (vehicles as any[]).filter((v) => v.clientId);
 
   // Filtrage
-  const filteredClients = clientsWithStats.filter((client: any) => {
-    const matchesSearch = 
-      `${client.nom} ${client.prenom}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.telephone?.includes(searchTerm) ||
-      client.company?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = 
+  const filteredVehicles = soldVehicles.filter((v: any) => {
+    const clientName = v.client ? `${v.client.nom} ${v.client.prenom}` : '';
+    const term = searchTerm.toLowerCase();
+    const matchesSearch =
+      !term ||
+      `${v.brand} ${v.model} ${v.vin}`.toLowerCase().includes(term) ||
+      clientName.toLowerCase().includes(term);
+
+    const matchesStatus =
       statusFilter === 'all' ||
-      (statusFilter === 'paid' && client.isPaid) ||
-      (statusFilter === 'pending' && !client.isPaid && client.vehicleCount > 0) ||
-      (statusFilter === 'no_sales' && client.vehicleCount === 0);
-    
+      (statusFilter === 'solde' && v.paymentStatus === 'solde') ||
+      (statusFilter === 'versement' && v.paymentStatus === 'versement') ||
+      (statusFilter === 'pending' && !v.paymentStatus);
+
     return matchesSearch && matchesStatus;
   });
 
-  // KPIs globaux
-  const totalClientsWithSales = clientsWithStats.filter((c: any) => c.vehicleCount > 0).length;
-  const totalRevenue = clientsWithStats.reduce((sum: number, c: any) => sum + c.totalSales, 0);
-  const totalProfit = clientsWithStats.reduce((sum: number, c: any) => sum + c.totalProfit, 0);
-  const paidClients = clientsWithStats.filter((c: any) => c.isPaid && c.vehicleCount > 0).length;
+  // KPIs
+  const totalRevenue = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.sellingPrice || 0), 0);
+  const totalCost = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0);
+  const totalProfit = totalRevenue - totalCost;
+  const soldeCount = soldVehicles.filter((v: any) => v.paymentStatus === 'solde').length;
+  const versementCount = soldVehicles.filter((v: any) => v.paymentStatus === 'versement').length;
+
+  const handleStatusChange = (vehicle: any, newStatus: string) => {
+    if (newStatus === 'versement') {
+      setVersementVehicle(vehicle);
+      setVersementAmount('');
+      setVersementDialogOpen(true);
+    } else if (newStatus === 'solde') {
+      // Mark as soldé: set status to sold, paymentStatus to solde, amountPaid to sellingPrice
+      const sellingPrice = Number(vehicle.sellingPrice || 0);
+      const currentPaid = Number(vehicle.amountPaid || 0);
+      const remaining = sellingPrice - currentPaid;
+
+      updateVehicle.mutate(
+        {
+          id: vehicle.id,
+          data: {
+            status: 'sold',
+            paymentStatus: 'solde',
+            amountPaid: sellingPrice,
+            soldDate: vehicle.soldDate || new Date().toISOString().split('T')[0],
+          },
+        },
+        {
+          onSuccess: () => {
+            // Create caisse entry for the remaining amount (or full if no prior versements)
+            if (remaining > 0) {
+              createCaisseEntry.mutate({
+                type: 'entree',
+                montant: remaining,
+                date: new Date().toISOString().split('T')[0],
+                description: `Solde vente ${vehicle.brand} ${vehicle.model} ${vehicle.year} — ${vehicle.client?.nom || ''} ${vehicle.client?.prenom || ''}`,
+                vehicleId: vehicle.id,
+              });
+            }
+            toast({ title: 'Véhicule marqué comme soldé' });
+          },
+          onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+        },
+      );
+    }
+  };
+
+  const handleVersementSubmit = () => {
+    if (!versementVehicle || !versementAmount) return;
+    const amount = Number(versementAmount);
+    if (amount <= 0) return;
+
+    const currentPaid = Number(versementVehicle.amountPaid || 0);
+    const newAmountPaid = currentPaid + amount;
+    const sellingPrice = Number(versementVehicle.sellingPrice || 0);
+
+    // Check if this versement completes the payment
+    const isFull = newAmountPaid >= sellingPrice;
+
+    updateVehicle.mutate(
+      {
+        id: versementVehicle.id,
+        data: {
+          paymentStatus: isFull ? 'solde' : 'versement',
+          amountPaid: isFull ? sellingPrice : newAmountPaid,
+          ...(isFull ? {
+            status: 'sold',
+            soldDate: versementVehicle.soldDate || new Date().toISOString().split('T')[0],
+          } : {}),
+        },
+      },
+      {
+        onSuccess: () => {
+          // Create caisse entry for the versement
+          createCaisseEntry.mutate({
+            type: 'entree',
+            montant: amount,
+            date: new Date().toISOString().split('T')[0],
+            description: `Versement ${versementVehicle.brand} ${versementVehicle.model} ${versementVehicle.year} — ${versementVehicle.client?.nom || ''} ${versementVehicle.client?.prenom || ''}`.trim(),
+            vehicleId: versementVehicle.id,
+          });
+          toast({ title: isFull ? 'Paiement complet — véhicule soldé' : 'Versement enregistré' });
+          setVersementDialogOpen(false);
+          setVersementVehicle(null);
+          setVersementAmount('');
+        },
+        onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+      },
+    );
+  };
 
   if (isLoading) {
     return (
@@ -132,11 +189,11 @@ const ClientSalesPage = () => {
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Ventes Clients</h1>
             <p className="text-muted-foreground">
-              Suivi des ventes et encaissements par client
+              Suivi des ventes et encaissements par véhicule
             </p>
           </div>
           <div className="flex gap-2">
-            <Button 
+            <Button
               className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
               onClick={() => setNewSaleDialogOpen(true)}
             >
@@ -154,61 +211,47 @@ const ClientSalesPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Clients actifs
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalClientsWithSales}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                sur {clients.length} clients
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Chiffre d'affaires
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total des ventes</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Total des ventes
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">{soldVehicles.length} véhicules</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Bénéfice total
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Bénéfice total</CardTitle>
               <TrendingUp className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">{formatCurrency(totalProfit)}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Marge nette
-              </p>
+              <div className={`text-2xl font-bold ${totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                {formatCurrency(totalProfit)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Marge nette</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Clients soldés
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Soldés</CardTitle>
               <CheckCircle className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{paidClients}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Paiements complets
-              </p>
+              <div className="text-2xl font-bold">{soldeCount}</div>
+              <p className="text-xs text-muted-foreground mt-1">Paiements complets</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">En versement</CardTitle>
+              <Clock className="h-4 w-4 text-warning" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{versementCount}</div>
+              <p className="text-xs text-muted-foreground mt-1">Paiements partiels</p>
             </CardContent>
           </Card>
         </div>
@@ -219,8 +262,8 @@ const ClientSalesPage = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Rechercher un client..." 
+                <Input
+                  placeholder="Rechercher par véhicule ou client..."
                   className="pl-9"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -231,149 +274,134 @@ const ClientSalesPage = () => {
                   <SelectValue placeholder="Statut" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous les clients</SelectItem>
-                  <SelectItem value="paid">Soldés</SelectItem>
-                  <SelectItem value="pending">En cours</SelectItem>
-                  <SelectItem value="no_sales">Sans ventes</SelectItem>
+                  <SelectItem value="all">Tous</SelectItem>
+                  <SelectItem value="solde">Soldés</SelectItem>
+                  <SelectItem value="versement">Versement</SelectItem>
+                  <SelectItem value="pending">Non défini</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </CardContent>
         </Card>
 
-        {/* Tableau des clients */}
+        {/* Tableau des ventes */}
         <Card>
           <CardHeader>
-            <CardTitle>Liste des clients</CardTitle>
+            <CardTitle>Liste des ventes</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Véhicule</TableHead>
                   <TableHead>Client</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead className="text-center">Véhicules</TableHead>
-                  <TableHead className="text-right">Chiffre d'affaires</TableHead>
-                  <TableHead className="text-right">Bénéfice</TableHead>
+                  <TableHead className="text-right">Prix de vente</TableHead>
+                  <TableHead className="text-right">Montant payé</TableHead>
+                  <TableHead className="text-right">Montant restant</TableHead>
                   <TableHead className="text-center">Statut</TableHead>
                   <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredClients.length > 0 ? (
-                  filteredClients.map((client: any) => (
-                    <TableRow key={client.id}>
-                      <TableCell>
-                        <div className="font-medium">
-                          {client.nom} {client.prenom}
-                        </div>
-                        {client.company && (
-                          <div className="text-sm text-muted-foreground">
-                            {client.company}
+                {filteredVehicles.length > 0 ? (
+                  filteredVehicles.map((vehicle: any) => {
+                    const sellingPrice = Number(vehicle.sellingPrice || 0);
+                    const amountPaid = Number(vehicle.amountPaid || 0);
+                    const remaining = Math.max(0, sellingPrice - amountPaid);
+                    const isVersement = vehicle.paymentStatus === 'versement';
+
+                    return (
+                      <TableRow
+                        key={vehicle.id}
+                        className={isVersement ? 'bg-yellow-50 dark:bg-yellow-950/30 hover:bg-yellow-100 dark:hover:bg-yellow-950/50' : ''}
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            {vehicle.photoUrl ? (
+                              <img src={vehicle.photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-10 w-10 rounded-lg object-cover" />
+                            ) : (
+                              <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
+                                <Car className="h-5 w-5 text-secondary-foreground" />
+                              </div>
+                            )}
+                            <div>
+                              <div className="font-medium">{vehicle.brand} {vehicle.model} ({vehicle.year})</div>
+                              <div className="text-sm text-muted-foreground">
+                                {vehicle.vin}
+                                {vehicle.color && <span> • {vehicle.color}</span>}
+                              </div>
+                            </div>
                           </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">{client.telephone}</div>
-                        {client.email && (
-                          <div className="text-sm text-muted-foreground">{client.email}</div>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <Car className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{client.vehicleCount}</span>
-                          {client.soldCount > 0 && (
-                            <Badge variant="secondary" className="text-xs">
-                              {client.soldCount} vendus
-                            </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {vehicle.client ? (
+                            <div>
+                              <div className="font-medium">{vehicle.client.nom} {vehicle.client.prenom}</div>
+                              <div className="text-sm text-muted-foreground">{vehicle.client.telephone}</div>
+                            </div>
+                          ) : '-'}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(sellingPrice)}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(amountPaid)}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {remaining > 0 ? (
+                            <span className="text-destructive">{formatCurrency(remaining)}</span>
+                          ) : (
+                            <span className="text-success">0 DZD</span>
                           )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {client.totalSales > 0 ? formatCurrency(client.totalSales) : '-'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {client.totalProfit > 0 ? (
-                          <span className="text-success font-medium">
-                            {formatCurrency(client.totalProfit)}
-                          </span>
-                        ) : client.totalProfit < 0 ? (
-                          <span className="text-destructive font-medium">
-                            {formatCurrency(client.totalProfit)}
-                          </span>
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {client.vehicleCount === 0 ? (
-                          <Badge variant="outline">Sans ventes</Badge>
-                        ) : client.isPaid ? (
-                          <Badge className="bg-success">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Soldé
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">
-                            <Clock className="h-3 w-3 mr-1" />
-                            En cours
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedClientForAssign(client);
-                              setAssignDialogOpen(true);
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Select
+                            value={vehicle.paymentStatus || 'pending'}
+                            onValueChange={(val) => {
+                              if (val === 'pending') return;
+                              handleStatusChange(vehicle, val);
                             }}
-                            title="Affecter un véhicule"
                           >
-                            <Car className="h-4 w-4" />
-                          </Button>
+                            <SelectTrigger
+                              className="h-8 w-[130px]"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <SelectValue>
+                                {vehicle.paymentStatus === 'solde' ? (
+                                  <Badge className="bg-success text-success-foreground">
+                                    <CheckCircle className="h-3 w-3 mr-1" />Soldé
+                                  </Badge>
+                                ) : vehicle.paymentStatus === 'versement' ? (
+                                  <Badge variant="outline" className="border-yellow-500 text-yellow-700 dark:text-yellow-400">
+                                    <Clock className="h-3 w-3 mr-1" />Versement
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="secondary">Non défini</Badge>
+                                )}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="solde">Soldé</SelectItem>
+                              <SelectItem value="versement">Versement</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="text-center">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => navigate(`/clients/${client.id}`)}
+                            onClick={() => navigate(`/vehicles/${vehicle.id}`)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Supprimer ce client ?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Cette action est irréversible. Le client {client.nom} {client.prenom} sera définitivement supprimé.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                <AlertDialogAction onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteClient.mutate(client.id, {
-                                    onSuccess: () => toast({ title: 'Client supprimé' }),
-                                    onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
-                                  });
-                                }}>
-                                  Supprimer
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 ) : (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      Aucun client trouvé
+                      Aucune vente enregistrée
                     </TableCell>
                   </TableRow>
                 )}
@@ -383,19 +411,62 @@ const ClientSalesPage = () => {
         </Card>
       </div>
 
-      {selectedClientForAssign && (
-        <AssignVehicleDialog
-          open={assignDialogOpen}
-          onOpenChange={setAssignDialogOpen}
-          clientId={selectedClientForAssign.id}
-          clientName={`${selectedClientForAssign.nom} ${selectedClientForAssign.prenom}`}
-        />
-      )}
-
       <NewSaleDialog
         open={newSaleDialogOpen}
         onOpenChange={setNewSaleDialogOpen}
       />
+
+      {/* Versement Dialog */}
+      <Dialog open={versementDialogOpen} onOpenChange={setVersementDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enregistrer un versement</DialogTitle>
+          </DialogHeader>
+          {versementVehicle && (
+            <div className="space-y-4">
+              <div className="p-3 rounded-lg border border-border bg-muted/30">
+                <div className="font-medium text-sm">
+                  {versementVehicle.brand} {versementVehicle.model} ({versementVehicle.year})
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Client : {versementVehicle.client?.nom} {versementVehicle.client?.prenom}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Prix de vente : {formatCurrency(Number(versementVehicle.sellingPrice || 0))}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Déjà payé : {formatCurrency(Number(versementVehicle.amountPaid || 0))}
+                </div>
+                <div className="text-xs font-medium text-destructive">
+                  Restant : {formatCurrency(Math.max(0, Number(versementVehicle.sellingPrice || 0) - Number(versementVehicle.amountPaid || 0)))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="versementAmount">Montant du versement (DZD)</Label>
+                <Input
+                  id="versementAmount"
+                  type="number"
+                  placeholder="0"
+                  value={versementAmount}
+                  onChange={(e) => setVersementAmount(e.target.value)}
+                  min={0}
+                  max={Number(versementVehicle.sellingPrice || 0) - Number(versementVehicle.amountPaid || 0)}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVersementDialogOpen(false)}>Annuler</Button>
+            <Button
+              onClick={handleVersementSubmit}
+              disabled={!versementAmount || Number(versementAmount) <= 0 || updateVehicle.isPending}
+            >
+              {updateVehicle.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Enregistrer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
