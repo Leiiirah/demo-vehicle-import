@@ -14,13 +14,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Building2, Loader2 } from 'lucide-react';
 
 interface AddSupplierDialogProps {
@@ -33,7 +26,6 @@ export const AddSupplierDialog = ({ open, onOpenChange }: AddSupplierDialogProps
   const queryClient = useQueryClient();
 
   const [companyName, setCompanyName] = useState('');
-  const [specialization, setSpecialization] = useState('');
 
   const createMutation = useMutation({
     mutationFn: (data: CreateSupplierData) => api.createSupplier(data),
@@ -57,7 +49,6 @@ export const AddSupplierDialog = ({ open, onOpenChange }: AddSupplierDialogProps
 
   const resetForm = () => {
     setCompanyName('');
-    setSpecialization('');
   };
 
   const handleSubmit = () => {
@@ -72,7 +63,7 @@ export const AddSupplierDialog = ({ open, onOpenChange }: AddSupplierDialogProps
 
     createMutation.mutate({
       name: companyName.trim(),
-      location: specialization || 'Non spécifié',
+      location: 'Non spécifié',
     });
   };
 
@@ -106,24 +97,6 @@ export const AddSupplierDialog = ({ open, onOpenChange }: AddSupplierDialogProps
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="specialization">Spécialisation</Label>
-              <Select value={specialization} onValueChange={setSpecialization}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Type de véhicules" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Berlines">Berlines</SelectItem>
-                  <SelectItem value="SUV / Crossovers">SUV / Crossovers</SelectItem>
-                  <SelectItem value="Camions / Utilitaires">Camions / Utilitaires</SelectItem>
-                  <SelectItem value="Bus / Minibus">Bus / Minibus</SelectItem>
-                  <SelectItem value="Véhicules électriques">Véhicules électriques</SelectItem>
-                  <SelectItem value="Pièces détachées">Pièces détachées</SelectItem>
-                  <SelectItem value="Mixte">Mixte</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
         </ScrollableDialogBody>
