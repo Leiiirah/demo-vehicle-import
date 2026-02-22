@@ -12,8 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ShoppingCart, Percent, Loader2 } from 'lucide-react';
+import { ShoppingCart, Loader2 } from 'lucide-react';
 import { api, type CreateClientData } from '@/services/api';
 import { toast } from '@/hooks/use-toast';
 
@@ -25,8 +24,7 @@ interface AddClientDialogProps {
 export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) => {
   const [nom, setNom] = useState('');
   const [prenom, setPrenom] = useState('');
-  const [pourcentage, setPourcentage] = useState('5');
-  const [paye, setPaye] = useState(false);
+  const [telephone, setTelephone] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -44,16 +42,11 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
   });
 
   const handleSubmit = () => {
-    if (!nom || !prenom) return;
+    if (!nom || !prenom || !telephone) return;
     createMutation.mutate({
       nom,
       prenom,
-      telephone: '',
-      pourcentageBenefice: Number(pourcentage),
-      prixVente: 0,
-      coutRevient: 0,
-      detteBenefice: 0,
-      paye,
+      telephone,
     });
   };
 
@@ -62,8 +55,7 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
   const resetForm = () => {
     setNom('');
     setPrenom('');
-    setPourcentage('5');
-    setPaye(false);
+    setTelephone('');
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -88,7 +80,6 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
 
         <ScrollableDialogBody>
           <div className="space-y-4">
-            {/* Nom et Prénom */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="nom">Nom *</Label>
@@ -100,47 +91,9 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
               </div>
             </div>
 
-            {/* Séparateur - Calcul du bénéfice */}
-            <div className="border-t border-border pt-4">
-              <h3 className="font-medium text-sm mb-3 flex items-center gap-2">
-                <Percent className="h-4 w-4 text-primary" />
-                Calcul du bénéfice
-              </h3>
-              
-              {/* Pourcentage */}
-              <div className="space-y-2">
-                <Label htmlFor="pourcentage">Pourcentage sur bénéfice (%)</Label>
-                <div className="relative">
-                  <Input 
-                    id="pourcentage" 
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={pourcentage}
-                    onChange={(e) => setPourcentage(e.target.value)}
-                    placeholder="5"
-                    className="pr-8"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    %
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Le bénéfice et la dette seront calculés automatiquement en fonction des véhicules assignés.
-                </p>
-              </div>
-            </div>
-
-            {/* Checkbox Payé */}
-            <div className="flex items-center space-x-2 pt-2">
-              <Checkbox 
-                id="paye" 
-                checked={paye}
-                onCheckedChange={(checked) => setPaye(checked === true)}
-              />
-              <Label htmlFor="paye" className="text-sm font-normal cursor-pointer">
-                Marquer la dette comme payée
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="telephone">Téléphone *</Label>
+              <Input id="telephone" placeholder="Ex: 0555 12 34 56" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
             </div>
           </div>
         </ScrollableDialogBody>
@@ -152,7 +105,7 @@ export const AddClientDialog = ({ open, onOpenChange }: AddClientDialogProps) =>
           <Button 
             className="bg-success text-success-foreground hover:bg-success/90"
             onClick={handleSubmit}
-            disabled={isPending || !nom || !prenom}
+            disabled={isPending || !nom || !prenom || !telephone}
           >
             {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Enregistrer le client

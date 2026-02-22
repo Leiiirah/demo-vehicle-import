@@ -4,7 +4,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useClients, useDeleteClient } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
-import { MoreVertical, Eye, Phone, Search, ShoppingCart, Check, X, Percent, AlertCircle, Trash2 } from 'lucide-react';
+import { MoreVertical, Eye, Phone, Search, ShoppingCart, AlertCircle, Trash2, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,7 +13,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
 import { AddClientDialog } from '@/components/clients/AddClientDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -47,9 +46,8 @@ const ClientsPage = () => {
     }).format(amount) + ' DZD';
   };
 
-  const totalDettes = (clients || []).reduce((sum, c) => sum + (c.detteBenefice || 0), 0);
-  const totalPaye = (clients || []).filter(c => c.paye).reduce((sum, c) => sum + (c.detteBenefice || 0), 0);
-  const totalNonPaye = (clients || []).filter(c => !c.paye).reduce((sum, c) => sum + (c.detteBenefice || 0), 0);
+  const totalVehicles = (clients || []).reduce((sum, c) => sum + (c.vehicles?.length || 0), 0);
+  const totalPrixVente = (clients || []).reduce((sum, c) => sum + (c.prixVente || 0), 0);
 
   if (error) {
     return (
@@ -95,10 +93,10 @@ const ClientsPage = () => {
         </div>
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {isLoading ? (
             <>
-              {[...Array(4)].map((_, i) => (
+              {[...Array(3)].map((_, i) => (
                 <Skeleton key={i} className="h-24" />
               ))}
             </>
@@ -109,22 +107,12 @@ const ClientsPage = () => {
                 <p className="kpi-value">{(clients || []).length}</p>
               </div>
               <div className="kpi-card">
-                <p className="kpi-label">Total dettes (% bénéfice)</p>
-                <p className="kpi-value text-primary">
-                  {formatCurrency(totalDettes)}
-                </p>
+                <p className="kpi-label">Véhicules vendus</p>
+                <p className="kpi-value text-primary">{totalVehicles}</p>
               </div>
-              <div className="kpi-card border-l-4 border-l-success">
-                <p className="kpi-label">Payé</p>
-                <p className="kpi-value text-success">
-                  {formatCurrency(totalPaye)}
-                </p>
-              </div>
-              <div className="kpi-card border-l-4 border-l-warning">
-                <p className="kpi-label">Non payé</p>
-                <p className="kpi-value text-warning">
-                  {formatCurrency(totalNonPaye)}
-                </p>
+              <div className="kpi-card">
+                <p className="kpi-label">Prix vente total</p>
+                <p className="kpi-value text-success">{formatCurrency(totalPrixVente)}</p>
               </div>
             </>
           )}
@@ -145,17 +133,14 @@ const ClientsPage = () => {
                   <tr>
                     <th>Client</th>
                     <th>Téléphone</th>
-                    <th>% Bénéfice</th>
-                    <th>Prix vente</th>
-                    <th>Bénéfice</th>
-                    <th>Dette client</th>
-                    <th>Statut</th>
+                    <th>Véhicules vendus</th>
+                    <th>Prix vente total</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedClients.map((client) => {
-                    const benefice = (client.prixVente || 0) - (client.coutRevient || 0);
+                    const vehicleCount = client.vehicles?.length || 0;
                     return (
                       <tr 
                         key={client.id}
@@ -169,59 +154,24 @@ const ClientsPage = () => {
                             </div>
                             <div>
                               <p className="font-medium text-foreground">{client.nom} {client.prenom}</p>
-                              <p className="text-xs text-muted-foreground truncate max-w-[150px]">
-                                {client.adresse || '-'}
-                              </p>
                             </div>
                           </div>
                         </td>
                         <td>
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
                             <Phone className="h-3 w-3" />
-                            {client.telephone}
+                            {client.telephone || '-'}
                           </div>
                         </td>
                         <td>
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary">
-                            <Percent className="h-3 w-3" />
-                            {client.pourcentageBenefice || 0}%
+                            <Car className="h-3 w-3" />
+                            {vehicleCount}
                           </span>
                         </td>
                         <td>
                           <span className="font-medium">
                             {formatCurrency(client.prixVente || 0)}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="font-medium text-success">
-                            {formatCurrency(benefice)}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="font-medium text-warning">
-                            {formatCurrency(client.detteBenefice || 0)}
-                          </span>
-                        </td>
-                        <td>
-                          <span
-                            className={cn(
-                              'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium',
-                              client.paye
-                                ? 'bg-success/10 text-success'
-                                : 'bg-warning/10 text-warning'
-                            )}
-                          >
-                            {client.paye ? (
-                              <>
-                                <Check className="h-3 w-3" />
-                                Payé
-                              </>
-                            ) : (
-                              <>
-                                <X className="h-3 w-3" />
-                                Non payé
-                              </>
-                            )}
                           </span>
                         </td>
                         <td>
@@ -272,7 +222,7 @@ const ClientsPage = () => {
                   })}
                   {paginatedClients.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="text-center py-8 text-muted-foreground">
+                      <td colSpan={5} className="text-center py-8 text-muted-foreground">
                         {searchQuery ? `Aucun client trouvé pour "${searchQuery}"` : 'Aucun client'}
                       </td>
                     </tr>
