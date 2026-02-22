@@ -283,7 +283,12 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm">{vehicle.brand} {vehicle.model} ({vehicle.year})</div>
+                        <div className="font-medium text-sm">
+                          {vehicle.brand} {vehicle.model} ({vehicle.year})
+                          {vehicle.color && (
+                            <span className="ml-2 text-xs text-muted-foreground">• {vehicle.color}</span>
+                          )}
+                        </div>
                         <div className="text-xs text-muted-foreground truncate">VIN: {vehicle.vin}</div>
                       </div>
                       <Badge variant="outline" className="text-xs shrink-0">

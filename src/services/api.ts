@@ -440,6 +440,8 @@ export interface Vehicle {
   photoUrl?: string;
   color?: string;
   transmission?: 'manual' | 'automatic';
+  paymentStatus?: 'versement' | 'solde' | null;
+  amountPaid?: number;
   orderDate: string;
   arrivalDate?: string;
   soldDate?: string;
@@ -462,6 +464,8 @@ export interface CreateVehicleData {
   totalCost?: number;
   sellingPrice?: number;
   photoUrl?: string;
+  paymentStatus?: 'versement' | 'solde' | null;
+  amountPaid?: number;
   orderDate: string;
   arrivalDate?: string;
   soldDate?: string;

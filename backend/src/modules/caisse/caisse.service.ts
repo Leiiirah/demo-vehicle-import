@@ -65,8 +65,10 @@ export class CaisseService {
     }));
 
     // Transform sold vehicles into sale entries
+    // Only include vehicles that DON'T have payment tracking (paymentStatus)
+    // Vehicles with paymentStatus have their payments tracked via caisse entries
     const saleEntries = soldVehicles
-      .filter((v) => v.clientId) // must have a client
+      .filter((v) => v.clientId && !v.paymentStatus)
       .map((v) => {
         const prixVente = Number(v.sellingPrice || 0);
         const prixRevient = Number(v.totalCost || 0);

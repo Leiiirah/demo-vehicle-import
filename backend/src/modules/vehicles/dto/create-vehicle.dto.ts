@@ -8,7 +8,7 @@ import {
   IsUUID,
   ValidateIf,
 } from 'class-validator';
-import { VehicleStatus } from '../../../entities/vehicle.entity';
+import { VehicleStatus, VehiclePaymentStatus } from '../../../entities/vehicle.entity';
 
 export class CreateVehicleDto {
   @IsString()
@@ -88,4 +88,12 @@ export class CreateVehicleDto {
   @IsDateString()
   @IsOptional()
   soldDate?: string;
+
+  @IsEnum(VehiclePaymentStatus)
+  @IsOptional()
+  paymentStatus?: VehiclePaymentStatus;
+
+  @IsNumber()
+  @IsOptional()
+  amountPaid?: number;
 }
