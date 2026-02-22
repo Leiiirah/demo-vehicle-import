@@ -318,22 +318,7 @@ export const AffecterVehiculeDialog = ({
                   )}
                 </div>
 
-                {/* Fournisseur */}
-                <div className="space-y-2">
-                  <Label htmlFor="supplier">Fournisseur *</Label>
-                  <Select value={supplierId} onValueChange={setSupplierId}>
-                    <SelectTrigger id="supplier">
-                      <SelectValue placeholder="Sélectionner un fournisseur" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover border border-border shadow-lg z-50">
-                      {suppliers.map((supplier) => (
-                        <SelectItem key={supplier.id} value={supplier.id}>
-                          {supplier.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Fournisseur auto-assigné depuis la hiérarchie */}
 
                 {/* Prix du véhicule */}
                 <div className="space-y-2">

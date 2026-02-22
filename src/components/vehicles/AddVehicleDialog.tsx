@@ -664,42 +664,36 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
                 </p>
               </div>
 
+              {!preSelectedSupplierId && (
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <span className="font-medium mb-3 block">Fournisseur</span>
+                  <div className="space-y-2">
+                    <Label>Sélectionner un fournisseur *</Label>
+                    <Select value={supplierId} onValueChange={setSupplierId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choisir un fournisseur" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {suppliers.map((supplier) => (
+                          <SelectItem key={supplier.id} value={supplier.id}>
+                            {supplier.name} - {supplier.location}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
               <div className="p-4 bg-muted/50 rounded-lg">
-                <span className="font-medium mb-3 block">Fournisseur</span>
-                <div className="space-y-4">
-                  {preSelectedSupplierId ? (
-                    <div className="space-y-2">
-                      <Label>Fournisseur</Label>
-                      <div className="p-2.5 bg-accent/50 rounded-md text-sm font-medium">
-                        {suppliers.find(s => s.id === preSelectedSupplierId)?.name || 'Fournisseur sélectionné'}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Label>Sélectionner un fournisseur *</Label>
-                      <Select value={supplierId} onValueChange={setSupplierId}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choisir un fournisseur" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {suppliers.map((supplier) => (
-                            <SelectItem key={supplier.id} value={supplier.id}>
-                              {supplier.name} - {supplier.location}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="orderDate">Date de commande *</Label>
-                      <Input id="orderDate" type="date" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="estimatedArrival">Arrivée estimée</Label>
-                      <Input id="estimatedArrival" type="date" value={estimatedArrival} onChange={(e) => setEstimatedArrival(e.target.value)} />
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="orderDate">Date de commande *</Label>
+                    <Input id="orderDate" type="date" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="estimatedArrival">Arrivée estimée</Label>
+                    <Input id="estimatedArrival" type="date" value={estimatedArrival} onChange={(e) => setEstimatedArrival(e.target.value)} />
                   </div>
                 </div>
               </div>
