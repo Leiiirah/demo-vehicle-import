@@ -249,19 +249,19 @@ const VehiclesPage = () => {
                 <thead>
                   <tr>
                     <th>Véhicule</th>
-                    <th>Client</th>
+                    <th>VIN</th>
                     <th>Passeport</th>
-                    <th>Fournisseur</th>
-                    <th>Conteneur</th>
-                    <th>Statut</th>
+                    <th>Prix d'achat</th>
+                    <th>Transit</th>
                     <th>Coût total</th>
+                    <th>Statut</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredVehicles.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="text-center py-8 text-muted-foreground">
+                      <td colSpan={9} className="text-center py-8 text-muted-foreground">
                         Aucun véhicule trouvé
                       </td>
                     </tr>
@@ -286,13 +286,15 @@ const VehiclesPage = () => {
                                 {vehicle.brand} {vehicle.model}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {vehicle.year} • {vehicle.vin}
+                                {vehicle.year}
                               </p>
                             </div>
                           </div>
                         </td>
-                        <td className="text-foreground">
-                          {vehicle.client ? `${vehicle.client.prenom} ${vehicle.client.nom}` : '-'}
+                        <td>
+                          <code className="text-xs bg-muted px-2 py-1 rounded">
+                            {vehicle.vin}
+                          </code>
                         </td>
                         <td>
                           {vehicle.passeport ? (
@@ -309,19 +311,17 @@ const VehiclesPage = () => {
                             <span className="text-muted-foreground">-</span>
                           )}
                         </td>
-                        <td className="text-muted-foreground">
-                          {vehicle.supplier?.name || '-'}
+                        <td className="text-foreground">
+                          {formatCurrency(Number(vehicle.purchasePrice || 0), 'USD')}
                         </td>
-                        <td>
-                          <code className="text-xs bg-muted px-2 py-1 rounded">
-                            {vehicle.conteneur?.numero || '-'}
-                          </code>
+                        <td className="text-foreground">
+                          {formatCurrency(Number(vehicle.transportCost || 0), 'USD')}
                         </td>
-                        <td>{getStatusBadge(vehicle.status)}</td>
                         <td className={`font-medium ${isVehiclePaid(vehicle) ? 'text-success' : 'text-foreground'}`}>
                           {formatCurrency(vehicle.totalCost)}
                           {isVehiclePaid(vehicle) && <span className="ml-1 text-xs">✓</span>}
                         </td>
+                        <td>{getStatusBadge(vehicle.status)}</td>
                         <td>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
