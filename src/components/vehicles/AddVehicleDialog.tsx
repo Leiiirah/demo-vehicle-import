@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
@@ -26,7 +26,11 @@ import { api, type CreateVehicleData } from '@/services/api';
 import { toast } from '@/hooks/use-toast';
 
 interface AddVehicleDialogProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  preSelectedConteneurId?: string;
+  preSelectedSupplierId?: string;
 }
 
 interface Versement {
@@ -42,8 +46,13 @@ interface ChargeDivers {
   montant: number;
 }
 
-const AddVehicleDialog = ({ children }: AddVehicleDialogProps) => {
-  const [open, setOpen] = useState(false);
+const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: controlledOnOpenChange, preSelectedConteneurId, preSelectedSupplierId }: AddVehicleDialogProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = (v: boolean) => {
+    if (controlledOnOpenChange) controlledOnOpenChange(v);
+    else setInternalOpen(v);
+  };
   const [step, setStep] = useState(1);
 
   // Champs du formulaire
@@ -52,9 +61,17 @@ const AddVehicleDialog = ({ children }: AddVehicleDialogProps) => {
   const [year, setYear] = useState('2025');
   const [vin, setVin] = useState('');
   const [color, setColor] = useState('');
-  const [conteneurId, setConteneurId] = useState('');
+  const [conteneurId, setConteneurId] = useState(preSelectedConteneurId || '');
   const [status, setStatus] = useState<'ordered' | 'in_transit' | 'arrived'>('ordered');
-  const [supplierId, setSupplierId] = useState('');
+  const [supplierId, setSupplierId] = useState(preSelectedSupplierId || '');
+
+  useEffect(() => {
+    if (preSelectedConteneurId) setConteneurId(preSelectedConteneurId);
+  }, [preSelectedConteneurId]);
+
+  useEffect(() => {
+    if (preSelectedSupplierId) setSupplierId(preSelectedSupplierId);
+  }, [preSelectedSupplierId]);
   const [orderDate, setOrderDate] = useState('');
   const [estimatedArrival, setEstimatedArrival] = useState('');
   const [transmission, setTransmission] = useState<'manual' | 'automatic'>('automatic');
@@ -130,9 +147,9 @@ const AddVehicleDialog = ({ children }: AddVehicleDialogProps) => {
     setYear('2025');
     setVin('');
     setColor('');
-    setConteneurId('');
+    setConteneurId(preSelectedConteneurId || '');
     setStatus('ordered');
-    setSupplierId('');
+    setSupplierId(preSelectedSupplierId || '');
     setOrderDate('');
     setEstimatedArrival('');
     setPrixVehicule(0);
@@ -230,7 +247,7 @@ const AddVehicleDialog = ({ children }: AddVehicleDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <ScrollableDialogContent className="max-w-2xl">
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
@@ -303,18 +320,24 @@ const AddVehicleDialog = ({ children }: AddVehicleDialogProps) => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="conteneurId">Conteneur *</Label>
-                  <Select value={conteneurId} onValueChange={setConteneurId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un conteneur" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {conteneurs.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.numero}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {preSelectedConteneurId ? (
+                    <div className="p-2.5 bg-accent/50 rounded-md text-sm font-medium">
+                      {conteneurs.find(c => c.id === preSelectedConteneurId)?.numero || 'Conteneur sélectionné'}
+                    </div>
+                  ) : (
+                    <Select value={conteneurId} onValueChange={setConteneurId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un conteneur" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {conteneurs.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.numero}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </div>
 
@@ -644,21 +667,30 @@ const AddVehicleDialog = ({ children }: AddVehicleDialogProps) => {
               <div className="p-4 bg-muted/50 rounded-lg">
                 <span className="font-medium mb-3 block">Fournisseur</span>
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Sélectionner un fournisseur *</Label>
-                    <Select value={supplierId} onValueChange={setSupplierId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choisir un fournisseur" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {suppliers.map((supplier) => (
-                          <SelectItem key={supplier.id} value={supplier.id}>
-                            {supplier.name} - {supplier.location}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {preSelectedSupplierId ? (
+                    <div className="space-y-2">
+                      <Label>Fournisseur</Label>
+                      <div className="p-2.5 bg-accent/50 rounded-md text-sm font-medium">
+                        {suppliers.find(s => s.id === preSelectedSupplierId)?.name || 'Fournisseur sélectionné'}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label>Sélectionner un fournisseur *</Label>
+                      <Select value={supplierId} onValueChange={setSupplierId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choisir un fournisseur" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {suppliers.map((supplier) => (
+                            <SelectItem key={supplier.id} value={supplier.id}>
+                              {supplier.name} - {supplier.location}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="orderDate">Date de commande *</Label>
