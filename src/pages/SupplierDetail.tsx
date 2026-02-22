@@ -1,28 +1,28 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/services/api';
+import { api, Dossier, Conteneur, Vehicle } from '@/services/api';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useSupplier, useVehicles } from '@/hooks/useApi';
+import { useSupplier, useDossiers, useConteneurs, useVehicles } from '@/hooks/useApi';
 import { 
   Building2, 
   ArrowLeft, 
-  Phone, 
-  Mail, 
   MapPin, 
   CreditCard,
   TrendingUp,
   Car,
   FileText,
   Edit,
-  MessageCircle,
   AlertCircle,
   Trash2,
+  ChevronRight,
+  ChevronDown,
+  Package,
+  FolderOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -50,11 +50,41 @@ const SupplierDetailPage = () => {
   const navigate = useNavigate();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [expandedDossiers, setExpandedDossiers] = useState<Set<string>>(new Set());
+  const [expandedConteneurs, setExpandedConteneurs] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
+
   const { data: supplier, isLoading, error } = useSupplier(id || '');
-  const { data: vehicles } = useVehicles();
-  
-  const supplierVehicles = (vehicles || []).filter(v => v.supplierId === id);
+  const { data: allDossiers } = useDossiers();
+  const { data: allConteneurs } = useConteneurs();
+  const { data: allVehicles } = useVehicles();
+
+  const supplierDossiers = (allDossiers || []).filter(d => d.supplierId === id);
+  const supplierVehicles = (allVehicles || []).filter(v => v.supplierId === id);
+
+  const getConteneursForDossier = (dossierId: string) =>
+    (allConteneurs || []).filter(c => c.dossierId === dossierId);
+
+  const getVehiclesForConteneur = (conteneurId: string) =>
+    (allVehicles || []).filter(v => v.conteneurId === conteneurId);
+
+  const toggleDossier = (dossierId: string) => {
+    setExpandedDossiers(prev => {
+      const next = new Set(prev);
+      if (next.has(dossierId)) next.delete(dossierId);
+      else next.add(dossierId);
+      return next;
+    });
+  };
+
+  const toggleConteneur = (conteneurId: string) => {
+    setExpandedConteneurs(prev => {
+      const next = new Set(prev);
+      if (next.has(conteneurId)) next.delete(conteneurId);
+      else next.add(conteneurId);
+      return next;
+    });
+  };
 
   const deleteMutation = useMutation({
     mutationFn: () => api.deleteSupplier(id!),
@@ -82,7 +112,37 @@ const SupplierDetailPage = () => {
     }).format(amount) + ' DZD';
   };
 
-  const getStatusBadge = (status: string) => {
+  const getDossierStatusBadge = (status: string) => {
+    const styles: Record<string, string> = {
+      en_cours: 'bg-primary/10 text-primary border-primary/20',
+      termine: 'bg-success/10 text-success border-success/20',
+      annule: 'bg-destructive/10 text-destructive border-destructive/20',
+    };
+    const labels: Record<string, string> = {
+      en_cours: 'En cours',
+      termine: 'Terminé',
+      annule: 'Annulé',
+    };
+    return <Badge variant="outline" className={styles[status]}>{labels[status]}</Badge>;
+  };
+
+  const getConteneurStatusBadge = (status: string) => {
+    const styles: Record<string, string> = {
+      en_chargement: 'bg-muted text-muted-foreground border-muted',
+      en_transit: 'bg-warning/10 text-warning border-warning/20',
+      arrive: 'bg-success/10 text-success border-success/20',
+      dedouane: 'bg-primary/10 text-primary border-primary/20',
+    };
+    const labels: Record<string, string> = {
+      en_chargement: 'En chargement',
+      en_transit: 'En transit',
+      arrive: 'Arrivé',
+      dedouane: 'Dédouané',
+    };
+    return <Badge variant="outline" className={styles[status]}>{labels[status]}</Badge>;
+  };
+
+  const getVehicleStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
       ordered: 'bg-primary/10 text-primary border-primary/20',
       in_transit: 'bg-warning/10 text-warning border-warning/20',
@@ -95,11 +155,7 @@ const SupplierDetailPage = () => {
       arrived: 'Arrivé',
       sold: 'Vendu',
     };
-    return (
-      <Badge variant="outline" className={styles[status]}>
-        {labels[status]}
-      </Badge>
-    );
+    return <Badge variant="outline" className={styles[status]}>{labels[status]}</Badge>;
   };
 
   if (isLoading) {
@@ -232,78 +288,142 @@ const SupplierDetailPage = () => {
           </Card>
         </div>
 
-        {/* Onglets */}
-        <Tabs defaultValue="vehicles" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="vehicles">Véhicules ({supplierVehicles.length})</TabsTrigger>
-            <TabsTrigger value="payments">Paiements</TabsTrigger>
-          </TabsList>
+        {/* Hierarchical Dossiers → Conteneurs → Véhicules */}
+        <div className="space-y-2">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <FolderOpen className="h-5 w-5 text-primary" />
+            Dossiers ({supplierDossiers.length})
+          </h2>
 
-          <TabsContent value="vehicles">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Véhicules de ce fournisseur</CardTitle>
-                <CardDescription>Liste des véhicules commandés auprès de {supplier.name}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {supplierVehicles.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Véhicule</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Prix achat</TableHead>
-                        <TableHead>Statut</TableHead>
-                        <TableHead>Date commande</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {supplierVehicles.map((vehicle) => (
-                        <TableRow 
-                          key={vehicle.id} 
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => navigate(`/vehicles/${vehicle.id}`)}
-                        >
-                          <TableCell>
-                            <div>
-                              <p className="font-medium">{vehicle.brand} {vehicle.model}</p>
-                              <p className="text-sm text-muted-foreground">{vehicle.year}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {vehicle.client ? `${vehicle.client.prenom} ${vehicle.client.nom}` : '-'}
-                          </TableCell>
-                          <TableCell>{formatCurrency(vehicle.purchasePrice)}</TableCell>
-                          <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
-                          <TableCell>{new Date(vehicle.orderDate).toLocaleDateString('fr-FR')}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                ) : (
-                  <p className="text-center text-muted-foreground py-8">
-                    Aucun véhicule enregistré pour ce fournisseur
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+          {supplierDossiers.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground bg-card rounded-xl border border-border">
+              Aucun dossier pour ce fournisseur
+            </div>
+          ) : (
+            <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+              {supplierDossiers.map((dossier) => {
+                const isDossierExpanded = expandedDossiers.has(dossier.id);
+                const conteneurs = getConteneursForDossier(dossier.id);
+                return (
+                  <div key={dossier.id} className="border-b border-border last:border-b-0">
+                    {/* Dossier row */}
+                    <div
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 cursor-pointer"
+                      onClick={() => toggleDossier(dossier.id)}
+                    >
+                      <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
+                        {isDossierExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      </Button>
+                      <FolderOpen className="h-4 w-4 text-primary shrink-0" />
+                      <span className="font-medium text-foreground">{dossier.reference}</span>
+                      {getDossierStatusBadge(dossier.status)}
+                      <span className="text-sm text-muted-foreground ml-auto">
+                        {new Date(dossier.dateCreation).toLocaleDateString('fr-FR')}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {conteneurs.length} conteneur{conteneurs.length !== 1 ? 's' : ''}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0"
+                        onClick={(e) => { e.stopPropagation(); navigate(`/dossiers/${dossier.id}`); }}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
 
-          <TabsContent value="payments">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Historique des paiements</CardTitle>
-                <CardDescription>Tous les paiements effectués à ce fournisseur</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-center text-muted-foreground py-8">
-                  Aucun paiement enregistré
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                    {/* Conteneurs under dossier */}
+                    {isDossierExpanded && (
+                      <div className="bg-muted/30">
+                        {conteneurs.length === 0 ? (
+                          <div className="pl-16 py-3 text-sm text-muted-foreground">
+                            Aucun conteneur dans ce dossier
+                          </div>
+                        ) : (
+                          conteneurs.map((conteneur) => {
+                            const isConteneurExpanded = expandedConteneurs.has(conteneur.id);
+                            const vehicles = getVehiclesForConteneur(conteneur.id);
+                            return (
+                              <div key={conteneur.id}>
+                                {/* Conteneur row */}
+                                <div
+                                  className="flex items-center gap-3 pl-12 pr-4 py-2.5 hover:bg-muted/50 cursor-pointer"
+                                  onClick={() => toggleConteneur(conteneur.id)}
+                                >
+                                  <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
+                                    {isConteneurExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                                  </Button>
+                                  <Package className="h-4 w-4 text-muted-foreground shrink-0" />
+                                  <span className="font-medium text-foreground text-sm">{conteneur.numero}</span>
+                                  <Badge variant="outline" className="text-xs">{conteneur.type}</Badge>
+                                  {getConteneurStatusBadge(conteneur.status)}
+                                  <span className="text-xs text-muted-foreground ml-auto">
+                                    {vehicles.length} véhicule{vehicles.length !== 1 ? 's' : ''}
+                                  </span>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 shrink-0"
+                                    onClick={(e) => { e.stopPropagation(); navigate(`/conteneurs/${conteneur.id}`); }}
+                                  >
+                                    <ChevronRight className="h-4 w-4" />
+                                  </Button>
+                                </div>
 
-        </Tabs>
+                                {/* Vehicles table under conteneur */}
+                                {isConteneurExpanded && (
+                                  <div className="pl-20 pr-4 pb-3">
+                                    {vehicles.length === 0 ? (
+                                      <div className="py-3 text-sm text-muted-foreground">
+                                        Aucun véhicule dans ce conteneur
+                                      </div>
+                                    ) : (
+                                      <Table>
+                                        <TableHeader>
+                                          <TableRow>
+                                            <TableHead className="text-xs">Véhicule</TableHead>
+                                            <TableHead className="text-xs">VIN</TableHead>
+                                            <TableHead className="text-xs text-right">Prix achat</TableHead>
+                                            <TableHead className="text-xs">Statut</TableHead>
+                                          </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                          {vehicles.map((vehicle) => (
+                                            <TableRow
+                                              key={vehicle.id}
+                                              className="cursor-pointer hover:bg-muted/50"
+                                              onClick={(e) => { e.stopPropagation(); navigate(`/vehicles/${vehicle.id}`); }}
+                                            >
+                                              <TableCell className="text-sm">
+                                                <div className="flex items-center gap-2">
+                                                  <Car className="h-3.5 w-3.5 text-muted-foreground" />
+                                                  <span className="font-medium">{vehicle.brand} {vehicle.model}</span>
+                                                  <span className="text-muted-foreground">{vehicle.year}</span>
+                                                </div>
+                                              </TableCell>
+                                              <TableCell className="text-sm text-muted-foreground font-mono">{vehicle.vin}</TableCell>
+                                              <TableCell className="text-sm text-right">{formatCurrency(vehicle.purchasePrice)}</TableCell>
+                                              <TableCell>{getVehicleStatusBadge(vehicle.status)}</TableCell>
+                                            </TableRow>
+                                          ))}
+                                        </TableBody>
+                                      </Table>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       <EditSupplierDialog 

@@ -6,19 +6,16 @@ import { useSuppliers } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { api } from '@/services/api';
-import { Building2, MoreVertical, Eye, FileText, AlertCircle, Trash2 } from 'lucide-react';
+import { Building2, AlertCircle, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -91,7 +88,7 @@ const SuppliersPage = () => {
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Fournisseurs</h1>
             <p className="text-muted-foreground">
-              Gérez vos fournisseurs chinois et les soldes de paiement
+              Gérez vos fournisseurs et les soldes de paiement
             </p>
           </div>
           <Button 
@@ -133,11 +130,11 @@ const SuppliersPage = () => {
           )}
         </div>
 
-        {/* Grille fournisseurs */}
+        {/* Table fournisseurs */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[...Array(3)].map((_, i) => (
-              <Skeleton key={i} className="h-64" />
+          <div className="space-y-2">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
             ))}
           </div>
         ) : suppliersList.length === 0 ? (
@@ -146,92 +143,71 @@ const SuppliersPage = () => {
           </div>
         ) : (
           <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {paginatedSuppliers.map((supplier) => (
-              <div
-                key={supplier.id}
-                onClick={() => navigate(`/suppliers/${supplier.id}`)}
-                className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-lg bg-accent flex items-center justify-center">
-                      <Building2 className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">{supplier.name}</p>
-                      <p className="text-sm text-muted-foreground">{supplier.location}</p>
-                    </div>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Eye className="h-4 w-4 mr-2" />
-                        Voir les détails
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <FileText className="h-4 w-4 mr-2" />
-                        Historique paiements
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSupplierToDelete({ id: supplier.id, name: supplier.name });
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Supprimer
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Résumé financier */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-2 border-b border-border">
-                    <span className="text-sm text-muted-foreground">Véhicules fournis</span>
-                    <span className="font-medium text-foreground">{supplier.vehiclesSupplied || 0}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-border">
-                    <span className="text-sm text-muted-foreground">Total payé</span>
-                    <span className="font-medium text-success">
-                      {formatCurrency(supplier.totalPaid || 0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-border">
-                    <Tooltip>
-                      <TooltipTrigger className="text-sm text-muted-foreground cursor-help">
-                        Solde crédit
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Crédit ouvert actuel avec ce fournisseur</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    <span className="font-medium text-primary">
-                      {formatCurrency(supplier.creditBalance || 0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center pt-2">
-                    <span className="text-sm font-medium text-foreground">
-                      Dette restante
-                    </span>
-                    <span className={`font-semibold ${
-                      (supplier.remainingDebt || 0) > 0 ? 'text-danger' : 'text-success'
-                    }`}>
-                      {formatCurrency(supplier.remainingDebt || 0)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <TablePagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} startIndex={startIndex} endIndex={endIndex} onPageChange={goToPage} />
+            <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nom</TableHead>
+                    <TableHead className="text-right">Véhicules</TableHead>
+                    <TableHead className="text-right">Total payé</TableHead>
+                    <TableHead className="text-right">Solde crédit</TableHead>
+                    <TableHead className="text-right">Dette restante</TableHead>
+                    <TableHead className="w-[100px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedSuppliers.map((supplier) => (
+                    <TableRow
+                      key={supplier.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => navigate(`/suppliers/${supplier.id}`)}
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-lg bg-accent flex items-center justify-center shrink-0">
+                            <Building2 className="h-4 w-4 text-primary" />
+                          </div>
+                          <span className="font-medium text-foreground">{supplier.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">{supplier.vehiclesSupplied || 0}</TableCell>
+                      <TableCell className="text-right text-success font-medium">
+                        {formatCurrency(supplier.totalPaid || 0)}
+                      </TableCell>
+                      <TableCell className="text-right text-primary font-medium">
+                        {formatCurrency(supplier.creditBalance || 0)}
+                      </TableCell>
+                      <TableCell className={`text-right font-semibold ${
+                        (supplier.remainingDebt || 0) > 0 ? 'text-danger' : 'text-success'
+                      }`}>
+                        {formatCurrency(supplier.remainingDebt || 0)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => navigate(`/suppliers/${supplier.id}`)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => setSupplierToDelete({ id: supplier.id, name: supplier.name })}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <TablePagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} startIndex={startIndex} endIndex={endIndex} onPageChange={goToPage} />
           </>
         )}
       </div>
