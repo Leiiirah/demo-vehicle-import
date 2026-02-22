@@ -29,6 +29,10 @@ export class CreatePasseportDto {
 
   @IsString()
   @IsOptional()
+  nin?: string;
+
+  @IsString()
+  @IsOptional()
   pdfPasseport?: string;
 
   @IsNumber()

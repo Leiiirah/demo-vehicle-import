@@ -12,7 +12,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
@@ -23,6 +22,7 @@ interface Passeport {
   telephone: string;
   adresse?: string;
   numeroPasseport: string;
+  nin?: string;
   montantDu?: number;
   paye: boolean;
 }
@@ -41,8 +41,7 @@ export function EditPasseportDialog({ open, onOpenChange, passeport }: EditPasse
     telephone: '',
     adresse: '',
     numeroPasseport: '',
-    montantDu: 10000,
-    paye: false,
+    nin: '',
   });
 
   useEffect(() => {
@@ -53,8 +52,7 @@ export function EditPasseportDialog({ open, onOpenChange, passeport }: EditPasse
         telephone: passeport.telephone || '',
         adresse: passeport.adresse || '',
         numeroPasseport: passeport.numeroPasseport || '',
-        montantDu: passeport.montantDu || 10000,
-        paye: passeport.paye || false,
+        nin: passeport.nin || '',
       });
     }
   }, [passeport]);
@@ -132,20 +130,12 @@ export function EditPasseportDialog({ open, onOpenChange, passeport }: EditPasse
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="montantDu">Montant dû (DZD)</Label>
+              <Label htmlFor="nin">NIN</Label>
               <Input
-                id="montantDu"
-                type="number"
-                value={formData.montantDu}
-                onChange={(e) => setFormData({ ...formData, montantDu: parseFloat(e.target.value) || 0 })}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="paye">Payé</Label>
-              <Switch
-                id="paye"
-                checked={formData.paye}
-                onCheckedChange={(checked) => setFormData({ ...formData, paye: checked })}
+                id="nin"
+                className="font-mono"
+                value={formData.nin}
+                onChange={(e) => setFormData({ ...formData, nin: e.target.value })}
               />
             </div>
           </form>
