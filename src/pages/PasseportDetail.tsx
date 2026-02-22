@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { usePasseport, useUpdatePasseport } from '@/hooks/useApi';
+import { usePasseport } from '@/hooks/useApi';
+import { exportPasseportPDF } from '@/lib/exportPasseportPDF';
 import { 
   ArrowLeft, 
   Phone, 
@@ -26,50 +27,8 @@ const PasseportDetailPage = () => {
   
   const { data: passeport, isLoading, error } = usePasseport(id || '');
 
-  const exportPDF = () => {
-    if (!passeport) return;
-
-    const content = `
-      <html>
-      <head>
-        <title>Passeport - ${passeport.nom} ${passeport.prenom}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
-          h1 { color: #1a1a2e; border-bottom: 2px solid #1a1a2e; padding-bottom: 10px; }
-          .section { margin: 20px 0; }
-          .label { font-weight: bold; color: #555; display: inline-block; width: 220px; }
-          .value { display: inline-block; }
-          .row { padding: 8px 0; border-bottom: 1px solid #eee; }
-          .header { text-align: center; margin-bottom: 30px; }
-          .header h1 { font-size: 24px; }
-          .header p { color: #666; }
-          @media print { body { padding: 20px; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>Fiche Passeport</h1>
-          <p>Date d'export : ${new Date().toLocaleDateString('fr-FR')}</p>
-        </div>
-        <div class="section">
-          <div class="row"><span class="label">Nom :</span><span class="value">${passeport.nom}</span></div>
-          <div class="row"><span class="label">Prénom :</span><span class="value">${passeport.prenom}</span></div>
-          <div class="row"><span class="label">Téléphone :</span><span class="value">${passeport.telephone}</span></div>
-          <div class="row"><span class="label">Adresse :</span><span class="value">${passeport.adresse || '-'}</span></div>
-          <div class="row"><span class="label">Numéro de passeport :</span><span class="value">${passeport.numeroPasseport}</span></div>
-          <div class="row"><span class="label">NIN :</span><span class="value">${passeport.nin || '-'}</span></div>
-          <div class="row"><span class="label">Date de création :</span><span class="value">${new Date(passeport.createdAt).toLocaleDateString('fr-FR')}</span></div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(content);
-      printWindow.document.close();
-      printWindow.print();
-    }
+  const handleExportPDF = () => {
+    if (passeport) exportPasseportPDF(passeport);
   };
 
   if (isLoading) {
@@ -134,7 +93,7 @@ const PasseportDetailPage = () => {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={exportPDF}>
+            <Button variant="outline" onClick={handleExportPDF}>
               <Download className="h-4 w-4 mr-2" />
               Exporter PDF
             </Button>
