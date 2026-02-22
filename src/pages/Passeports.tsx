@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { usePasseports, useUpdatePasseport, useDeletePasseport } from '@/hooks/useApi';
+import { usePasseports, useDeletePasseport } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
-import { MoreVertical, Eye, Phone, Search, BookUser, Check, X, AlertCircle, Trash2 } from 'lucide-react';
+import { MoreVertical, Eye, Phone, Search, BookUser, AlertCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,7 +13,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
 import { AddPasseportDialog } from '@/components/clients/AddPasseportDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -29,13 +28,8 @@ const PasseportsPage = () => {
   const navigate = useNavigate();
 
   const { data: passeports, isLoading, error } = usePasseports();
-  const updatePasseport = useUpdatePasseport();
   const deletePasseport = useDeletePasseport();
   const { toast } = useToast();
-
-  const togglePaiement = (id: string, currentPaye: boolean) => {
-    updatePasseport.mutate({ id, data: { paye: !currentPaye } });
-  };
 
   const filteredPasseports = (passeports || []).filter(p => 
     p.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -45,13 +39,6 @@ const PasseportsPage = () => {
   );
 
   const { paginatedItems: paginatedPasseports, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredPasseports);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
 
   if (error) {
     return (
@@ -65,10 +52,6 @@ const PasseportsPage = () => {
       </DashboardLayout>
     );
   }
-
-  const totalDu = (passeports || []).reduce((sum, p) => sum + (p.montantDu || 0), 0);
-  const totalPaye = (passeports || []).filter(p => p.paye).reduce((sum, p) => sum + (p.montantDu || 0), 0);
-  const totalNonPaye = (passeports || []).filter(p => !p.paye).reduce((sum, p) => sum + (p.montantDu || 0), 0);
 
   return (
     <DashboardLayout>
@@ -101,39 +84,15 @@ const PasseportsPage = () => {
           />
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* KPI */}
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
           {isLoading ? (
-            <>
-              {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="h-24" />
-              ))}
-            </>
+            <Skeleton className="h-24" />
           ) : (
-            <>
-              <div className="kpi-card">
-                <p className="kpi-label">Total passeports</p>
-                <p className="kpi-value">{(passeports || []).length}</p>
-              </div>
-              <div className="kpi-card">
-                <p className="kpi-label">Total dû</p>
-                <p className="kpi-value text-primary">
-                  {formatCurrency(totalDu)}
-                </p>
-              </div>
-              <div className="kpi-card border-l-4 border-l-success">
-                <p className="kpi-label">Payé</p>
-                <p className="kpi-value text-success">
-                  {formatCurrency(totalPaye)}
-                </p>
-              </div>
-              <div className="kpi-card border-l-4 border-l-warning">
-                <p className="kpi-label">Non payé</p>
-                <p className="kpi-value text-warning">
-                  {formatCurrency(totalNonPaye)}
-                </p>
-              </div>
-            </>
+            <div className="kpi-card">
+              <p className="kpi-label">Total passeports</p>
+              <p className="kpi-value">{(passeports || []).length}</p>
+            </div>
           )}
         </div>
 
@@ -148,14 +107,13 @@ const PasseportsPage = () => {
               </div>
             ) : (
               <table className="data-table">
-                <thead>
+                 <thead>
                   <tr>
                     <th>Nom & Prénom</th>
                     <th>Téléphone</th>
                     <th>N° Passeport</th>
+                    <th>NIN</th>
                     <th>Adresse</th>
-                    <th>Montant dû</th>
-                    <th>Statut</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -186,41 +144,12 @@ const PasseportsPage = () => {
                         <span className="font-mono text-sm">{passeport.numeroPasseport}</span>
                       </td>
                       <td>
+                        <span className="font-mono text-sm">{passeport.nin || '-'}</span>
+                      </td>
+                      <td>
                         <span className="text-sm text-muted-foreground truncate max-w-[200px] block">
                           {passeport.adresse || '-'}
                         </span>
-                      </td>
-                      <td>
-                        <span className="font-medium">
-                          {formatCurrency(passeport.montantDu || 0)}
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            togglePaiement(passeport.id, passeport.paye);
-                          }}
-                          disabled={updatePasseport.isPending}
-                          className={cn(
-                            'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all hover:scale-105 shadow-sm border disabled:opacity-50',
-                            passeport.paye
-                              ? 'bg-success/10 text-success hover:bg-success/20 border-success/30'
-                              : 'bg-warning/10 text-warning hover:bg-warning/20 border-warning/30'
-                          )}
-                        >
-                          {passeport.paye ? (
-                            <>
-                              <Check className="h-3 w-3" />
-                              Payé
-                            </>
-                          ) : (
-                            <>
-                              <X className="h-3 w-3" />
-                              Non payé
-                            </>
-                          )}
-                        </button>
                       </td>
                       <td>
                         <DropdownMenu>
@@ -269,7 +198,7 @@ const PasseportsPage = () => {
                   ))}
                   {paginatedPasseports.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <td colSpan={6} className="text-center py-8 text-muted-foreground">
                         {searchQuery ? `Aucun passeport trouvé pour "${searchQuery}"` : 'Aucun passeport'}
                       </td>
                     </tr>

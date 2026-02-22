@@ -27,6 +27,9 @@ export class Passeport {
   numeroPasseport: string;
 
   @Column({ nullable: true })
+  nin: string;
+
+  @Column({ nullable: true })
   pdfPasseport: string;
 
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })

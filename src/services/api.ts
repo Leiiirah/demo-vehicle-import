@@ -504,9 +504,12 @@ export interface Passeport {
   telephone: string;
   adresse?: string;
   numeroPasseport: string;
+  nin?: string;
   pdfPasseport?: string;
   montantDu: number;
   paye: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreatePasseportData {
@@ -515,6 +518,7 @@ export interface CreatePasseportData {
   telephone: string;
   adresse?: string;
   numeroPasseport: string;
+  nin?: string;
   pdfPasseport?: string;
   montantDu?: number;
   paye?: boolean;

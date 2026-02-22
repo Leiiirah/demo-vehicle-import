@@ -9,15 +9,14 @@ import {
   Edit,
   BookUser,
   FileText,
-  Check,
-  X,
-  AlertCircle
+  AlertCircle,
+  Download,
+  CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
 import { EditPasseportDialog } from '@/components/clients/EditPasseportDialog';
 
 const PasseportDetailPage = () => {
@@ -26,18 +25,50 @@ const PasseportDetailPage = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   
   const { data: passeport, isLoading, error } = usePasseport(id || '');
-  const updatePasseport = useUpdatePasseport();
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
+  const exportPDF = () => {
+    if (!passeport) return;
 
-  const handleMarkAsPaid = () => {
-    if (passeport) {
-      updatePasseport.mutate({ id: passeport.id, data: { paye: true } });
+    const content = `
+      <html>
+      <head>
+        <title>Passeport - ${passeport.nom} ${passeport.prenom}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+          h1 { color: #1a1a2e; border-bottom: 2px solid #1a1a2e; padding-bottom: 10px; }
+          .section { margin: 20px 0; }
+          .label { font-weight: bold; color: #555; display: inline-block; width: 220px; }
+          .value { display: inline-block; }
+          .row { padding: 8px 0; border-bottom: 1px solid #eee; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .header h1 { font-size: 24px; }
+          .header p { color: #666; }
+          @media print { body { padding: 20px; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Fiche Passeport</h1>
+          <p>Date d'export : ${new Date().toLocaleDateString('fr-FR')}</p>
+        </div>
+        <div class="section">
+          <div class="row"><span class="label">Nom :</span><span class="value">${passeport.nom}</span></div>
+          <div class="row"><span class="label">Prénom :</span><span class="value">${passeport.prenom}</span></div>
+          <div class="row"><span class="label">Téléphone :</span><span class="value">${passeport.telephone}</span></div>
+          <div class="row"><span class="label">Adresse :</span><span class="value">${passeport.adresse || '-'}</span></div>
+          <div class="row"><span class="label">Numéro de passeport :</span><span class="value">${passeport.numeroPasseport}</span></div>
+          <div class="row"><span class="label">NIN :</span><span class="value">${passeport.nin || '-'}</span></div>
+          <div class="row"><span class="label">Date de création :</span><span class="value">${new Date(passeport.createdAt).toLocaleDateString('fr-FR')}</span></div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(content);
+      printWindow.document.close();
+      printWindow.print();
     }
   };
 
@@ -50,7 +81,6 @@ const PasseportDetailPage = () => {
             <Skeleton className="h-48" />
             <Skeleton className="h-48" />
           </div>
-          <Skeleton className="h-32" />
         </div>
       </DashboardLayout>
     );
@@ -104,6 +134,10 @@ const PasseportDetailPage = () => {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" onClick={exportPDF}>
+              <Download className="h-4 w-4 mr-2" />
+              Exporter PDF
+            </Button>
             <Button 
               className="bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={() => setEditDialogOpen(true)}
@@ -134,6 +168,13 @@ const PasseportDetailPage = () => {
                 <FileText className="h-4 w-4 text-muted-foreground" />
                 <span className="font-mono">{passeport.numeroPasseport}</span>
               </div>
+              <div className="flex items-center gap-3">
+                <CreditCard className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <span className="text-sm text-muted-foreground">NIN : </span>
+                  <span className="font-mono">{passeport.nin || '-'}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -161,60 +202,6 @@ const PasseportDetailPage = () => {
                   Aucun document attaché
                 </p>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Paiement */}
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-lg">Paiement</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="p-4 bg-primary/5 rounded-lg">
-                  <p className="text-sm text-muted-foreground">Montant dû</p>
-                  <p className="text-2xl font-bold text-primary mt-1">
-                    {formatCurrency(passeport.montantDu || 0)}
-                  </p>
-                </div>
-                <div className="p-4 bg-accent/50 rounded-lg">
-                  <p className="text-sm text-muted-foreground">Statut</p>
-                  <div className="mt-2">
-                    <span
-                      className={cn(
-                        'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium',
-                        passeport.paye
-                          ? 'bg-success/10 text-success'
-                          : 'bg-warning/10 text-warning'
-                      )}
-                    >
-                      {passeport.paye ? (
-                        <>
-                          <Check className="h-4 w-4" />
-                          Payé
-                        </>
-                      ) : (
-                        <>
-                          <X className="h-4 w-4" />
-                          Non payé
-                        </>
-                      )}
-                    </span>
-                  </div>
-                </div>
-                {!passeport.paye && (
-                  <div className="flex items-center">
-                    <Button 
-                      className="bg-success text-success-foreground hover:bg-success/90"
-                      onClick={handleMarkAsPaid}
-                      disabled={updatePasseport.isPending}
-                    >
-                      <Check className="h-4 w-4 mr-2" />
-                      Marquer comme payé
-                    </Button>
-                  </div>
-                )}
-              </div>
             </CardContent>
           </Card>
         </div>

@@ -14,8 +14,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { BookUser, Upload, X, File, Loader2 } from 'lucide-react';
 
 interface AddPasseportDialogProps {
@@ -33,15 +31,13 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Form state
   const [nom, setNom] = useState('');
   const [prenom, setPrenom] = useState('');
   const [telephone, setTelephone] = useState('');
   const [adresse, setAdresse] = useState('');
   const [numeroPasseport, setNumeroPasseport] = useState('');
+  const [nin, setNin] = useState('');
   const [pdfPasseport, setPdfPasseport] = useState<UploadedFile | null>(null);
-  const [montant, setMontant] = useState('10000');
-  const [paye, setPaye] = useState(false);
 
   const createMutation = useMutation({
     mutationFn: (data: CreatePasseportData) => api.createPasseport(data),
@@ -69,9 +65,8 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
     setTelephone('');
     setAdresse('');
     setNumeroPasseport('');
+    setNin('');
     setPdfPasseport(null);
-    setMontant('10000');
-    setPaye(false);
   };
 
   const handleFileSelect = () => {
@@ -111,8 +106,7 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
       telephone: telephone.trim(),
       adresse: adresse.trim() || undefined,
       numeroPasseport: numeroPasseport.trim(),
-      montantDu: parseFloat(montant) || 10000,
-      paye,
+      nin: nin.trim() || undefined,
     });
   };
 
@@ -132,7 +126,7 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
             Ajouter un passeport
           </DialogTitle>
           <DialogDescription>
-            Enregistrez un nouveau passeport avec paiement
+            Enregistrez un nouveau passeport
           </DialogDescription>
         </DialogHeader>
 
@@ -171,6 +165,17 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
               />
             </div>
 
+            {/* Adresse */}
+            <div className="space-y-2">
+              <Label htmlFor="adresse">Adresse</Label>
+              <Input 
+                id="adresse" 
+                placeholder="Ex: Alger, Algérie" 
+                value={adresse}
+                onChange={(e) => setAdresse(e.target.value)}
+              />
+            </div>
+
             {/* Numéro de passeport */}
             <div className="space-y-2">
               <Label htmlFor="numeroPasseport">Numéro de passeport *</Label>
@@ -180,6 +185,18 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
                 className="font-mono" 
                 value={numeroPasseport}
                 onChange={(e) => setNumeroPasseport(e.target.value)}
+              />
+            </div>
+
+            {/* NIN */}
+            <div className="space-y-2">
+              <Label htmlFor="nin">NIN (Numéro d'Identification Nationale)</Label>
+              <Input 
+                id="nin" 
+                placeholder="Ex: 1234567890123456789" 
+                className="font-mono" 
+                value={nin}
+                onChange={(e) => setNin(e.target.value)}
               />
             </div>
 
@@ -219,38 +236,6 @@ export const AddPasseportDialog = ({ open, onOpenChange }: AddPasseportDialogPro
                   </span>
                 </button>
               )}
-            </div>
-
-            {/* Séparateur */}
-            <div className="border-t border-border pt-4">
-              <h3 className="font-medium text-sm mb-3">Paiement</h3>
-              
-              {/* Montant dû */}
-              <div className="space-y-2">
-                <Label htmlFor="montant">Montant dû (DZD)</Label>
-                <Input 
-                  id="montant" 
-                  type="number"
-                  value={montant}
-                  onChange={(e) => setMontant(e.target.value)}
-                  placeholder="10000"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Par défaut : 10 000 DZD
-                </p>
-              </div>
-
-              {/* Checkbox Payé */}
-              <div className="flex items-center space-x-2 mt-4">
-                <Checkbox 
-                  id="paye" 
-                  checked={paye}
-                  onCheckedChange={(checked) => setPaye(checked === true)}
-                />
-                <Label htmlFor="paye" className="text-sm font-normal cursor-pointer">
-                  Marquer comme payé
-                </Label>
-              </div>
             </div>
           </div>
         </ScrollableDialogBody>
