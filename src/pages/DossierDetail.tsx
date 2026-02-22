@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useDossier, useDeleteConteneur } from '@/hooks/useApi';
+import { useDossier, useDeleteConteneur, useUpdateConteneur } from '@/hooks/useApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,7 @@ import { AddPaymentDialog } from '@/components/payments/AddPaymentDialog';
 import { DossierAnalytics } from '@/components/dossiers/DossierAnalytics';
 import { DossierPaymentLedger } from '@/components/dossiers/DossierPaymentLedger';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -54,7 +55,18 @@ export default function DossierDetailPage() {
 
   const { data: dossier, isLoading, error } = useDossier(id || '');
   const deleteConteneur = useDeleteConteneur();
+  const updateConteneur = useUpdateConteneur();
   const { toast } = useToast();
+
+  const handleStatusChange = (conteneurId: string, newStatus: string) => {
+    updateConteneur.mutate(
+      { id: conteneurId, data: { status: newStatus as any } },
+      {
+        onSuccess: () => toast({ title: 'Statut mis à jour' }),
+        onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+      }
+    );
+  };
 
   if (isLoading) {
     return (
@@ -239,9 +251,21 @@ export default function DossierDetailPage() {
                           <TableCell>{formatCurrency(Number(conteneur.coutTransport || 0))}</TableCell>
                           <TableCell className="text-center">{conteneur.vehicles?.length || 0}</TableCell>
                           <TableCell>
-                            <Badge variant="outline" className={cStatus.className}>
-                              {cStatus.label}
-                            </Badge>
+                            <Select
+                              value={conteneur.status}
+                              onValueChange={(val) => handleStatusChange(conteneur.id, val)}
+                            >
+                              <SelectTrigger
+                                className="h-8 w-[140px]"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="charge">Chargée</SelectItem>
+                                <SelectItem value="decharge">Déchargée</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
