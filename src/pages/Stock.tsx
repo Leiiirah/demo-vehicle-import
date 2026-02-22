@@ -22,10 +22,8 @@ import {
 } from '@/components/ui/select';
 
 const statusOptions = [
-  { value: 'en_chargement', label: 'En Chargement' },
-  { value: 'en_transit', label: 'En Transit' },
-  { value: 'arrive', label: 'Arrivé' },
-  { value: 'dedouane', label: 'Dédouané' },
+  { value: 'charge', label: 'Chargée' },
+  { value: 'decharge', label: 'Déchargée' },
 ];
 
 const formatCurrency = (amount: number) =>
@@ -38,9 +36,9 @@ export default function StockPage() {
   const updateConteneur = useUpdateConteneur();
   const { toast } = useToast();
 
-  // Only decharged containers (arrive + dedouane mapped to "Déchargée")
+  // Only decharged containers
   const dechargedConteneurs = (conteneurs || []).filter(
-    (c) => c.status === 'arrive' || c.status === 'dedouane'
+    (c) => c.status === 'decharge'
   );
 
   const filteredConteneurs = dechargedConteneurs.filter(

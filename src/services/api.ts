@@ -398,7 +398,7 @@ export interface Conteneur {
   dossierId: string;
   dossier?: Dossier;
   type: '20ft' | '40ft' | '40ft_hc';
-  status: 'en_chargement' | 'en_transit' | 'arrive' | 'dedouane';
+  status: 'charge' | 'decharge';
   coutTransport: number;
   dateDepart?: string;
   dateArrivee?: string;
@@ -409,7 +409,7 @@ export interface CreateConteneurData {
   numero: string;
   dossierId: string;
   type?: '20ft' | '40ft' | '40ft_hc';
-  status?: 'en_chargement' | 'en_transit' | 'arrive' | 'dedouane';
+  status?: 'charge' | 'decharge';
   coutTransport?: number;
   dateDepart?: string;
   dateArrivee?: string;

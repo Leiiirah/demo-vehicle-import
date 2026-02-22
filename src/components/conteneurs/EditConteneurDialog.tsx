@@ -34,7 +34,7 @@ interface EditConteneurDialogProps {
 }
 
 type ConteneurType = '20ft' | '40ft' | '40ft_hc';
-type ConteneurStatus = 'en_chargement' | 'en_transit' | 'arrive' | 'dedouane';
+type ConteneurStatus = 'charge' | 'decharge';
 
 export function EditConteneurDialog({ open, onOpenChange, conteneur }: EditConteneurDialogProps) {
   const queryClient = useQueryClient();
@@ -42,7 +42,7 @@ export function EditConteneurDialog({ open, onOpenChange, conteneur }: EditConte
     numero: '',
     dossierId: '',
     type: '40ft' as ConteneurType,
-    status: 'en_chargement' as ConteneurStatus,
+    status: 'charge' as ConteneurStatus,
     coutTransport: 0,
     dateDepart: '',
     dateArrivee: '',
@@ -59,7 +59,7 @@ export function EditConteneurDialog({ open, onOpenChange, conteneur }: EditConte
         numero: conteneur.numero || '',
         dossierId: conteneur.dossierId || '',
         type: (conteneur.type as ConteneurType) || '40ft',
-        status: (conteneur.status as ConteneurStatus) || 'en_chargement',
+        status: (conteneur.status as ConteneurStatus) || 'charge',
         coutTransport: conteneur.coutTransport || 0,
         dateDepart: conteneur.dateDepart?.split('T')[0] || '',
         dateArrivee: conteneur.dateArrivee?.split('T')[0] || '',
@@ -149,10 +149,8 @@ export function EditConteneurDialog({ open, onOpenChange, conteneur }: EditConte
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="en_chargement">En chargement</SelectItem>
-                  <SelectItem value="en_transit">En transit</SelectItem>
-                  <SelectItem value="arrive">Arrivé</SelectItem>
-                  <SelectItem value="dedouane">Dédouané</SelectItem>
+                  <SelectItem value="charge">Chargée</SelectItem>
+                  <SelectItem value="decharge">Déchargée</SelectItem>
                 </SelectContent>
               </Select>
             </div>

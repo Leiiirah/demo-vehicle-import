@@ -21,10 +21,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from 'sonner';
 
 const statusConfig = {
-  en_chargement: { label: 'En chargement', className: 'bg-warning/10 text-warning border-warning/30' },
-  en_transit: { label: 'En transit', className: 'bg-primary/10 text-primary border-primary/30' },
-  arrive: { label: 'Arrivé', className: 'bg-success/10 text-success border-success/30' },
-  dedouane: { label: 'Dédouané', className: 'bg-muted text-muted-foreground border-muted-foreground/30' },
+  charge: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
+  decharge: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
 };
 
 const vehicleStatusConfig = {
@@ -91,7 +89,7 @@ export default function ConteneurDetailPage() {
     );
   }
 
-  const status = statusConfig[conteneur.status as keyof typeof statusConfig] || statusConfig.en_chargement;
+  const status = statusConfig[conteneur.status as keyof typeof statusConfig] || statusConfig.charge;
   const vehicules = conteneur.vehicles || [];
 
   return (
@@ -221,9 +219,7 @@ export default function ConteneurDetailPage() {
                   <div
                     className="absolute h-1 bg-primary rounded-full"
                     style={{ 
-                      width: conteneur.status === 'en_transit' ? '50%' : 
-                             conteneur.status === 'arrive' || conteneur.status === 'dedouane' ? '100%' : 
-                             conteneur.status === 'en_chargement' ? '10%' : '0%' 
+                      width: conteneur.status === 'decharge' ? '100%' : '10%' 
                     }}
                   />
                 </div>
