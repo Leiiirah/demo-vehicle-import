@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api, Dossier, Conteneur, Vehicle } from '@/services/api';
+import { api } from '@/services/api';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useSupplier, useDossiers, useConteneurs, useVehicles } from '@/hooks/useApi';
+import { useSupplier, useDossiers, useVehicles } from '@/hooks/useApi';
 import { 
   Building2, 
   ArrowLeft, 
@@ -15,9 +15,6 @@ import {
   Edit,
   AlertCircle,
   Trash2,
-  ChevronRight,
-  ChevronDown,
-  Package,
   FolderOpen,
   Plus,
 } from 'lucide-react';
@@ -35,8 +32,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { EditSupplierDialog } from '@/components/suppliers/EditSupplierDialog';
 import { AddDossierDialog } from '@/components/dossiers/AddDossierDialog';
-import { AddConteneurDialog } from '@/components/conteneurs/AddConteneurDialog';
-import AddVehicleDialog from '@/components/vehicles/AddVehicleDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,45 +50,14 @@ const SupplierDetailPage = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addDossierOpen, setAddDossierOpen] = useState(false);
-  const [addConteneurOpen, setAddConteneurOpen] = useState(false);
-  const [addConteneurDossierId, setAddConteneurDossierId] = useState('');
-  const [addVehicleOpen, setAddVehicleOpen] = useState(false);
-  const [addVehicleConteneurId, setAddVehicleConteneurId] = useState('');
-  const [expandedDossiers, setExpandedDossiers] = useState<Set<string>>(new Set());
-  const [expandedConteneurs, setExpandedConteneurs] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
 
   const { data: supplier, isLoading, error } = useSupplier(id || '');
   const { data: allDossiers } = useDossiers();
-  const { data: allConteneurs } = useConteneurs();
   const { data: allVehicles } = useVehicles();
 
   const supplierDossiers = (allDossiers || []).filter(d => d.supplierId === id);
   const supplierVehicles = (allVehicles || []).filter(v => v.supplierId === id);
-
-  const getConteneursForDossier = (dossierId: string) =>
-    (allConteneurs || []).filter(c => c.dossierId === dossierId);
-
-  const getVehiclesForConteneur = (conteneurId: string) =>
-    (allVehicles || []).filter(v => v.conteneurId === conteneurId);
-
-  const toggleDossier = (dossierId: string) => {
-    setExpandedDossiers(prev => {
-      const next = new Set(prev);
-      if (next.has(dossierId)) next.delete(dossierId);
-      else next.add(dossierId);
-      return next;
-    });
-  };
-
-  const toggleConteneur = (conteneurId: string) => {
-    setExpandedConteneurs(prev => {
-      const next = new Set(prev);
-      if (next.has(conteneurId)) next.delete(conteneurId);
-      else next.add(conteneurId);
-      return next;
-    });
-  };
 
   const deleteMutation = useMutation({
     mutationFn: () => api.deleteSupplier(id!),
@@ -135,38 +99,6 @@ const SupplierDetailPage = () => {
     return <Badge variant="outline" className={styles[status]}>{labels[status]}</Badge>;
   };
 
-  const getConteneurStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      en_chargement: 'bg-muted text-muted-foreground border-muted',
-      en_transit: 'bg-warning/10 text-warning border-warning/20',
-      arrive: 'bg-success/10 text-success border-success/20',
-      dedouane: 'bg-primary/10 text-primary border-primary/20',
-    };
-    const labels: Record<string, string> = {
-      en_chargement: 'En chargement',
-      en_transit: 'En transit',
-      arrive: 'Arrivé',
-      dedouane: 'Dédouané',
-    };
-    return <Badge variant="outline" className={styles[status]}>{labels[status]}</Badge>;
-  };
-
-  const getVehicleStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      ordered: 'bg-primary/10 text-primary border-primary/20',
-      in_transit: 'bg-warning/10 text-warning border-warning/20',
-      arrived: 'bg-success/10 text-success border-success/20',
-      sold: 'bg-muted text-muted-foreground border-muted',
-    };
-    const labels: Record<string, string> = {
-      ordered: 'Commandé',
-      in_transit: 'En transit',
-      arrived: 'Arrivé',
-      sold: 'Vendu',
-    };
-    return <Badge variant="outline" className={styles[status]}>{labels[status]}</Badge>;
-  };
-
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -202,11 +134,7 @@ const SupplierDetailPage = () => {
         {/* En-tête */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex items-start gap-4">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => navigate('/suppliers')}
-            >
+            <Button variant="ghost" size="icon" onClick={() => navigate('/suppliers')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-4">
@@ -223,18 +151,11 @@ const SupplierDetailPage = () => {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button 
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-              onClick={() => setEditDialogOpen(true)}
-            >
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setEditDialogOpen(true)}>
               <Edit className="h-4 w-4 mr-2" />
               Modifier
             </Button>
-            <Button 
-              variant="outline"
-              className="text-destructive border-destructive/30 hover:bg-destructive/10"
-              onClick={() => setDeleteDialogOpen(true)}
-            >
+            <Button variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => setDeleteDialogOpen(true)}>
               <Trash2 className="h-4 w-4 mr-2" />
               Supprimer
             </Button>
@@ -297,7 +218,7 @@ const SupplierDetailPage = () => {
           </Card>
         </div>
 
-        {/* Hierarchical Dossiers → Conteneurs → Véhicules */}
+        {/* Dossiers Table */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -310,191 +231,55 @@ const SupplierDetailPage = () => {
             </Button>
           </div>
 
-          {supplierDossiers.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground bg-card rounded-xl border border-border">
-              Aucun dossier pour ce fournisseur
-            </div>
-          ) : (
-            <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-              {supplierDossiers.map((dossier) => {
-                const isDossierExpanded = expandedDossiers.has(dossier.id);
-                const conteneurs = getConteneursForDossier(dossier.id);
-                return (
-                  <div key={dossier.id} className="border-b border-border last:border-b-0">
-                    {/* Dossier row */}
-                    <div
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 cursor-pointer"
-                      onClick={() => toggleDossier(dossier.id)}
+          <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Référence</TableHead>
+                  <TableHead>Date de création</TableHead>
+                  <TableHead>Conteneurs</TableHead>
+                  <TableHead>Statut</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {supplierDossiers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                      Aucun dossier pour ce fournisseur
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  supplierDossiers.map((dossier) => (
+                    <TableRow
+                      key={dossier.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => navigate(`/dossiers/${dossier.id}`)}
                     >
-                      <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
-                        {isDossierExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                      </Button>
-                      <FolderOpen className="h-4 w-4 text-primary shrink-0" />
-                      <span className="font-medium text-foreground">{dossier.reference}</span>
-                      {getDossierStatusBadge(dossier.status)}
-                      <span className="text-sm text-muted-foreground ml-auto">
-                        {new Date(dossier.dateCreation).toLocaleDateString('fr-FR')}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {conteneurs.length} conteneur{conteneurs.length !== 1 ? 's' : ''}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 shrink-0"
-                        onClick={(e) => { e.stopPropagation(); navigate(`/dossiers/${dossier.id}`); }}
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    {/* Conteneurs under dossier */}
-                    {isDossierExpanded && (
-                      <div className="bg-muted/30">
-                        <div className="flex items-center justify-end px-4 py-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-1.5"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setAddConteneurDossierId(dossier.id);
-                              setAddConteneurOpen(true);
-                            }}
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                            Nouveau Conteneur
-                          </Button>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <FolderOpen className="h-4 w-4 text-primary" />
+                          {dossier.reference}
                         </div>
-                        {conteneurs.length === 0 ? (
-                          <div className="pl-16 py-3 text-sm text-muted-foreground">
-                            Aucun conteneur dans ce dossier
-                          </div>
-                        ) : (
-                          conteneurs.map((conteneur) => {
-                            const isConteneurExpanded = expandedConteneurs.has(conteneur.id);
-                            const vehicles = getVehiclesForConteneur(conteneur.id);
-                            return (
-                              <div key={conteneur.id}>
-                                {/* Conteneur row */}
-                                <div
-                                  className="flex items-center gap-3 pl-12 pr-4 py-2.5 hover:bg-muted/50 cursor-pointer"
-                                  onClick={() => toggleConteneur(conteneur.id)}
-                                >
-                                  <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
-                                    {isConteneurExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-                                  </Button>
-                                  <Package className="h-4 w-4 text-muted-foreground shrink-0" />
-                                  <span className="font-medium text-foreground text-sm">{conteneur.numero}</span>
-                                  <Badge variant="outline" className="text-xs">{conteneur.type}</Badge>
-                                  {getConteneurStatusBadge(conteneur.status)}
-                                  <span className="text-xs text-muted-foreground ml-auto">
-                                    {vehicles.length} véhicule{vehicles.length !== 1 ? 's' : ''}
-                                  </span>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 shrink-0"
-                                    onClick={(e) => { e.stopPropagation(); navigate(`/conteneurs/${conteneur.id}`); }}
-                                  >
-                                    <ChevronRight className="h-4 w-4" />
-                                  </Button>
-                                </div>
-
-                                {/* Vehicles table under conteneur */}
-                                {isConteneurExpanded && (
-                                  <div className="pl-20 pr-4 pb-3">
-                                    <div className="flex items-center justify-end mb-2">
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="gap-1.5"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setAddVehicleConteneurId(conteneur.id);
-                                          setAddVehicleOpen(true);
-                                        }}
-                                      >
-                                        <Plus className="h-3.5 w-3.5" />
-                                        Nouveau Véhicule
-                                      </Button>
-                                    </div>
-                                    {vehicles.length === 0 ? (
-                                      <div className="py-3 text-sm text-muted-foreground">
-                                        Aucun véhicule dans ce conteneur
-                                      </div>
-                                    ) : (
-                                      <Table>
-                                        <TableHeader>
-                                          <TableRow>
-                                            <TableHead className="text-xs">Véhicule</TableHead>
-                                            <TableHead className="text-xs">VIN</TableHead>
-                                            <TableHead className="text-xs text-right">Prix achat</TableHead>
-                                            <TableHead className="text-xs">Statut</TableHead>
-                                          </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                          {vehicles.map((vehicle) => (
-                                            <TableRow
-                                              key={vehicle.id}
-                                              className="cursor-pointer hover:bg-muted/50"
-                                              onClick={(e) => { e.stopPropagation(); navigate(`/vehicles/${vehicle.id}`); }}
-                                            >
-                                              <TableCell className="text-sm">
-                                                <div className="flex items-center gap-2">
-                                                  <Car className="h-3.5 w-3.5 text-muted-foreground" />
-                                                  <span className="font-medium">{vehicle.brand} {vehicle.model}</span>
-                                                  <span className="text-muted-foreground">{vehicle.year}</span>
-                                                </div>
-                                              </TableCell>
-                                              <TableCell className="text-sm text-muted-foreground font-mono">{vehicle.vin}</TableCell>
-                                              <TableCell className="text-sm text-right">{formatCurrency(vehicle.purchasePrice)}</TableCell>
-                                              <TableCell>{getVehicleStatusBadge(vehicle.status)}</TableCell>
-                                            </TableRow>
-                                          ))}
-                                        </TableBody>
-                                      </Table>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(dossier.dateCreation).toLocaleDateString('fr-FR')}
+                      </TableCell>
+                      <TableCell>
+                        {dossier.conteneurs?.length || 0} conteneur{(dossier.conteneurs?.length || 0) !== 1 ? 's' : ''}
+                      </TableCell>
+                      <TableCell>{getDossierStatusBadge(dossier.status)}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
 
-      <EditSupplierDialog 
-        open={editDialogOpen} 
-        onOpenChange={setEditDialogOpen} 
-        supplier={supplier}
-      />
+      <EditSupplierDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} supplier={supplier} />
 
-      <AddDossierDialog
-        open={addDossierOpen}
-        onOpenChange={setAddDossierOpen}
-        preSelectedSupplierId={id}
-      />
-
-      <AddConteneurDialog
-        open={addConteneurOpen}
-        onOpenChange={setAddConteneurOpen}
-        preSelectedDossierId={addConteneurDossierId}
-      />
-
-      <AddVehicleDialog
-        open={addVehicleOpen}
-        onOpenChange={setAddVehicleOpen}
-        preSelectedConteneurId={addVehicleConteneurId}
-        preSelectedSupplierId={id}
-      />
+      <AddDossierDialog open={addDossierOpen} onOpenChange={setAddDossierOpen} preSelectedSupplierId={id} />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
