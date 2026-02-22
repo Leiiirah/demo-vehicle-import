@@ -345,7 +345,13 @@ const VehicleDetailPage = () => {
       <div className="space-y-6">
         {/* En-tête */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/vehicles')}>
+          <Button variant="ghost" size="icon" onClick={() => {
+            if (vehicle.conteneurId) {
+              navigate(`/conteneurs/${vehicle.conteneurId}`);
+            } else {
+              navigate('/vehicles');
+            }
+          }}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           {vehicle.photoUrl ? (
