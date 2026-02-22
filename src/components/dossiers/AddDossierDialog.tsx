@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, CreateDossierData } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
@@ -27,16 +27,23 @@ import { FolderOpen, Building2, Calendar, FileText, Loader2 } from 'lucide-react
 interface AddDossierDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  preSelectedSupplierId?: string;
 }
 
-export const AddDossierDialog = ({ open, onOpenChange }: AddDossierDialogProps) => {
+export const AddDossierDialog = ({ open, onOpenChange, preSelectedSupplierId }: AddDossierDialogProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const [reference, setReference] = useState('');
-  const [supplierId, setSupplierId] = useState('');
+  const [supplierId, setSupplierId] = useState(preSelectedSupplierId || '');
   const [dateCreation, setDateCreation] = useState(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
+
+  useEffect(() => {
+    if (preSelectedSupplierId) {
+      setSupplierId(preSelectedSupplierId);
+    }
+  }, [preSelectedSupplierId]);
 
   // Fetch suppliers from API
   const { data: suppliers = [], isLoading: loadingSuppliers } = useQuery({
@@ -92,7 +99,7 @@ export const AddDossierDialog = ({ open, onOpenChange }: AddDossierDialogProps) 
 
   const resetForm = () => {
     setReference('');
-    setSupplierId('');
+    setSupplierId(preSelectedSupplierId || '');
     setDateCreation(new Date().toISOString().split('T')[0]);
     setNotes('');
   };
@@ -139,46 +146,63 @@ export const AddDossierDialog = ({ open, onOpenChange }: AddDossierDialogProps) 
             </div>
 
             {/* Sélection Fournisseur */}
-            <div className="space-y-2">
-              <Label htmlFor="supplier" className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-muted-foreground" />
-                Fournisseur *
-              </Label>
-              <Select value={supplierId} onValueChange={setSupplierId} disabled={loadingSuppliers}>
-                <SelectTrigger id="supplier">
-                  <SelectValue placeholder={loadingSuppliers ? 'Chargement...' : 'Sélectionner un fournisseur'} />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border border-border shadow-lg z-50">
-                  {suppliers.map((supplier) => (
-                    <SelectItem key={supplier.id} value={supplier.id}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{supplier.name}</span>
-                        <span className="text-xs text-muted-foreground">{supplier.location}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Info fournisseur sélectionné */}
-            {selectedSupplier && (
-              <div className="p-3 bg-accent/50 rounded-lg space-y-1">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Localisation</span>
-                  <span className="font-medium">{selectedSupplier.location}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Véhicules fournis</span>
-                  <span className="font-medium">{selectedSupplier.vehiclesSupplied}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Dette en cours</span>
-                  <span className="font-medium text-warning">
-                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(selectedSupplier.remainingDebt)}
-                  </span>
+            {preSelectedSupplierId ? (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  Fournisseur
+                </Label>
+                <div className="p-3 bg-accent/50 rounded-lg">
+                  <span className="font-medium">{selectedSupplier?.name || 'Fournisseur'}</span>
+                  {selectedSupplier?.location && (
+                    <span className="text-xs text-muted-foreground ml-2">({selectedSupplier.location})</span>
+                  )}
                 </div>
               </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="supplier" className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    Fournisseur *
+                  </Label>
+                  <Select value={supplierId} onValueChange={setSupplierId} disabled={loadingSuppliers}>
+                    <SelectTrigger id="supplier">
+                      <SelectValue placeholder={loadingSuppliers ? 'Chargement...' : 'Sélectionner un fournisseur'} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border border-border shadow-lg z-50">
+                      {suppliers.map((supplier) => (
+                        <SelectItem key={supplier.id} value={supplier.id}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{supplier.name}</span>
+                            <span className="text-xs text-muted-foreground">{supplier.location}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Info fournisseur sélectionné */}
+                {selectedSupplier && (
+                  <div className="p-3 bg-accent/50 rounded-lg space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Localisation</span>
+                      <span className="font-medium">{selectedSupplier.location}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Véhicules fournis</span>
+                      <span className="font-medium">{selectedSupplier.vehiclesSupplied}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Dette en cours</span>
+                      <span className="font-medium text-warning">
+                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(selectedSupplier.remainingDebt)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Date de création */}

@@ -19,6 +19,7 @@ import {
   ChevronDown,
   Package,
   FolderOpen,
+  Plus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -33,6 +34,9 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EditSupplierDialog } from '@/components/suppliers/EditSupplierDialog';
+import { AddDossierDialog } from '@/components/dossiers/AddDossierDialog';
+import { AddConteneurDialog } from '@/components/conteneurs/AddConteneurDialog';
+import AddVehicleDialog from '@/components/vehicles/AddVehicleDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,6 +54,11 @@ const SupplierDetailPage = () => {
   const navigate = useNavigate();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [addDossierOpen, setAddDossierOpen] = useState(false);
+  const [addConteneurOpen, setAddConteneurOpen] = useState(false);
+  const [addConteneurDossierId, setAddConteneurDossierId] = useState('');
+  const [addVehicleOpen, setAddVehicleOpen] = useState(false);
+  const [addVehicleConteneurId, setAddVehicleConteneurId] = useState('');
   const [expandedDossiers, setExpandedDossiers] = useState<Set<string>>(new Set());
   const [expandedConteneurs, setExpandedConteneurs] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
@@ -290,10 +299,16 @@ const SupplierDetailPage = () => {
 
         {/* Hierarchical Dossiers → Conteneurs → Véhicules */}
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <FolderOpen className="h-5 w-5 text-primary" />
-            Dossiers ({supplierDossiers.length})
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <FolderOpen className="h-5 w-5 text-primary" />
+              Dossiers ({supplierDossiers.length})
+            </h2>
+            <Button className="gap-2" onClick={() => setAddDossierOpen(true)}>
+              <Plus className="h-4 w-4" />
+              Nouveau Dossier
+            </Button>
+          </div>
 
           {supplierDossiers.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground bg-card rounded-xl border border-border">
@@ -336,6 +351,21 @@ const SupplierDetailPage = () => {
                     {/* Conteneurs under dossier */}
                     {isDossierExpanded && (
                       <div className="bg-muted/30">
+                        <div className="flex items-center justify-end px-4 py-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1.5"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAddConteneurDossierId(dossier.id);
+                              setAddConteneurOpen(true);
+                            }}
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                            Nouveau Conteneur
+                          </Button>
+                        </div>
                         {conteneurs.length === 0 ? (
                           <div className="pl-16 py-3 text-sm text-muted-foreground">
                             Aucun conteneur dans ce dossier
@@ -374,6 +404,21 @@ const SupplierDetailPage = () => {
                                 {/* Vehicles table under conteneur */}
                                 {isConteneurExpanded && (
                                   <div className="pl-20 pr-4 pb-3">
+                                    <div className="flex items-center justify-end mb-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-1.5"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setAddVehicleConteneurId(conteneur.id);
+                                          setAddVehicleOpen(true);
+                                        }}
+                                      >
+                                        <Plus className="h-3.5 w-3.5" />
+                                        Nouveau Véhicule
+                                      </Button>
+                                    </div>
                                     {vehicles.length === 0 ? (
                                       <div className="py-3 text-sm text-muted-foreground">
                                         Aucun véhicule dans ce conteneur
@@ -430,6 +475,25 @@ const SupplierDetailPage = () => {
         open={editDialogOpen} 
         onOpenChange={setEditDialogOpen} 
         supplier={supplier}
+      />
+
+      <AddDossierDialog
+        open={addDossierOpen}
+        onOpenChange={setAddDossierOpen}
+        preSelectedSupplierId={id}
+      />
+
+      <AddConteneurDialog
+        open={addConteneurOpen}
+        onOpenChange={setAddConteneurOpen}
+        preSelectedDossierId={addConteneurDossierId}
+      />
+
+      <AddVehicleDialog
+        open={addVehicleOpen}
+        onOpenChange={setAddVehicleOpen}
+        preSelectedConteneurId={addVehicleConteneurId}
+        preSelectedSupplierId={id}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
