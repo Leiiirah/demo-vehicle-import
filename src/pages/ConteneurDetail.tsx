@@ -269,23 +269,31 @@ export default function ConteneurDetailPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Véhicule</TableHead>
-                     <TableHead>VIN</TableHead>
-                     <TableHead>Année</TableHead>
-                     <TableHead>Client</TableHead>
-                     <TableHead>Statut</TableHead>
-                     <TableHead className="w-12"></TableHead>
+                    <TableHead>VIN</TableHead>
+                    <TableHead>Passeport</TableHead>
+                    <TableHead>Prix d'achat</TableHead>
+                    <TableHead>Transit</TableHead>
+                    <TableHead>Coût total</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead className="w-12"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {vehicules.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         Aucun véhicule dans ce conteneur
                       </TableCell>
                     </TableRow>
                   ) : (
                     vehicules.map((vehicule) => {
                       const vStatus = vehicleStatusConfig[vehicule.status as keyof typeof vehicleStatusConfig] || vehicleStatusConfig.ordered;
+                      const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
+                        if (currency === 'USD') {
+                          return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(amount);
+                        }
+                        return new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
+                      };
                       return (
                         <TableRow
                           key={vehicule.id}
@@ -299,14 +307,33 @@ export default function ConteneurDetailPage() {
                               ) : (
                                 <Car className="h-4 w-4 text-muted-foreground" />
                               )}
-                              {vehicule.brand} {vehicule.model}
+                              <div>
+                                <p>{vehicule.brand} {vehicule.model}</p>
+                                <p className="text-xs text-muted-foreground">{vehicule.year}</p>
+                              </div>
                             </div>
                           </TableCell>
-                          <TableCell className="font-mono text-sm">{vehicule.vin}</TableCell>
-                          <TableCell>{vehicule.year}</TableCell>
                           <TableCell>
-                            {vehicule.client ? `${vehicule.client.prenom} ${vehicule.client.nom}` : '-'}
+                            <code className="text-xs bg-muted px-2 py-1 rounded">{vehicule.vin}</code>
                           </TableCell>
+                          <TableCell>
+                            {vehicule.passeport ? (
+                              <span
+                                className="text-primary hover:underline cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/passeports/${vehicule.passeport.id}`);
+                                }}
+                              >
+                                {vehicule.passeport.prenom} {vehicule.passeport.nom}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>{formatCurrency(Number(vehicule.purchasePrice || 0), 'USD')}</TableCell>
+                          <TableCell>{formatCurrency(Number(vehicule.transportCost || 0), 'USD')}</TableCell>
+                          <TableCell className="font-medium">{formatCurrency(Number(vehicule.totalCost || 0))}</TableCell>
                           <TableCell>
                             <Badge variant="outline" className={vStatus.className}>
                               {vStatus.label}
