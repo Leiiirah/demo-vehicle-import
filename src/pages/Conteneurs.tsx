@@ -25,16 +25,14 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 const statusConfig = {
-  en_chargement: { label: 'En chargement', className: 'bg-warning/10 text-warning border-warning/30' },
-  en_transit: { label: 'En transit', className: 'bg-primary/10 text-primary border-primary/30' },
-  arrive: { label: 'Arrivé', className: 'bg-success/10 text-success border-success/30' },
-  dedouane: { label: 'Dédouané', className: 'bg-muted text-muted-foreground border-muted-foreground/30' },
+  en_chargement: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
+  en_transit: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
+  arrive: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
+  dedouane: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
 };
 
-const typeLabels = {
-  '20ft': '20 pieds',
-  '40ft': '40 pieds',
-  '40ft_hc': '40 pieds HC',
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
 };
 
 export default function ConteneursPage() {
@@ -168,12 +166,11 @@ export default function ConteneursPage() {
                 <div className="rounded-md border">
                   <Table>
                     <TableHeader>
-                      <TableRow>
+                    <TableRow>
                         <TableHead>Numéro</TableHead>
-                        <TableHead>Dossier</TableHead>
-                        <TableHead>Type</TableHead>
                         <TableHead>Départ</TableHead>
                         <TableHead>Arrivée</TableHead>
+                        <TableHead>Prix Total</TableHead>
                         <TableHead className="text-center">Véhicules</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead className="w-12"></TableHead>
@@ -182,7 +179,7 @@ export default function ConteneursPage() {
                     <TableBody>
                       {paginatedConteneurs.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                             {searchTerm ? `Aucun conteneur trouvé pour "${searchTerm}"` : 'Aucun conteneur'}
                           </TableCell>
                         </TableRow>
@@ -202,18 +199,6 @@ export default function ConteneursPage() {
                                 </div>
                               </TableCell>
                               <TableCell>
-                                <button
-                                  className="text-primary hover:underline"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/dossiers/${conteneur.dossierId}`);
-                                  }}
-                                >
-                                  {conteneur.dossier?.reference || '-'}
-                                </button>
-                              </TableCell>
-                              <TableCell>{typeLabels[conteneur.type as keyof typeof typeLabels] || conteneur.type}</TableCell>
-                              <TableCell>
                                 {conteneur.dateDepart
                                   ? new Date(conteneur.dateDepart).toLocaleDateString('fr-FR')
                                   : '-'}
@@ -223,6 +208,7 @@ export default function ConteneursPage() {
                                   ? new Date(conteneur.dateArrivee).toLocaleDateString('fr-FR')
                                   : '-'}
                               </TableCell>
+                              <TableCell>{formatCurrency(Number(conteneur.coutTransport || 0))}</TableCell>
                               <TableCell className="text-center">{conteneur.vehicles?.length || 0}</TableCell>
                               <TableCell>
                                 <Badge variant="outline" className={status.className}>

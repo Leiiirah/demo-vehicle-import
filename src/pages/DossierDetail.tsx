@@ -35,16 +35,14 @@ const statusConfig = {
 };
 
 const conteneurStatusConfig = {
-  en_chargement: { label: 'En chargement', className: 'bg-warning/10 text-warning border-warning/30' },
-  en_transit: { label: 'En transit', className: 'bg-primary/10 text-primary border-primary/30' },
-  arrive: { label: 'Arrivé', className: 'bg-success/10 text-success border-success/30' },
-  dedouane: { label: 'Dédouané', className: 'bg-muted text-muted-foreground border-muted-foreground/30' },
+  en_chargement: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
+  en_transit: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
+  arrive: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
+  dedouane: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
 };
 
-const typeLabels = {
-  '20ft': '20 pieds',
-  '40ft': '40 pieds',
-  '40ft_hc': '40 pieds HC',
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
 };
 
 export default function DossierDetailPage() {
@@ -200,17 +198,18 @@ export default function DossierDetailPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Numéro</TableHead>
-                     <TableHead>Type</TableHead>
-                     <TableHead>Date Départ</TableHead>
-                     <TableHead className="text-center">Véhicules</TableHead>
-                     <TableHead>Statut</TableHead>
-                     <TableHead className="w-20"></TableHead>
+                    <TableHead>Départ</TableHead>
+                    <TableHead>Arrivée</TableHead>
+                    <TableHead>Prix Total</TableHead>
+                    <TableHead className="text-center">Véhicules</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead className="w-20"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {conteneurs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         Aucun conteneur dans ce dossier
                       </TableCell>
                     </TableRow>
@@ -229,12 +228,17 @@ export default function DossierDetailPage() {
                               {conteneur.numero}
                             </div>
                           </TableCell>
-                          <TableCell>{typeLabels[conteneur.type as keyof typeof typeLabels] || conteneur.type}</TableCell>
                           <TableCell>
                             {conteneur.dateDepart
                               ? new Date(conteneur.dateDepart).toLocaleDateString('fr-FR')
                               : '-'}
                           </TableCell>
+                          <TableCell>
+                            {conteneur.dateArrivee
+                              ? new Date(conteneur.dateArrivee).toLocaleDateString('fr-FR')
+                              : '-'}
+                          </TableCell>
+                          <TableCell>{formatCurrency(Number(conteneur.coutTransport || 0))}</TableCell>
                           <TableCell className="text-center">{conteneur.vehicles?.length || 0}</TableCell>
                           <TableCell>
                             <Badge variant="outline" className={cStatus.className}>
