@@ -2,15 +2,14 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class SimplifyConteneurStatus1707700000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Update existing data to new statuses
-    await queryRunner.query(`
-      UPDATE "conteneurs" SET "status" = 'en_chargement' WHERE "status" IN ('en_chargement', 'en_transit');
-    `);
-    await queryRunner.query(`
-      UPDATE "conteneurs" SET "status" = 'arrive' WHERE "status" IN ('arrive', 'dedouane');
-    `);
+    // Drop the default before altering the type (prevents cast error)
+    await queryRunner.query(`ALTER TABLE "conteneurs" ALTER COLUMN "status" DROP DEFAULT`);
 
-    // Alter the enum type
+    // Update existing data to simplified values
+    await queryRunner.query(`UPDATE "conteneurs" SET "status" = 'en_chargement' WHERE "status" IN ('en_chargement', 'en_transit')`);
+    await queryRunner.query(`UPDATE "conteneurs" SET "status" = 'arrive' WHERE "status" IN ('arrive', 'dedouane')`);
+
+    // Swap enum type
     await queryRunner.query(`ALTER TYPE "conteneur_status_enum" RENAME TO "conteneur_status_enum_old"`);
     await queryRunner.query(`CREATE TYPE "conteneur_status_enum" AS ENUM ('charge', 'decharge')`);
     await queryRunner.query(`
