@@ -25,10 +25,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 const statusConfig = {
-  en_chargement: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
-  en_transit: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
-  arrive: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
-  dedouane: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
+  charge: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
+  decharge: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
 };
 
 const formatCurrency = (amount: number) => {
@@ -65,8 +63,8 @@ export default function ConteneursPage() {
     );
   }
 
-  const enTransit = (conteneurs || []).filter((c) => c.status === 'en_transit').length;
-  const arrives = (conteneurs || []).filter((c) => c.status === 'arrive' || c.status === 'dedouane').length;
+  const charged = (conteneurs || []).filter((c) => c.status === 'charge').length;
+  const decharged = (conteneurs || []).filter((c) => c.status === 'decharge').length;
   const totalVehicles = (conteneurs || []).reduce((acc, c) => acc + (c.vehicles?.length || 0), 0);
 
   return (
@@ -107,20 +105,20 @@ export default function ConteneursPage() {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">En Transit</CardTitle>
+                  <CardTitle className="text-sm font-medium">Chargées</CardTitle>
                   <Ship className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-primary">{enTransit}</div>
+                  <div className="text-2xl font-bold text-primary">{charged}</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Arrivés</CardTitle>
+                  <CardTitle className="text-sm font-medium">Déchargées</CardTitle>
                   <Anchor className="h-4 w-4 text-success" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-success">{arrives}</div>
+                  <div className="text-2xl font-bold text-success">{decharged}</div>
                 </CardContent>
               </Card>
               <Card>
@@ -185,7 +183,7 @@ export default function ConteneursPage() {
                         </TableRow>
                       ) : (
                         paginatedConteneurs.map((conteneur) => {
-                          const status = statusConfig[conteneur.status as keyof typeof statusConfig] || statusConfig.en_chargement;
+                          const status = statusConfig[conteneur.status as keyof typeof statusConfig] || statusConfig.charge;
                           return (
                             <TableRow
                               key={conteneur.id}

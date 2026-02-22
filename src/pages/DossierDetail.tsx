@@ -35,10 +35,8 @@ const statusConfig = {
 };
 
 const conteneurStatusConfig = {
-  en_chargement: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
-  en_transit: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
-  arrive: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
-  dedouane: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
+  charge: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
+  decharge: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
 };
 
 const formatCurrency = (amount: number) => {
@@ -215,7 +213,7 @@ export default function DossierDetailPage() {
                     </TableRow>
                   ) : (
                     conteneurs.map((conteneur) => {
-                      const cStatus = conteneurStatusConfig[conteneur.status as keyof typeof conteneurStatusConfig] || conteneurStatusConfig.en_chargement;
+                      const cStatus = conteneurStatusConfig[conteneur.status as keyof typeof conteneurStatusConfig] || conteneurStatusConfig.charge;
                       return (
                         <TableRow
                           key={conteneur.id}

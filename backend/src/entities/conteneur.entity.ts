@@ -18,10 +18,8 @@ export enum ConteneurType {
 }
 
 export enum ConteneurStatus {
-  EN_CHARGEMENT = 'en_chargement',
-  EN_TRANSIT = 'en_transit',
-  ARRIVE = 'arrive',
-  DEDOUANE = 'dedouane',
+  CHARGE = 'charge',
+  DECHARGE = 'decharge',
 }
 
 @Entity('conteneurs')
@@ -49,7 +47,7 @@ export class Conteneur {
   @Column({
     type: 'enum',
     enum: ConteneurStatus,
-    default: ConteneurStatus.EN_CHARGEMENT,
+    default: ConteneurStatus.CHARGE,
   })
   status: ConteneurStatus;
 
