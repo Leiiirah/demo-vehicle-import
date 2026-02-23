@@ -5,7 +5,12 @@ import { Input } from '@/components/ui/input';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
 } from '@/components/ui/dialog';
-import { Landmark, Pencil, Loader2 } from 'lucide-react';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Landmark, Pencil, Loader2, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useCaisseBalance, useSetCaisseBalance } from '@/hooks/useCaisse';
 import { useToast } from '@/hooks/use-toast';
@@ -39,11 +44,39 @@ export function CaisseBalanceCard() {
     });
   };
 
+  const handleReset = () => {
+    setBalanceMutation.mutate(0, {
+      onSuccess: () => toast({ title: 'Solde de caisse remis à zéro' }),
+      onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+    });
+  };
+
   return (
     <Card className="border-amber-500/30 bg-amber-500/5">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">Solde Caisse (Disponible)</CardTitle>
         <div className="flex items-center gap-1">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive">
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remettre le solde à zéro ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Le solde de caisse disponible sera remis à 0 DZD. Cette action est irréversible.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={handleReset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Remettre à zéro
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleOpen}>
