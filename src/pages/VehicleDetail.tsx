@@ -4,6 +4,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useVehicle, useVehicleCharges, useCreateVehicleCharge, useDeleteVehicleCharge, useUpdateVehicleCharge, useDeleteVehicle } from '@/hooks/useApi';
 import { api, type Payment } from '@/services/api';
+import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -186,19 +187,6 @@ const VehicleDetailPage = () => {
     setHasChanges(true);
   };
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
-    if (currency === 'USD') {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-      }).format(amount);
-    }
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
 
   // Calculs
   const totalUSD = prixVehicule + prixTransport;

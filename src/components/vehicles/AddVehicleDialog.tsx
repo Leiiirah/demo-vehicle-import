@@ -24,6 +24,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Car, DollarSign, Truck, FileText, Plus, Trash2, CreditCard, Loader2, Upload, X } from 'lucide-react';
 import { api, type CreateVehicleData } from '@/services/api';
 import { toast } from '@/hooks/use-toast';
+import { formatCurrency } from '@/lib/utils';
 
 interface AddVehicleDialogProps {
   children?: React.ReactNode;
@@ -231,19 +232,6 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
   // Prix de revient
   const prixRevient = totalUSDenDZD + chargesTransit + totalChargesDivers;
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
-    if (currency === 'USD') {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-      }).format(amount);
-    }
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

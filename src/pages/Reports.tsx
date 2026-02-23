@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { useProfitHistory, useSuppliers, useClients } from '@/hooks/useApi';
 import { FileText, Download, Calendar, Loader2 } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -28,12 +29,6 @@ const ReportsPage = () => {
 
   const isLoading = loadingProfit || loadingSuppliers || loadingClients;
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
 
   const clientProfitData = clients.map((client: any) => ({
     name: client.name?.split(' ')[0] || 'N/A',

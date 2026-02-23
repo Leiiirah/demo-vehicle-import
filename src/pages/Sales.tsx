@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { TrendingUp, TrendingDown, DollarSign, Search, Download, Loader2, Car } from 'lucide-react';
 import { useVehicles } from '@/hooks/useApi';
+import { formatCurrency } from '@/lib/utils';
 
 const SalesPage = () => {
   const navigate = useNavigate();
@@ -47,8 +48,6 @@ const SalesPage = () => {
 
   const { paginatedItems: paginatedVehicles, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredVehicles);
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
 
   const totalSales = filteredVehicles.reduce((s: number, v: any) => s + Number(v.sellingPrice || 0), 0);
   const totalCost = filteredVehicles.reduce((s: number, v: any) => s + Number(v.totalCost || 0), 0);

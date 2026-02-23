@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Car, Package, DollarSign, TrendingUp, ArrowDownUp } from 'lucide-react';
 import type { Conteneur, Vehicle, Payment } from '@/services/api';
 import { api } from '@/services/api';
+import { formatCurrency } from '@/lib/utils';
 
 interface DossierAnalyticsProps {
   conteneurs: Conteneur[];
@@ -81,19 +82,6 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
     };
   }, [conteneurs, isDossierSolde, tauxChangeFinal]);
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
-    if (currency === 'USD') {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-      }).format(amount);
-    }
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
 
   return (
     <div className="space-y-4">

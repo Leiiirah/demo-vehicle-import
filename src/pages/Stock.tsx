@@ -17,6 +17,7 @@ import {
 import { Search, Container, AlertCircle, MoreVertical, Eye, Warehouse, Car, DollarSign, RefreshCw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { formatCurrency } from '@/lib/utils';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -26,8 +27,6 @@ const statusOptions = [
   { value: 'decharge', label: 'Déchargée' },
 ];
 
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
 
 export default function StockPage() {
   const navigate = useNavigate();
