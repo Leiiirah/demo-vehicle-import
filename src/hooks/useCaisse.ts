@@ -15,6 +15,23 @@ export function useCaisseSummary() {
   });
 }
 
+export function useCaisseBalance() {
+  return useQuery({
+    queryKey: ['caisse', 'balance'],
+    queryFn: () => api.getCaisseBalance(),
+  });
+}
+
+export function useSetCaisseBalance() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (balance: number) => api.setCaisseBalance(balance),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['caisse', 'balance'] });
+    },
+  });
+}
+
 export function useCreateCaisseEntry() {
   const queryClient = useQueryClient();
   return useMutation({

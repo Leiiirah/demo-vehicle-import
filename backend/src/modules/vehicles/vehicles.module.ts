@@ -7,9 +7,10 @@ import { Conteneur } from '../../entities/conteneur.entity';
 import { Passeport } from '../../entities/passeport.entity';
 import { VehiclePayment } from '../../entities/vehicle-payment.entity';
 import { VehicleCharge } from '../../entities/vehicle-charge.entity';
+import { CaisseModule } from '../caisse/caisse.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Vehicle, Conteneur, Passeport, VehiclePayment, VehicleCharge])],
+  imports: [TypeOrmModule.forFeature([Vehicle, Conteneur, Passeport, VehiclePayment, VehicleCharge]), CaisseModule],
   controllers: [VehiclesController],
   providers: [VehiclesService],
   exports: [VehiclesService],

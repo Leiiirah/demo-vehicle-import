@@ -12,6 +12,7 @@ import { CreateVehiclePaymentDto } from './dto/create-vehicle-payment.dto';
 import { UpdateVehiclePaymentDto } from './dto/update-vehicle-payment.dto';
 import { CreateVehicleChargeDto } from './dto/create-vehicle-charge.dto';
 import { UpdateVehicleChargeDto } from './dto/update-vehicle-charge.dto';
+import { CaisseBalanceService } from '../caisse/caisse-balance.service';
 
 const MAX_VEHICLES_PER_CONTAINER = 4;
 
@@ -28,6 +29,7 @@ export class VehiclesService {
     private vehiclePaymentRepository: Repository<VehiclePayment>,
     @InjectRepository(VehicleCharge)
     private vehicleChargeRepository: Repository<VehicleCharge>,
+    private caisseBalanceService: CaisseBalanceService,
   ) {}
 
   async findAll() {
@@ -210,7 +212,13 @@ export class VehiclesService {
     }
 
     const payment = this.vehiclePaymentRepository.create(createDto);
-    return this.vehiclePaymentRepository.save(payment);
+    const saved = await this.vehiclePaymentRepository.save(payment);
+
+    // Deduct from caisse balance (amountUSD * exchangeRate = DZD)
+    const deductAmount = Number(saved.amountUSD) * Number(saved.exchangeRate);
+    await this.caisseBalanceService.deduct(deductAmount);
+
+    return saved;
   }
 
   async updateVehiclePayment(id: string, updateDto: UpdateVehiclePaymentDto) {
@@ -227,6 +235,10 @@ export class VehiclesService {
     if (!payment) {
       throw new NotFoundException('Vehicle payment not found');
     }
+    // Refund amount back to caisse balance
+    const refundAmount = Number(payment.amountUSD) * Number(payment.exchangeRate);
+    await this.caisseBalanceService.add(refundAmount);
+
     await this.vehiclePaymentRepository.remove(payment);
     return { message: 'Payment deleted successfully' };
   }

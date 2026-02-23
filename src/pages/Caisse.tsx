@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useCaisseEntries, useCaisseSummary, useDeleteCaisseEntry } from '@/hooks/useCaisse';
 import { AddCaisseEntryDialog } from '@/components/caisse/AddCaisseEntryDialog';
+import { CaisseBalanceCard } from '@/components/caisse/CaisseBalanceCard';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -99,7 +100,7 @@ const CaissePage = () => {
         </div>
 
         {/* KPI Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Entrées</CardTitle>
@@ -144,6 +145,7 @@ const CaissePage = () => {
               </div>
             </CardContent>
           </Card>
+          <CaisseBalanceCard />
         </div>
 
         {/* Filters */}

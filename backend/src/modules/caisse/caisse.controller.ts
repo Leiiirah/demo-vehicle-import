@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Patch,
   Delete,
   Body,
@@ -10,13 +11,17 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CaisseService } from './caisse.service';
+import { CaisseBalanceService } from './caisse-balance.service';
 import { CreateCaisseEntryDto } from './dto/create-caisse-entry.dto';
 import { UpdateCaisseEntryDto } from './dto/update-caisse-entry.dto';
 
 @Controller('caisse')
 @UseGuards(JwtAuthGuard)
 export class CaisseController {
-  constructor(private readonly caisseService: CaisseService) {}
+  constructor(
+    private readonly caisseService: CaisseService,
+    private readonly caisseBalanceService: CaisseBalanceService,
+  ) {}
 
   @Get()
   findAll() {
@@ -26,6 +31,16 @@ export class CaisseController {
   @Get('summary')
   getSummary() {
     return this.caisseService.getSummary();
+  }
+
+  @Get('balance')
+  getBalance() {
+    return this.caisseBalanceService.getBalance();
+  }
+
+  @Put('balance')
+  setBalance(@Body('balance') balance: number) {
+    return this.caisseBalanceService.setBalance(balance);
   }
 
   @Get(':id')

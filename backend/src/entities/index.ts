@@ -9,3 +9,4 @@ export * from './payment.entity';
 export * from './vehicle-payment.entity';
 export * from './vehicle-charge.entity';
 export * from './caisse-entry.entity';
+export * from './caisse-balance.entity';
