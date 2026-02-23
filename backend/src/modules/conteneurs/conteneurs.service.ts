@@ -22,7 +22,7 @@ export class ConteneursService {
   async findOne(id: string) {
     const conteneur = await this.conteneurRepository.findOne({
       where: { id },
-      relations: ['dossier', 'dossier.supplier', 'vehicles', 'vehicles.client'],
+      relations: ['dossier', 'dossier.supplier', 'vehicles', 'vehicles.client', 'vehicles.passeport'],
     });
     if (!conteneur) {
       throw new NotFoundException('Conteneur not found');
