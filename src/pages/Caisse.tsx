@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   Wallet, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle,
-  Search, Loader2, Trash2, Car,
+  Search, Loader2, Trash2, Car, CreditCard,
 } from 'lucide-react';
 import { useCaisseEntries, useCaisseSummary, useDeleteCaisseEntry, useCaisseBalance } from '@/hooks/useCaisse';
 import { AddCaisseEntryDialog } from '@/components/caisse/AddCaisseEntryDialog';
@@ -49,7 +49,7 @@ const CaissePage = () => {
         (e.reference || '').toLowerCase().includes(term) ||
         (e.vehicle && `${e.vehicle.brand} ${e.vehicle.model}`.toLowerCase().includes(term)) ||
         (e.client && `${e.client.nom} ${e.client.prenom}`.toLowerCase().includes(term));
-      const typeMatch = typeFilter === 'all' || e.type === typeFilter;
+      const typeMatch = typeFilter === 'all' || e.type === typeFilter || (typeFilter === 'payment' && e._source === 'payment');
       return searchMatch && typeMatch;
     });
   }, [entries, searchTerm, typeFilter]);
@@ -59,7 +59,10 @@ const CaissePage = () => {
   } = usePagination(filteredEntries);
 
 
-  const getTypeBadge = (type: string) => {
+  const getTypeBadge = (type: string, source?: string) => {
+    if (source === 'payment') {
+      return <Badge className="bg-purple-500/15 text-purple-700 border-purple-200 gap-1"><CreditCard className="h-3 w-3" />Paiement</Badge>;
+    }
     switch (type) {
       case 'entree':
         return <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-200 gap-1"><ArrowUpCircle className="h-3 w-3" />Entrée</Badge>;
@@ -173,6 +176,7 @@ const CaissePage = () => {
                   <SelectItem value="entree">Entrées</SelectItem>
                   <SelectItem value="charge">Charges</SelectItem>
                   <SelectItem value="vente_auto">Ventes auto</SelectItem>
+                  <SelectItem value="payment">Paiements</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -206,7 +210,7 @@ const CaissePage = () => {
                           day: '2-digit', month: 'short', year: 'numeric',
                         })}
                       </TableCell>
-                      <TableCell>{getTypeBadge(entry.type)}</TableCell>
+                      <TableCell>{getTypeBadge(entry.type, entry._source)}</TableCell>
                       <TableCell>
                         <div className="max-w-[250px]">
                           <div className="font-medium truncate">{entry.description || '-'}</div>
