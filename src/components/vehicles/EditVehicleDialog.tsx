@@ -25,6 +25,7 @@ interface Vehicle {
   clientId?: string;
   supplierId: string;
   conteneurId: string;
+  passeportId?: string | null;
   status: string;
   purchasePrice: number;
   localFees?: number;
@@ -102,7 +103,7 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
         orderDate: vehicle.orderDate?.split('T')[0] || '',
         arrivalDate: vehicle.arrivalDate?.split('T')[0] || '',
         soldDate: vehicle.soldDate?.split('T')[0] || '',
-        passeportId: (vehicle as any).passeportId || '',
+        passeportId: vehicle.passeportId || '',
       });
     }
   }, [vehicle]);

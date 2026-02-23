@@ -145,7 +145,8 @@ export class VehiclesService {
     }
 
     Object.assign(vehicle, updateVehicleDto);
-    return this.vehicleRepository.save(vehicle);
+    await this.vehicleRepository.save(vehicle);
+    return this.findOne(id);
   }
 
   async remove(id: string) {
