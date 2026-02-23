@@ -9,12 +9,13 @@ import {
 } from 'recharts';
 import { useProfitHistory } from '@/hooks/useApi';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatCurrency } from '@/lib/utils';
 
 export function ProfitChart() {
   const { data: profitHistory, isLoading, error } = useProfitHistory();
 
   const formatValue = (value: number) => {
-    return new Intl.NumberFormat('fr-DZ', {
+    return new Intl.NumberFormat('fr-FR', {
       notation: 'compact',
       compactDisplay: 'short',
     }).format(value) + ' DZD';

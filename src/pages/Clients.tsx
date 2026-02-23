@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatCurrency } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useClients, useDeleteClient } from '@/hooks/useApi';
@@ -39,12 +40,6 @@ const ClientsPage = () => {
 
   const { paginatedItems: paginatedClients, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredClients);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
 
   const totalVehicles = (clients || []).reduce((sum, c) => sum + (c.vehicles?.length || 0), 0);
   const totalPrixVente = (clients || []).reduce((sum, c) => sum + (c.prixVente || 0), 0);

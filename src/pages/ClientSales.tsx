@@ -29,6 +29,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { formatCurrency } from '@/lib/utils';
 
 const ClientSalesPage = () => {
   const navigate = useNavigate();
@@ -51,12 +52,6 @@ const ClientSalesPage = () => {
 
   const isLoading = clientsLoading || vehiclesLoading;
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
-    if (currency === 'USD') {
-      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(amount);
-    }
-    return new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
-  };
 
   // Get all vehicles that have a client (= sales)
   const soldVehicles = (vehicles as any[]).filter((v) => v.clientId);

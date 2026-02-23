@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueries } from '@tanstack/react-query';
 import { api } from '@/services/api';
+import { formatCurrency } from '@/lib/utils';
 import { useUpdateVehicle } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
@@ -58,8 +59,6 @@ interface ClientVehiclesSectionProps {
   vehicles: Vehicle[];
 }
 
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
 
 function ClientVehicleRow({ vehicle, dossierStats }: { vehicle: Vehicle; dossierStats?: DossierStats }) {
   const navigate = useNavigate();

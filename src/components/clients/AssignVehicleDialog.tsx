@@ -8,6 +8,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -84,9 +85,6 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
     onOpenChange(val);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
-  };
 
   const handleAssign = () => {
     if (!selectedVehicleId) return;

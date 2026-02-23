@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useConteneur, useDeleteConteneur, useDeleteVehicle } from '@/hooks/useApi';
+import { formatCurrency } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -284,12 +285,6 @@ export default function ConteneurDetailPage() {
                   ) : (
                     vehicules.map((vehicule) => {
                       const vStatus = vehicleStatusConfig[vehicule.status as keyof typeof vehicleStatusConfig] || vehicleStatusConfig.ordered;
-                      const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
-                        if (currency === 'USD') {
-                          return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(amount);
-                        }
-                        return new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
-                      };
                       return (
                         <TableRow
                           key={vehicule.id}

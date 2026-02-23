@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useClient, useUpdateClient, useDeleteClient } from '@/hooks/useApi';
+import { formatCurrency } from '@/lib/utils';
 import { 
   ArrowLeft, 
   Phone, 
@@ -50,12 +51,6 @@ const ClientDetailPage = () => {
     });
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
 
   const handleMarkAsPaid = () => {
     if (client) {

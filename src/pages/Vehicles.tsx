@@ -6,6 +6,7 @@ import { TablePagination } from '@/components/ui/table-pagination';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useVehicles, useDeleteVehicle } from '@/hooks/useApi';
 import { api } from '@/services/api';
+import { formatCurrency } from '@/lib/utils';
 import {
   Search,
   Filter,
@@ -101,19 +102,6 @@ const VehiclesPage = () => {
     );
   };
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'DZD') => {
-    if (currency === 'USD') {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-      }).format(amount);
-    }
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
 
   const filteredVehicles = (vehicles || []).filter((vehicle) => {
     const matchesSearch =

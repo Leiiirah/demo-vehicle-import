@@ -1,16 +1,11 @@
 import { useTopVehicles } from '@/hooks/useApi';
 import { TrendingUp } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function TopVehiclesTable() {
   const { data: topVehicles, isLoading, error } = useTopVehicles();
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
 
   if (isLoading) {
     return (

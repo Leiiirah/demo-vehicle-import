@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api, type Payment } from '@/services/api';
+import { formatCurrency } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -34,19 +35,6 @@ export function DossierPaymentLedger({ dossierId }: DossierPaymentLedgerProps) {
     enabled: !!dossierId,
   });
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'USD') => {
-    if (currency === 'USD') {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-      }).format(amount);
-    }
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
 
   if (isLoading) {
     return (
@@ -93,16 +81,16 @@ export function DossierPaymentLedger({ dossierId }: DossierPaymentLedgerProps) {
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div>
             <p className="text-muted-foreground">Total dû</p>
-            <p className="font-semibold">{formatCurrency(stats.totalDue)}</p>
+            <p className="font-semibold">{formatCurrency(stats.totalDue, 'USD')}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Payé</p>
-            <p className="font-semibold text-primary">{formatCurrency(stats.totalPaid)}</p>
+            <p className="font-semibold text-primary">{formatCurrency(stats.totalPaid, 'USD')}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Reste</p>
             <p className={`font-semibold ${stats.remaining > 0 ? 'text-warning' : 'text-success'}`}>
-              {formatCurrency(stats.remaining)}
+              {formatCurrency(stats.remaining, 'USD')}
             </p>
           </div>
         </div>
@@ -140,7 +128,7 @@ export function DossierPaymentLedger({ dossierId }: DossierPaymentLedgerProps) {
                     </TableCell>
                     <TableCell className="font-medium">{payment.reference}</TableCell>
                     <TableCell className="text-right font-mono">
-                      {formatCurrency(Number(payment.amount))}
+                      {formatCurrency(Number(payment.amount), 'USD')}
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
                       {Number(payment.exchangeRate).toFixed(2)}

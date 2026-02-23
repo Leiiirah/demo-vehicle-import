@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { formatCurrency } from '@/lib/utils';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,8 +55,6 @@ const CaissePage = () => {
     paginatedItems, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage,
   } = usePagination(filteredEntries);
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
 
   const getTypeBadge = (type: string) => {
     switch (type) {

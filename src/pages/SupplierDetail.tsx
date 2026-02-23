@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
+import { formatCurrency } from '@/lib/utils';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useSupplier, useDossiers, useVehicles } from '@/hooks/useApi';
 import { 
@@ -71,19 +72,6 @@ const SupplierDetailPage = () => {
     },
   });
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'USD') => {
-    if (currency === 'USD') {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-      }).format(amount);
-    }
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
-  };
 
   const getDossierStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
@@ -185,7 +173,7 @@ const SupplierDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total payé</p>
-                  <p className="text-2xl font-bold text-success">{formatCurrency(supplier.totalPaid || 0)}</p>
+                  <p className="text-2xl font-bold text-success">{formatCurrency(supplier.totalPaid || 0, 'USD')}</p>
                 </div>
               </div>
             </CardContent>
@@ -198,7 +186,7 @@ const SupplierDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Solde crédit</p>
-                  <p className="text-2xl font-bold text-primary">{formatCurrency(supplier.creditBalance || 0)}</p>
+                  <p className="text-2xl font-bold text-primary">{formatCurrency(supplier.creditBalance || 0, 'USD')}</p>
                 </div>
               </div>
             </CardContent>
@@ -211,7 +199,7 @@ const SupplierDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Dette restante</p>
-                  <p className="text-2xl font-bold text-danger">{formatCurrency(supplier.remainingDebt || 0)}</p>
+                  <p className="text-2xl font-bold text-danger">{formatCurrency(supplier.remainingDebt || 0, 'USD')}</p>
                 </div>
               </div>
             </CardContent>

@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useClients, useDossiers, useVehicles, useUpdateVehicle } from '@/hooks/useApi';
+import { formatCurrency } from '@/lib/utils';
 import { Car, Search, Loader2, Check, Users, FolderOpen, ArrowRight, ArrowLeft, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -96,9 +97,6 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
     onOpenChange(val);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
-  };
 
   const handleAssign = () => {
     if (!selectedClient || !selectedVehicleId) return;
