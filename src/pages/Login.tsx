@@ -118,14 +118,6 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Info de démo */}
-        <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
-          <p className="text-sm text-muted-foreground text-center">
-            <strong>Compte admin :</strong>
-            <br />
-            admin@vhlimport.com / VHLAdmin2026!
-          </p>
-        </div>
       </div>
     </div>
   );
