@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { CaisseEntry, CaisseEntryType } from '../../entities/caisse-entry.entity';
 import { Vehicle, VehicleStatus } from '../../entities/vehicle.entity';
 import { VehicleCharge } from '../../entities/vehicle-charge.entity';
+import { Payment } from '../../entities/payment.entity';
 import { CreateCaisseEntryDto } from './dto/create-caisse-entry.dto';
 import { UpdateCaisseEntryDto } from './dto/update-caisse-entry.dto';
 
@@ -16,6 +17,8 @@ export class CaisseService {
     private vehicleRepo: Repository<Vehicle>,
     @InjectRepository(VehicleCharge)
     private vehicleChargeRepo: Repository<VehicleCharge>,
+    @InjectRepository(Payment)
+    private paymentRepo: Repository<Payment>,
   ) {}
 
   /**
@@ -103,8 +106,53 @@ export class CaisseService {
       _source: 'manual',
     }));
 
+    // 4. Dossier/supplier payments from payments table
+    const payments = await this.paymentRepo.find({
+      relations: ['supplier', 'client', 'dossier'],
+      order: { date: 'DESC' },
+    });
+
+    const paymentEntries = payments.map((p) => {
+      const amountDZD = Number(p.amount) * Number(p.exchangeRate || 1);
+      let description = '';
+      if (p.type === 'supplier_payment') {
+        description = `Paiement fournisseur${p.supplier ? ' — ' + p.supplier.name : ''}${p.dossier ? ' (Dossier ' + p.dossier.reference + ')' : ''}`;
+      } else if (p.type === 'client_payment') {
+        description = `Paiement client${p.client ? ' — ' + p.client.nom + ' ' + p.client.prenom : ''}`;
+      } else if (p.type === 'transport') {
+        description = `Transport${p.dossier ? ' — Dossier ' + p.dossier.reference : ''}`;
+      } else if (p.type === 'fees') {
+        description = `Frais${p.dossier ? ' — Dossier ' + p.dossier.reference : ''}`;
+      } else {
+        description = `Paiement — ${p.reference}`;
+      }
+
+      return {
+        id: `pay-${p.id}`,
+        type: p.type === 'client_payment' ? ('entree' as const) : ('charge' as const),
+        montant: amountDZD,
+        date: p.date,
+        description,
+        reference: p.reference,
+        vehicleId: null,
+        vehicle: null,
+        client: p.client || null,
+        clientId: p.clientId || null,
+        prixVente: null,
+        prixRevient: null,
+        benefice: null,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+        _source: 'payment',
+        _paymentStatus: p.status,
+        _paymentCurrency: p.currency,
+        _paymentAmountUSD: Number(p.amount),
+        _paymentExchangeRate: Number(p.exchangeRate),
+      };
+    });
+
     // Combine and sort by date DESC
-    const all = [...manual, ...chargeEntries, ...saleEntries];
+    const all = [...manual, ...chargeEntries, ...saleEntries, ...paymentEntries];
     all.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return all;
