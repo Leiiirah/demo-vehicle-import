@@ -304,6 +304,17 @@ class ApiClient {
     return this.request<CaisseSummary>('/api/caisse/summary');
   }
 
+  async getCaisseBalance() {
+    return this.request<CaisseBalanceData>('/api/caisse/balance');
+  }
+
+  async setCaisseBalance(balance: number) {
+    return this.request<CaisseBalanceData>('/api/caisse/balance', {
+      method: 'PUT',
+      body: { balance },
+    });
+  }
+
   async createCaisseEntry(data: CreateCaisseEntryData) {
     return this.request<CaisseEntry>('/api/caisse', { method: 'POST', body: data });
   }
@@ -646,6 +657,11 @@ export interface CaisseSummary {
   totalCharges: number;
   totalBenefices: number;
   soldeActuel: number;
+}
+
+export interface CaisseBalanceData {
+  balance: number;
+  updatedAt: string;
 }
 
 export const api = new ApiClient(API_URL);

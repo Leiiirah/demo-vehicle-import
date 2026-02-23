@@ -5,6 +5,7 @@ import { Payment } from '../../entities/payment.entity';
 import { Vehicle } from '../../entities/vehicle.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
+import { CaisseBalanceService } from '../caisse/caisse-balance.service';
 
 @Injectable()
 export class PaymentsService {
@@ -13,6 +14,7 @@ export class PaymentsService {
     private paymentRepository: Repository<Payment>,
     @InjectRepository(Vehicle)
     private vehicleRepository: Repository<Vehicle>,
+    private caisseBalanceService: CaisseBalanceService,
   ) {}
 
   async findAll() {
@@ -54,7 +56,13 @@ export class PaymentsService {
     }
 
     const payment = this.paymentRepository.create(createPaymentDto);
-    return this.paymentRepository.save(payment);
+    const saved = await this.paymentRepository.save(payment);
+
+    // Deduct from caisse balance (amount in DZD)
+    const deductAmount = Number(saved.amount) * Number(saved.exchangeRate || 1);
+    await this.caisseBalanceService.deduct(deductAmount);
+
+    return saved;
   }
 
   async update(id: string, updatePaymentDto: UpdatePaymentDto) {
@@ -71,6 +79,10 @@ export class PaymentsService {
     if (!payment) {
       throw new NotFoundException('Payment not found');
     }
+    // Refund the amount back to caisse balance before deleting
+    const refundAmount = Number(payment.amount) * Number(payment.exchangeRate || 1);
+    await this.caisseBalanceService.add(refundAmount);
+
     await this.paymentRepository.remove(payment);
     return { message: 'Payment deleted successfully' };
   }
