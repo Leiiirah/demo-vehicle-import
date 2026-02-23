@@ -327,6 +327,10 @@ class ApiClient {
     return this.request(`/api/caisse/${id}`, { method: 'DELETE' });
   }
 
+  async purgeCaisse() {
+    return this.request<{ deleted: number }>('/api/caisse/purge/all', { method: 'DELETE' });
+  }
+
   // Dashboard
   async getDashboardStats() {
     return this.request<DashboardStats>('/api/dashboard/stats');

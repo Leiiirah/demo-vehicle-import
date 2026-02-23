@@ -183,10 +183,12 @@ export class CaisseService {
 
   async remove(id: string): Promise<void> {
     const entry = await this.findOne(id);
-    if (entry.type === CaisseEntryType.VENTE_AUTO) {
-      throw new Error('Cannot delete automatic sale entries');
-    }
     await this.caisseRepo.delete(id);
+  }
+
+  async purgeAll(): Promise<{ deleted: number }> {
+    const result = await this.caisseRepo.delete({});
+    return { deleted: result.affected || 0 };
   }
 
   async getSummary() {
