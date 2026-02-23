@@ -22,7 +22,7 @@ import {
   Wallet, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle,
   Search, Loader2, Trash2, Car,
 } from 'lucide-react';
-import { useCaisseEntries, useCaisseSummary, useDeleteCaisseEntry } from '@/hooks/useCaisse';
+import { useCaisseEntries, useCaisseSummary, useDeleteCaisseEntry, useCaisseBalance } from '@/hooks/useCaisse';
 import { AddCaisseEntryDialog } from '@/components/caisse/AddCaisseEntryDialog';
 import { CaisseBalanceCard } from '@/components/caisse/CaisseBalanceCard';
 import { useToast } from '@/hooks/use-toast';
@@ -32,6 +32,8 @@ const CaissePage = () => {
   const navigate = useNavigate();
   const { data: entries = [], isLoading } = useCaisseEntries();
   const { data: summary } = useCaisseSummary();
+  const { data: balanceData } = useCaisseBalance();
+  const soldeTotal = (summary?.totalEntrees || 0) - (summary?.totalCharges || 0) + (balanceData?.balance || 0);
   const deleteMutation = useDeleteCaisseEntry();
   const { toast } = useToast();
 
@@ -136,13 +138,14 @@ const CaissePage = () => {
           </Card>
           <Card className="border-primary/30 bg-primary/5">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Solde Actuel</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Solde Total</CardTitle>
               <Wallet className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${(summary?.soldeActuel || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                {formatCurrency(summary?.soldeActuel || 0)}
+              <div className={`text-2xl font-bold ${soldeTotal >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                {formatCurrency(soldeTotal)}
               </div>
+              <p className="text-xs text-muted-foreground mt-1">Entrées - Charges + Caisse Disponible</p>
             </CardContent>
           </Card>
           <CaisseBalanceCard />
