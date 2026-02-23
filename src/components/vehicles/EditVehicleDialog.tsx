@@ -61,6 +61,7 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
     orderDate: '',
     arrivalDate: '',
     soldDate: '',
+    passeportId: '',
   });
 
   const { data: suppliers } = useQuery({
@@ -76,6 +77,11 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
   const { data: clients } = useQuery({
     queryKey: ['clients'],
     queryFn: () => api.getClients(),
+  });
+
+  const { data: passeports } = useQuery({
+    queryKey: ['passeports'],
+    queryFn: () => api.getPasseports(),
   });
 
   useEffect(() => {
@@ -96,6 +102,7 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
         orderDate: vehicle.orderDate?.split('T')[0] || '',
         arrivalDate: vehicle.arrivalDate?.split('T')[0] || '',
         soldDate: vehicle.soldDate?.split('T')[0] || '',
+        passeportId: (vehicle as any).passeportId || '',
       });
     }
   }, [vehicle]);
@@ -138,6 +145,7 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
       clientId: formData.clientId || undefined,
       arrivalDate: formData.arrivalDate || undefined,
       soldDate: formData.soldDate || undefined,
+      passeportId: formData.passeportId && formData.passeportId !== 'none' ? formData.passeportId : undefined,
     };
     
     updateMutation.mutate(dataToSend);
@@ -225,6 +233,20 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
                 <SelectContent>
                   {(clients || []).map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.prenom} {c.nom}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="passeportId">Passeport</Label>
+              <Select value={formData.passeportId} onValueChange={(value) => setFormData({ ...formData, passeportId: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un passeport (optionnel)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Aucun</SelectItem>
+                  {(passeports || []).map((p: any) => (
+                    <SelectItem key={p.id} value={p.id}>{p.prenom} {p.nom} — {p.numeroPasseport}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
