@@ -187,8 +187,13 @@ export class CaisseService {
   }
 
   async purgeAll(): Promise<{ deleted: number }> {
-    const result = await this.caisseRepo.delete({});
-    return { deleted: result.affected || 0 };
+    const count = await this.caisseRepo.count();
+    await this.caisseRepo
+      .createQueryBuilder()
+      .delete()
+      .from('caisse_entries')
+      .execute();
+    return { deleted: count };
   }
 
   async getSummary() {
