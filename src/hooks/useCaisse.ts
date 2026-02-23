@@ -27,7 +27,7 @@ export function useSetCaisseBalance() {
   return useMutation({
     mutationFn: (balance: number) => api.setCaisseBalance(balance),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['caisse', 'balance'] });
+      queryClient.invalidateQueries({ queryKey: ['caisse'] });
     },
   });
 }
@@ -57,7 +57,20 @@ export function useDeleteCaisseEntry() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.deleteCaisseEntry(id),
-    onSuccess: () => {
+    onMutate: async (deletedId: string) => {
+      await queryClient.cancelQueries({ queryKey: ['caisse'] });
+      const previous = queryClient.getQueryData(['caisse']);
+      queryClient.setQueryData(['caisse'], (old: any[] | undefined) =>
+        old ? old.filter((e: any) => e.id !== deletedId) : []
+      );
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['caisse'], context.previous);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['caisse'] });
     },
   });
