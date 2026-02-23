@@ -6,17 +6,13 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(amount: number, currency: 'USD' | 'DZD' = 'DZD'): string {
+  const formatWithSpaces = (num: number) => {
+    const parts = Math.abs(Math.round(num)).toString().split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return (num < 0 ? '-' : '') + parts.join('.');
+  };
   if (currency === 'USD') {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      useGrouping: true,
-    }).format(amount);
+    return '$' + formatWithSpaces(amount);
   }
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'decimal',
-    minimumFractionDigits: 0,
-    useGrouping: true,
-  }).format(amount) + ' DZD';
+  return formatWithSpaces(amount) + ' DZD';
 }
