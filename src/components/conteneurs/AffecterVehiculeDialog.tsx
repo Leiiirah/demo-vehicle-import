@@ -52,6 +52,7 @@ export const AffecterVehiculeDialog = ({
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [prixVehicule, setPrixVehicule] = useState('');
   const [supplierId, setSupplierId] = useState('');
+  const [passeportId, setPasseportId] = useState('');
 
   // Fetch conteneur to get the dossier's supplierId
   const { data: conteneur } = useQuery({
@@ -88,6 +89,13 @@ export const AffecterVehiculeDialog = ({
     enabled: open && mode === 'new',
   });
 
+  // Fetch passeports
+  const { data: passeports = [] } = useQuery({
+    queryKey: ['passeports'],
+    queryFn: () => api.getPasseports(),
+    enabled: open && mode === 'new',
+  });
+
   // Mutation for updating existing vehicle's conteneurId
   const updateVehicleMutation = useMutation({
     mutationFn: (vehicleId: string) => 
@@ -115,6 +123,7 @@ export const AffecterVehiculeDialog = ({
       supplierId: string;
       conteneurId: string;
       orderDate: string;
+      passeportId?: string;
     }) => api.createVehicle(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conteneur', conteneurId] });
@@ -152,6 +161,7 @@ export const AffecterVehiculeDialog = ({
           supplierId,
           conteneurId,
           orderDate: new Date().toISOString(),
+          passeportId: passeportId && passeportId !== 'none' ? passeportId : undefined,
         });
       }
     } catch (error) {
@@ -172,6 +182,7 @@ export const AffecterVehiculeDialog = ({
     setPhotoFile(null);
     setPrixVehicule('');
     setSupplierId('');
+    setPasseportId('');
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -318,7 +329,23 @@ export const AffecterVehiculeDialog = ({
                   )}
                 </div>
 
-                {/* Fournisseur auto-assigné depuis la hiérarchie */}
+                {/* Passeport */}
+                <div className="space-y-2">
+                  <Label htmlFor="passeportId">Passeport</Label>
+                  <Select value={passeportId} onValueChange={setPasseportId}>
+                    <SelectTrigger id="passeportId">
+                      <SelectValue placeholder="Sélectionner un passeport (optionnel)" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border border-border shadow-lg z-50">
+                      <SelectItem value="none">Aucun</SelectItem>
+                      {passeports.map((p: any) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.prenom} {p.nom} — {p.numeroPasseport}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 {/* Prix du véhicule */}
                 <div className="space-y-2">
