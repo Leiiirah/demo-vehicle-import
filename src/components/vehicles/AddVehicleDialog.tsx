@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Car, DollarSign, Truck, FileText, Plus, Trash2, CreditCard, Loader2, Upload, X } from 'lucide-react';
+import { Car, DollarSign, Truck, FileText, Plus, Trash2, CreditCard, Loader2, Upload, X, BookOpen } from 'lucide-react';
 import { api, type CreateVehicleData } from '@/services/api';
 import { toast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
@@ -76,6 +76,7 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
   const [orderDate, setOrderDate] = useState('');
   const [estimatedArrival, setEstimatedArrival] = useState('');
   const [transmission, setTransmission] = useState<'manual' | 'automatic'>('automatic');
+  const [passeportId, setPasseportId] = useState('');
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
@@ -101,6 +102,11 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
   const { data: conteneurs = [] } = useQuery({
     queryKey: ['conteneurs'],
     queryFn: () => api.getConteneurs(),
+  });
+
+  const { data: passeports = [] } = useQuery({
+    queryKey: ['passeports'],
+    queryFn: () => api.getPasseports(),
   });
 
   const createMutation = useMutation({
@@ -138,6 +144,7 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
       orderDate,
       arrivalDate: estimatedArrival || undefined,
       photoUrl: photoPreview || undefined,
+      passeportId: passeportId && passeportId !== 'none' ? passeportId : undefined,
     });
   };
 
@@ -159,6 +166,7 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
     setChargesDivers([]);
     setVersements([]);
     setTransmission('automatic');
+    setPasseportId('');
     setPhotoPreview(null);
     setPhotoFile(null);
   };
@@ -355,6 +363,26 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="passeportId" className="flex items-center gap-1.5">
+                  <BookOpen className="h-3.5 w-3.5" />
+                  Passeport
+                </Label>
+                <Select value={passeportId} onValueChange={setPasseportId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un passeport (optionnel)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Aucun</SelectItem>
+                    {passeports.map((p: any) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.prenom} {p.nom} — {p.numeroPasseport}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Photo */}
