@@ -20,9 +20,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   Wallet, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle,
-  Search, Loader2, Trash2, Car, CreditCard,
+  Search, Loader2, Trash2, Car, CreditCard, AlertTriangle,
 } from 'lucide-react';
-import { useCaisseEntries, useCaisseSummary, useDeleteCaisseEntry, useCaisseBalance } from '@/hooks/useCaisse';
+import { useCaisseEntries, useCaisseSummary, useDeleteCaisseEntry, useCaisseBalance, usePurgeCaisse } from '@/hooks/useCaisse';
 import { AddCaisseEntryDialog } from '@/components/caisse/AddCaisseEntryDialog';
 import { CaisseBalanceCard } from '@/components/caisse/CaisseBalanceCard';
 import { useToast } from '@/hooks/use-toast';
@@ -35,6 +35,7 @@ const CaissePage = () => {
   const { data: balanceData } = useCaisseBalance();
   const soldeTotal = (summary?.totalEntrees || 0) - (summary?.totalCharges || 0) + (balanceData?.balance || 0);
   const deleteMutation = useDeleteCaisseEntry();
+  const purgeMutation = usePurgeCaisse();
   const { toast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -82,6 +83,13 @@ const CaissePage = () => {
     });
   };
 
+  const handlePurge = () => {
+    purgeMutation.mutate(undefined, {
+      onSuccess: (data: any) => toast({ title: `${data.deleted} mouvements supprimés` }),
+      onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
+    });
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -101,7 +109,32 @@ const CaissePage = () => {
             <h1 className="text-2xl font-semibold text-foreground">Caisse</h1>
             <p className="text-muted-foreground">Gestion des mouvements financiers et suivi de rentabilité</p>
           </div>
-          <AddCaisseEntryDialog />
+          <div className="flex gap-2">
+            <AddCaisseEntryDialog />
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Purger la caisse
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Purger tous les mouvements manuels ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Cette action supprimera définitivement toutes les entrées manuelles de la caisse. 
+                    Les ventes auto et charges véhicules ne seront pas affectées. Cette action est irréversible.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={handlePurge} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Purger tout
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
 
         {/* KPI Summary */}
@@ -254,7 +287,7 @@ const CaissePage = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                         {entry._source === 'manual' && entry.type !== 'vente_auto' && (
+                         {entry._source === 'manual' && (
                            <AlertDialog>
                              <AlertDialogTrigger asChild>
                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">

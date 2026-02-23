@@ -1,6 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, type CreateCaisseEntryData } from '@/services/api';
 
+export function usePurgeCaisse() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.purgeCaisse(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['caisse'] });
+    },
+  });
+}
+
 export function useCaisseEntries() {
   return useQuery({
     queryKey: ['caisse'],
