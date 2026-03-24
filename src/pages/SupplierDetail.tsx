@@ -58,6 +58,7 @@ const SupplierDetailPage = () => {
   const { data: supplier, isLoading, error } = useSupplier(id || '');
   const { data: allDossiers } = useDossiers();
   const { data: allVehicles } = useVehicles();
+  const { data: allPayments } = usePayments();
 
   const supplierDossiers = (allDossiers || []).filter(d => d.supplierId === id);
   const supplierVehicles = (allVehicles || []).filter(v => v.supplierId === id);
