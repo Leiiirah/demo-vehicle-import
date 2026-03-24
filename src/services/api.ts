@@ -648,7 +648,7 @@ export interface CaisseEntry {
 }
 
 export interface CreateCaisseEntryData {
-  type: 'entree' | 'charge';
+  type: 'entree' | 'charge' | 'retrait';
   montant: number;
   date: string;
   description?: string;
