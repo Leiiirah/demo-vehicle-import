@@ -142,7 +142,15 @@ const SupplierDetailPage = () => {
               </div>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => { exportSupplierDossiers(supplier.name, supplierDossiers, supplierVehicles); toast.success('Dossiers exportés'); }}>
+              <Download className="h-4 w-4 mr-2" />
+              Exporter Dossiers
+            </Button>
+            <Button variant="outline" onClick={() => { exportSupplierTransactions(supplier.name, supplierPayments, supplier); toast.success('Transactions exportées'); }}>
+              <Download className="h-4 w-4 mr-2" />
+              Exporter Transactions
+            </Button>
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setEditDialogOpen(true)}>
               <Edit className="h-4 w-4 mr-2" />
               Modifier
