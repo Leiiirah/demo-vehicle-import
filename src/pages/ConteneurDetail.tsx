@@ -269,7 +269,7 @@ export default function ConteneurDetailPage() {
                     <TableHead>VIN</TableHead>
                     <TableHead>Passeport</TableHead>
                     <TableHead>Prix d'achat</TableHead>
-                    <TableHead>Transit</TableHead>
+                    <TableHead>Transport</TableHead>
                     <TableHead>Coût total</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead className="w-12"></TableHead>
