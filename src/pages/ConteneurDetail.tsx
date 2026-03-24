@@ -189,7 +189,7 @@ export default function ConteneurDetailPage() {
               <Ship className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold">${conteneur.coutTransport || 0}</div>
+              <div className="text-lg font-bold">{formatCurrency(Number(conteneur.coutTransport || 0), 'USD')}</div>
             </CardContent>
           </Card>
         </div>
@@ -323,7 +323,7 @@ export default function ConteneurDetailPage() {
                             )}
                           </TableCell>
                           <TableCell>{formatCurrency(Number(vehicule.purchasePrice || 0), 'USD')}</TableCell>
-                          <TableCell>{formatCurrency(Number(vehicule.transportCost || 0))}</TableCell>
+                          <TableCell>{formatCurrency(Number(vehicule.transportCost || 0), 'USD')}</TableCell>
                           <TableCell className="font-medium">{formatCurrency(Number(vehicule.totalCost || 0))}</TableCell>
                           <TableCell>
                             <Badge variant="outline" className={vStatus.className}>
