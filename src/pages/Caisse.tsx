@@ -57,9 +57,12 @@ const CaissePage = () => {
         (e.vehicle && `${e.vehicle.brand} ${e.vehicle.model}`.toLowerCase().includes(term)) ||
         (e.client && `${e.client.nom} ${e.client.prenom}`.toLowerCase().includes(term));
       const typeMatch = typeFilter === 'all' || e.type === typeFilter || (typeFilter === 'payment' && e._source === 'payment');
-      return searchMatch && typeMatch;
+      const entryDate = new Date(e.date);
+      const dateFromMatch = !dateFrom || entryDate >= dateFrom;
+      const dateToMatch = !dateTo || entryDate <= dateTo;
+      return searchMatch && typeMatch && dateFromMatch && dateToMatch;
     });
-  }, [entries, searchTerm, typeFilter]);
+  }, [entries, searchTerm, typeFilter, dateFrom, dateTo]);
 
   const {
     paginatedItems, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage,
