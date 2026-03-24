@@ -245,13 +245,11 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
               )}
               <div className="space-y-2">
                 <Label htmlFor="sellingPriceSale">Prix de vente (DZD)</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div>
                   <Input
                     id="sellingPriceSale"
                     type="number"
                     placeholder="0"
-                    className="pl-9"
                     value={sellingPrice}
                     onChange={(e) => setSellingPrice(e.target.value)}
                     min={0}
