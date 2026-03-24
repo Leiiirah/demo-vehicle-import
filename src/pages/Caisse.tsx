@@ -1,7 +1,11 @@
 import { useState, useMemo } from 'react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { usePagination } from '@/hooks/usePagination';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,7 +24,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   Wallet, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle,
-  Search, Loader2, Trash2, Car, CreditCard, AlertTriangle,
+  Search, Loader2, Trash2, Car, CreditCard, AlertTriangle, CalendarIcon, X,
 } from 'lucide-react';
 import { useCaisseEntries, useCaisseSummary, useDeleteCaisseEntry, useCaisseBalance, usePurgeCaisse } from '@/hooks/useCaisse';
 import { AddCaisseEntryDialog } from '@/components/caisse/AddCaisseEntryDialog';
@@ -40,6 +44,8 @@ const CaissePage = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
 
   const filteredEntries = useMemo(() => {
     return (entries as any[]).filter((e) => {
@@ -51,9 +57,12 @@ const CaissePage = () => {
         (e.vehicle && `${e.vehicle.brand} ${e.vehicle.model}`.toLowerCase().includes(term)) ||
         (e.client && `${e.client.nom} ${e.client.prenom}`.toLowerCase().includes(term));
       const typeMatch = typeFilter === 'all' || e.type === typeFilter || (typeFilter === 'payment' && e._source === 'payment');
-      return searchMatch && typeMatch;
+      const entryDate = new Date(e.date);
+      const dateFromMatch = !dateFrom || entryDate >= dateFrom;
+      const dateToMatch = !dateTo || entryDate <= dateTo;
+      return searchMatch && typeMatch && dateFromMatch && dateToMatch;
     });
-  }, [entries, searchTerm, typeFilter]);
+  }, [entries, searchTerm, typeFilter, dateFrom, dateTo]);
 
   const {
     paginatedItems, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage,
@@ -215,6 +224,35 @@ const CaissePage = () => {
                   <SelectItem value="payment">Paiements</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 mt-4">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full sm:w-[200px] justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateFrom ? format(dateFrom, 'dd/MM/yyyy') : 'Date début'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full sm:w-[200px] justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateTo ? format(dateTo, 'dd/MM/yyyy') : 'Date fin'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+              {(dateFrom || dateTo) && (
+                <Button variant="ghost" size="sm" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }} className="gap-1">
+                  <X className="h-4 w-4" /> Réinitialiser
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
