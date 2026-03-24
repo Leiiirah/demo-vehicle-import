@@ -195,7 +195,34 @@ const ClientSalesPage = () => {
               <Car className="h-4 w-4" />
               Nouvelle vente
             </Button>
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => {
+              const rows = [
+                ['Véhicule', 'VIN', 'Client', 'Téléphone', 'Prix de vente', 'Montant payé', 'Reste', 'Statut'],
+                ...soldVehicles.map((v: any) => {
+                  const sp = Number(v.sellingPrice || 0);
+                  const ap = Number(v.amountPaid || 0);
+                  return [
+                    `${v.brand} ${v.model} (${v.year})`,
+                    v.vin || '',
+                    v.client ? `${v.client.nom} ${v.client.prenom}` : '',
+                    v.client?.telephone || '',
+                    sp,
+                    ap,
+                    Math.max(0, sp - ap),
+                    v.paymentStatus === 'solde' ? 'Soldé' : v.paymentStatus === 'versement' ? 'Versement' : 'Non défini',
+                  ];
+                }),
+              ];
+              const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+              const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `ventes-clients-${new Date().toISOString().split('T')[0]}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+              toast({ title: 'Export réussi', description: 'Le fichier CSV a été téléchargé' });
+            }}>
               <Download className="h-4 w-4" />
               Exporter
             </Button>
