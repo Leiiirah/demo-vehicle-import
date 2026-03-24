@@ -55,11 +55,21 @@ export class PaymentsService {
       }
     }
 
+    // Calculate DZD amount to deduct
+    const deductAmount = Number(createPaymentDto.amount) * Number(createPaymentDto.exchangeRate || 1);
+
+    // Check caisse balance before allowing payment
+    const { balance } = await this.caisseBalanceService.getBalance();
+    if (deductAmount > balance) {
+      throw new BadRequestException(
+        `Solde caisse insuffisant. Solde actuel: ${balance.toLocaleString('fr-FR')} DZD, Montant requis: ${deductAmount.toLocaleString('fr-FR')} DZD`,
+      );
+    }
+
     const payment = this.paymentRepository.create(createPaymentDto);
     const saved = await this.paymentRepository.save(payment);
 
-    // Deduct from caisse balance (amount in DZD)
-    const deductAmount = Number(saved.amount) * Number(saved.exchangeRate || 1);
+    // Deduct from caisse balance
     await this.caisseBalanceService.deduct(deductAmount);
 
     return saved;
