@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export function AddCaisseEntryDialog() {
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState<'entree' | 'charge'>('entree');
+  const [type, setType] = useState<'entree' | 'charge' | 'retrait'>('entree');
   const [montant, setMontant] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [description, setDescription] = useState('');
