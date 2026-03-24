@@ -50,7 +50,7 @@ export class SuppliersService {
     if (!supplier) {
       throw new NotFoundException('Supplier not found');
     }
-    return supplier;
+    return this.computeStats(supplier);
   }
 
   async create(createSupplierDto: CreateSupplierDto) {
