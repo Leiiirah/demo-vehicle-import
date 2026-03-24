@@ -13,6 +13,7 @@ import { Client } from './client.entity';
 export enum CaisseEntryType {
   ENTREE = 'entree',
   CHARGE = 'charge',
+  RETRAIT = 'retrait',
   VENTE_AUTO = 'vente_auto',
 }
 

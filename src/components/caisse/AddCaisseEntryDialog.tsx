@@ -77,13 +77,14 @@ export function AddCaisseEntryDialog() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Type</Label>
-            <Select value={type} onValueChange={(v) => setType(v as 'entree' | 'charge')}>
+            <Select value={type} onValueChange={(v) => setType(v as 'entree' | 'charge' | 'retrait')}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="entree">Entrée (cash in)</SelectItem>
                 <SelectItem value="charge">Charge (dépense)</SelectItem>
+                <SelectItem value="retrait">Retrait</SelectItem>
               </SelectContent>
             </Select>
           </div>

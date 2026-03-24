@@ -210,6 +210,7 @@ const CaissePage = () => {
                   <SelectItem value="all">Tous les types</SelectItem>
                   <SelectItem value="entree">Entrées</SelectItem>
                   <SelectItem value="charge">Charges</SelectItem>
+                  <SelectItem value="retrait">Retraits</SelectItem>
                   <SelectItem value="vente_auto">Ventes auto</SelectItem>
                   <SelectItem value="payment">Paiements</SelectItem>
                 </SelectContent>
