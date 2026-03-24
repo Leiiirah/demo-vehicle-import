@@ -1,79 +1,48 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useConteneurs, useUpdateConteneur } from '@/hooks/useApi';
+import { useVehicles } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import { Search, Container, AlertCircle, MoreVertical, Eye, Warehouse, Car, DollarSign, RefreshCw } from 'lucide-react';
+import { Search, AlertCircle, Car, DollarSign, Warehouse } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
-
-const statusOptions = [
-  { value: 'charge', label: 'Chargée' },
-  { value: 'decharge', label: 'Déchargée' },
-];
-
 
 export default function StockPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const { data: conteneurs, isLoading, error } = useConteneurs();
-  const updateConteneur = useUpdateConteneur();
-  const { toast } = useToast();
+  const { data: vehicles, isLoading, error } = useVehicles();
 
-  // Only decharged containers
-  const dechargedConteneurs = (conteneurs || []).filter(
-    (c) => c.status === 'decharge'
+  // Only vehicles with status "ordered" (En stock)
+  const stockVehicles = (vehicles || []).filter(
+    (v: any) => v.status === 'ordered'
   );
 
-  const filteredConteneurs = dechargedConteneurs.filter(
-    (c) =>
-      c.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (c.dossier?.reference?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-      (c.dossier?.supplier?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+  const filteredVehicles = stockVehicles.filter(
+    (v: any) =>
+      v.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.vin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.supplier?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const { paginatedItems, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } =
-    usePagination(filteredConteneurs);
+    usePagination(filteredVehicles);
 
-  // Total stock value: sum of totalCost of all vehicles inside decharged containers
-  const totalStockValue = dechargedConteneurs.reduce((acc, c) => {
-    const vehiclesTotal = (c.vehicles || []).reduce(
-      (vAcc: number, v: any) => vAcc + Number(v.totalCost || 0),
-      0
-    );
-    return acc + vehiclesTotal;
-  }, 0);
-
-  const totalVehicles = dechargedConteneurs.reduce(
-    (acc, c) => acc + (c.vehicles?.length || 0),
+  const totalStockValue = stockVehicles.reduce(
+    (acc: number, v: any) => acc + Number(v.totalCost || 0),
     0
   );
 
-  const handleStatusChange = (conteneurId: string, newStatus: string) => {
-    updateConteneur.mutate(
-      { id: conteneurId, data: { status: newStatus as any } },
-      {
-        onSuccess: () => toast({ title: 'Statut mis à jour' }),
-        onError: (err: any) =>
-          toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
-      }
-    );
-  };
+  const totalPurchaseValue = stockVehicles.reduce(
+    (acc: number, v: any) => acc + Number(v.purchasePrice || 0),
+    0
+  );
 
   if (error) {
     return (
@@ -91,10 +60,9 @@ export default function StockPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Stock</h1>
-          <p className="text-muted-foreground">Conteneurs déchargés et disponibles en stock</p>
+          <p className="text-muted-foreground">Véhicules disponibles en stock</p>
         </div>
 
         {/* KPI Cards */}
@@ -109,26 +77,26 @@ export default function StockPage() {
             <>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Conteneurs en Stock</CardTitle>
-                  <Warehouse className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{dechargedConteneurs.length}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Véhicules en Stock</CardTitle>
                   <Car className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{totalVehicles}</div>
+                  <div className="text-2xl font-bold">{stockVehicles.length}</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Valeur Totale du Stock</CardTitle>
+                  <CardTitle className="text-sm font-medium">Prix d'Achat Total</CardTitle>
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{formatCurrency(totalPurchaseValue, 'USD')}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Coût Total du Stock</CardTitle>
+                  <Warehouse className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-primary">{formatCurrency(totalStockValue)}</div>
@@ -141,15 +109,15 @@ export default function StockPage() {
         {/* Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Conteneurs Déchargés</CardTitle>
-            <CardDescription>Gérez le statut de vos conteneurs en stock</CardDescription>
+            <CardTitle>Véhicules en Stock</CardTitle>
+            <CardDescription>Liste des véhicules disponibles en stock</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="mb-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Rechercher par numéro, dossier ou fournisseur..."
+                  placeholder="Rechercher par marque, modèle, VIN ou fournisseur..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"
@@ -169,14 +137,14 @@ export default function StockPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Numéro</TableHead>
+                        <TableHead>Marque</TableHead>
+                        <TableHead>Modèle</TableHead>
+                        <TableHead>Année</TableHead>
+                        <TableHead>VIN</TableHead>
                         <TableHead>Fournisseur</TableHead>
-                        <TableHead>Dossier</TableHead>
-                        <TableHead>Arrivée</TableHead>
-                        <TableHead className="text-center">Véhicules</TableHead>
-                        <TableHead>Valeur (DZD)</TableHead>
-                        <TableHead>Statut</TableHead>
-                        <TableHead className="w-12"></TableHead>
+                        <TableHead>Prix d'Achat (USD)</TableHead>
+                        <TableHead>Transport (USD)</TableHead>
+                        <TableHead>Coût Total (DZD)</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -184,82 +152,32 @@ export default function StockPage() {
                         <TableRow>
                           <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                             {searchTerm
-                              ? `Aucun conteneur trouvé pour "${searchTerm}"`
-                              : 'Aucun conteneur déchargé en stock'}
+                              ? `Aucun véhicule trouvé pour "${searchTerm}"`
+                              : 'Aucun véhicule en stock'}
                           </TableCell>
                         </TableRow>
                       ) : (
-                        paginatedItems.map((conteneur) => {
-                          const vehiclesValue = (conteneur.vehicles || []).reduce(
-                            (acc: number, v: any) => acc + Number(v.totalCost || 0),
-                            0
-                          );
-                          return (
-                            <TableRow
-                              key={conteneur.id}
-                              className="cursor-pointer hover:bg-muted/50"
-                              onClick={() => navigate(`/conteneurs/${conteneur.id}`)}
-                            >
-                              <TableCell className="font-medium">
-                                <div className="flex items-center gap-2">
-                                  <Container className="h-4 w-4 text-muted-foreground" />
-                                  {conteneur.numero}
-                                </div>
-                              </TableCell>
-                              <TableCell>{conteneur.dossier?.supplier?.name || '-'}</TableCell>
-                              <TableCell>{conteneur.dossier?.reference || '-'}</TableCell>
-                              <TableCell>
-                                {conteneur.dateArrivee
-                                  ? new Date(conteneur.dateArrivee).toLocaleDateString('fr-FR')
-                                  : '-'}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {conteneur.vehicles?.length || 0}
-                              </TableCell>
-                              <TableCell>{formatCurrency(vehiclesValue)}</TableCell>
-                              <TableCell>
-                                <Select
-                                  value={conteneur.status}
-                                  onValueChange={(val) => handleStatusChange(conteneur.id, val)}
-                                >
-                                  <SelectTrigger
-                                    className="h-8 w-[140px]"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {statusOptions.map((opt) => (
-                                      <SelectItem key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </TableCell>
-                              <TableCell>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                      <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        navigate(`/conteneurs/${conteneur.id}`);
-                                      }}
-                                    >
-                                      <Eye className="h-4 w-4 mr-2" />
-                                      Voir le détail
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })
+                        paginatedItems.map((vehicle: any) => (
+                          <TableRow
+                            key={vehicle.id}
+                            className="cursor-pointer hover:bg-muted/50"
+                            onClick={() => navigate(`/vehicles/${vehicle.id}`)}
+                          >
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                <Car className="h-4 w-4 text-muted-foreground" />
+                                {vehicle.brand}
+                              </div>
+                            </TableCell>
+                            <TableCell>{vehicle.model}</TableCell>
+                            <TableCell>{vehicle.year}</TableCell>
+                            <TableCell className="font-mono text-xs">{vehicle.vin}</TableCell>
+                            <TableCell>{vehicle.supplier?.name || '-'}</TableCell>
+                            <TableCell>{formatCurrency(Number(vehicle.purchasePrice || 0), 'USD')}</TableCell>
+                            <TableCell>{formatCurrency(Number(vehicle.transportCost || 0), 'USD')}</TableCell>
+                            <TableCell className="font-medium">{formatCurrency(Number(vehicle.totalCost || 0))}</TableCell>
+                          </TableRow>
+                        ))
                       )}
                     </TableBody>
                   </Table>
