@@ -4,7 +4,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { formatCurrency } from '@/lib/utils';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useSupplier, useDossiers, useVehicles } from '@/hooks/useApi';
+import { useSupplier, useDossiers, useVehicles, usePayments } from '@/hooks/useApi';
+import { exportSupplierDossiers, exportSupplierTransactions } from '@/lib/exportSupplierData';
 import { 
   Building2, 
   ArrowLeft, 
