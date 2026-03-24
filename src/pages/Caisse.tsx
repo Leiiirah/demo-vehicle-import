@@ -69,6 +69,8 @@ const CaissePage = () => {
         return <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-200 gap-1"><ArrowUpCircle className="h-3 w-3" />Entrée</Badge>;
       case 'charge':
         return <Badge className="bg-red-500/15 text-red-700 border-red-200 gap-1"><ArrowDownCircle className="h-3 w-3" />Charge</Badge>;
+      case 'retrait':
+        return <Badge className="bg-orange-500/15 text-orange-700 border-orange-200 gap-1"><ArrowDownCircle className="h-3 w-3" />Retrait</Badge>;
       case 'vente_auto':
         return <Badge className="bg-blue-500/15 text-blue-700 border-blue-200 gap-1"><Car className="h-3 w-3" />Vente auto</Badge>;
       default:
