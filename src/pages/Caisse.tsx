@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   Wallet, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle,
-  Search, Loader2, Trash2, Car, CreditCard, AlertTriangle,
+  Search, Loader2, Trash2, Car, CreditCard, AlertTriangle, CalendarIcon, X,
 } from 'lucide-react';
 import { useCaisseEntries, useCaisseSummary, useDeleteCaisseEntry, useCaisseBalance, usePurgeCaisse } from '@/hooks/useCaisse';
 import { AddCaisseEntryDialog } from '@/components/caisse/AddCaisseEntryDialog';
