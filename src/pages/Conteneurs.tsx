@@ -206,7 +206,7 @@ export default function ConteneursPage() {
                                   ? new Date(conteneur.dateArrivee).toLocaleDateString('fr-FR')
                                   : '-'}
                               </TableCell>
-                              <TableCell>{formatCurrency(Number(conteneur.coutTransport || 0))}</TableCell>
+                              <TableCell>{formatCurrency((conteneur.vehicles || []).reduce((sum: number, v: any) => sum + (parseFloat(String(v.totalCost)) || 0), 0))}</TableCell>
                               <TableCell className="text-center">{conteneur.vehicles?.length || 0}</TableCell>
                               <TableCell>
                                 <Badge variant="outline" className={status.className}>
