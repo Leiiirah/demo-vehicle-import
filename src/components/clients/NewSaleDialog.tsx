@@ -46,7 +46,7 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
   });
 
   // Show only vehicles in stock (not sold, not assigned to a client)
-  const stockVehicles = vehicles.filter((v: any) => v.status === 'in_stock' && !v.clientId);
+  const stockVehicles = vehicles.filter((v: any) => v.status === 'ordered' && !v.clientId);
 
   const filteredVehicles = stockVehicles.filter((v: any) => {
     const term = vehicleSearch.toLowerCase();
