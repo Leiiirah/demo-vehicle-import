@@ -44,6 +44,8 @@ const CaissePage = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
 
   const filteredEntries = useMemo(() => {
     return (entries as any[]).filter((e) => {
