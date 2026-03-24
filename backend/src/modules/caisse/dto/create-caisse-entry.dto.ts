@@ -1,9 +1,9 @@
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateCaisseEntryDto {
-  @IsEnum(['entree', 'charge'])
+  @IsEnum(['entree', 'charge', 'retrait'])
   @IsNotEmpty()
-  type: 'entree' | 'charge';
+  type: 'entree' | 'charge' | 'retrait';
 
   @IsNumber()
   @IsNotEmpty()

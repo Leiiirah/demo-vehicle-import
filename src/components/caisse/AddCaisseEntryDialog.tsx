@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export function AddCaisseEntryDialog() {
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState<'entree' | 'charge'>('entree');
+  const [type, setType] = useState<'entree' | 'charge' | 'retrait'>('entree');
   const [montant, setMontant] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [description, setDescription] = useState('');
@@ -77,13 +77,14 @@ export function AddCaisseEntryDialog() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Type</Label>
-            <Select value={type} onValueChange={(v) => setType(v as 'entree' | 'charge')}>
+            <Select value={type} onValueChange={(v) => setType(v as 'entree' | 'charge' | 'retrait')}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="entree">Entrée (cash in)</SelectItem>
                 <SelectItem value="charge">Charge (dépense)</SelectItem>
+                <SelectItem value="retrait">Retrait</SelectItem>
               </SelectContent>
             </Select>
           </div>

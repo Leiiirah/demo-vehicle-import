@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm
 
 export class AddCaisseEntries1707500000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`CREATE TYPE "caisse_entry_type_enum" AS ENUM('entree', 'charge', 'vente_auto')`);
+    await queryRunner.query(`CREATE TYPE "caisse_entry_type_enum" AS ENUM('entree', 'charge', 'retrait', 'vente_auto')`);
 
     await queryRunner.createTable(
       new Table({
