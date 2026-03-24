@@ -62,6 +62,7 @@ const SupplierDetailPage = () => {
 
   const supplierDossiers = (allDossiers || []).filter(d => d.supplierId === id);
   const supplierVehicles = (allVehicles || []).filter(v => v.supplierId === id);
+  const supplierPayments = (allPayments || []).filter(p => p.supplierId === id);
 
   const deleteMutation = useMutation({
     mutationFn: () => api.deleteSupplier(id!),
