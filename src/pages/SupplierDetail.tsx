@@ -4,7 +4,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { formatCurrency } from '@/lib/utils';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useSupplier, useDossiers, useVehicles } from '@/hooks/useApi';
+import { useSupplier, useDossiers, useVehicles, usePayments } from '@/hooks/useApi';
+import { exportSupplierDossiers, exportSupplierTransactions } from '@/lib/exportSupplierData';
 import { 
   Building2, 
   ArrowLeft, 
@@ -18,6 +19,7 @@ import {
   Trash2,
   FolderOpen,
   Plus,
+  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -56,9 +58,11 @@ const SupplierDetailPage = () => {
   const { data: supplier, isLoading, error } = useSupplier(id || '');
   const { data: allDossiers } = useDossiers();
   const { data: allVehicles } = useVehicles();
+  const { data: allPayments } = usePayments();
 
   const supplierDossiers = (allDossiers || []).filter(d => d.supplierId === id);
   const supplierVehicles = (allVehicles || []).filter(v => v.supplierId === id);
+  const supplierPayments = (allPayments || []).filter(p => p.supplierId === id);
 
   const deleteMutation = useMutation({
     mutationFn: () => api.deleteSupplier(id!),
@@ -138,7 +142,15 @@ const SupplierDetailPage = () => {
               </div>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => { exportSupplierDossiers(supplier.name, supplierDossiers, supplierVehicles); toast.success('Dossiers exportés'); }}>
+              <Download className="h-4 w-4 mr-2" />
+              Exporter Dossiers
+            </Button>
+            <Button variant="outline" onClick={() => { exportSupplierTransactions(supplier.name, supplierPayments, supplier); toast.success('Transactions exportées'); }}>
+              <Download className="h-4 w-4 mr-2" />
+              Exporter Transactions
+            </Button>
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setEditDialogOpen(true)}>
               <Edit className="h-4 w-4 mr-2" />
               Modifier
