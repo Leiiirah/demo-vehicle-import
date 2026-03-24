@@ -189,7 +189,7 @@ export default function ConteneurDetailPage() {
               <Ship className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold">${conteneur.coutTransport || 0}</div>
+              <div className="text-lg font-bold">{formatCurrency(Number(conteneur.coutTransport || 0), 'USD')}</div>
             </CardContent>
           </Card>
         </div>
