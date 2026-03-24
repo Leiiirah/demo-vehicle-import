@@ -15,7 +15,7 @@ export function TopVehiclesByCount() {
       sold: 'bg-muted text-muted-foreground',
     };
     const labels = {
-      ordered: 'Commandé',
+      ordered: 'En stock',
       in_transit: 'En transit',
       arrived: 'Arrivé',
       sold: 'Vendu',

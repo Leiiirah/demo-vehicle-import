@@ -75,7 +75,7 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
   const selectedVehicle = vehicles.find((v: any) => v.id === selectedVehicleId);
 
   const statusLabels: Record<string, string> = {
-    ordered: 'Commandé',
+    ordered: 'En stock',
     in_transit: 'En transit',
     arrived: 'Arrivé',
     sold: 'Vendu',

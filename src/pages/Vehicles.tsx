@@ -90,7 +90,7 @@ const VehiclesPage = () => {
       sold: 'bg-muted text-muted-foreground',
     };
     const labels = {
-      ordered: 'Commandé',
+      ordered: 'En stock',
       in_transit: 'En transit',
       arrived: 'Arrivé',
       sold: 'Vendu',
@@ -175,7 +175,7 @@ const VehiclesPage = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-[200px]">
               {[
-                { value: 'ordered', label: 'Commandé' },
+                { value: 'ordered', label: 'En stock' },
                 { value: 'in_transit', label: 'En transit' },
                 { value: 'arrived', label: 'Arrivé' },
                 { value: 'sold', label: 'Vendu' },
