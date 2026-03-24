@@ -117,13 +117,13 @@ const SuppliersPage = () => {
               <div className="kpi-card border-l-4 border-l-success">
                 <p className="kpi-label">Total payé</p>
                 <p className="kpi-value text-success">
-                  {formatCurrency(suppliersList.reduce((sum, s) => sum + (s.totalPaid || 0), 0))}
+                  {formatCurrency(suppliersList.reduce((sum, s) => sum + (parseFloat(String(s.totalPaid)) || 0), 0))}
                 </p>
               </div>
               <div className="kpi-card border-l-4 border-l-danger">
                 <p className="kpi-label">Dette totale en cours</p>
                 <p className="kpi-value text-danger">
-                  {formatCurrency(suppliersList.reduce((sum, s) => sum + (s.remainingDebt || 0), 0))}
+                  {formatCurrency(suppliersList.reduce((sum, s) => sum + (parseFloat(String(s.remainingDebt)) || 0), 0))}
                 </p>
               </div>
             </>
