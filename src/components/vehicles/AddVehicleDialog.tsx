@@ -345,7 +345,7 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ordered">Commandé</SelectItem>
+                      <SelectItem value="ordered">En stock</SelectItem>
                       <SelectItem value="in_transit">En transit</SelectItem>
                       <SelectItem value="arrived">Arrivé</SelectItem>
                     </SelectContent>

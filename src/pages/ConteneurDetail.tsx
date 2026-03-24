@@ -27,7 +27,7 @@ const statusConfig = {
 };
 
 const vehicleStatusConfig = {
-  ordered: { label: 'Commandé', className: 'bg-destructive/10 text-destructive border-destructive/30' },
+  ordered: { label: 'En stock', className: 'bg-destructive/10 text-destructive border-destructive/30' },
   in_transit: { label: 'En transit', className: 'bg-primary/10 text-primary border-primary/30' },
   arrived: { label: 'Arrivé', className: 'bg-success/10 text-success border-success/30' },
   sold: { label: 'Vendu', className: 'bg-muted text-muted-foreground border-muted-foreground/30' },
