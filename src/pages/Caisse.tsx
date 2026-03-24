@@ -6,6 +6,8 @@ import { formatCurrency, cn } from '@/lib/utils';
 import { usePagination } from '@/hooks/usePagination';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { TablePagination } from '@/components/ui/table-pagination';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
