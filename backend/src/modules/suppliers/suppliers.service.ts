@@ -13,10 +13,33 @@ export class SuppliersService {
   ) {}
 
   async findAll() {
-    return this.supplierRepository.find({
+    const suppliers = await this.supplierRepository.find({
       order: { createdAt: 'DESC' },
-      relations: ['dossiers'],
+      relations: ['dossiers', 'vehicles', 'payments'],
     });
+    return suppliers.map((s) => this.computeStats(s));
+  }
+
+  private computeStats(supplier: Supplier) {
+    const totalPaid = (supplier.payments || []).reduce(
+      (sum, p) => sum + Number(p.amount),
+      0,
+    );
+    const vehiclesSupplied = (supplier.vehicles || []).length;
+    const creditBalance = Number(supplier.creditBalance) || 0;
+    const remainingDebt =
+      (supplier.vehicles || []).reduce(
+        (sum, v) => sum + Number(v.purchasePrice || 0),
+        0,
+      ) - totalPaid;
+
+    return {
+      ...supplier,
+      totalPaid,
+      vehiclesSupplied,
+      creditBalance,
+      remainingDebt: remainingDebt > 0 ? remainingDebt : 0,
+    };
   }
 
   async findOne(id: string) {
