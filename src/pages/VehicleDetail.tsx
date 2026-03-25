@@ -110,8 +110,8 @@ const VehicleDetailPage = () => {
   // État pour les charges DZD
   const [chargesTransit, setChargesTransit] = useState<number>(0);
 
-  // Taux de change approximatif
-  const [tauxApproximatif, setTauxApproximatif] = useState<number>(0);
+  // Taux de change réel (saisi par l'admin)
+  const [tauxChangeReel, setTauxChangeReel] = useState<number>(0);
 
   // Local state for new charge being added (before saving)
   const [newCharge, setNewCharge] = useState<{ label: string; amount: number } | null>(null);
