@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Car, Package, DollarSign, TrendingUp, ArrowDownUp } from 'lucide-react';
+import { Car, Package, DollarSign, TrendingUp } from 'lucide-react';
 import type { Conteneur, Vehicle, Payment } from '@/services/api';
 import { api } from '@/services/api';
 import { formatCurrency } from '@/lib/utils';
