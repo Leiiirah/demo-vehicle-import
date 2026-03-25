@@ -260,7 +260,7 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ordered">En stock</SelectItem>
-                  <SelectItem value="in_transit">En transit</SelectItem>
+                  <SelectItem value="in_transit">Chargée</SelectItem>
                   <SelectItem value="arrived">Arrivé</SelectItem>
                   <SelectItem value="sold">Vendu</SelectItem>
                 </SelectContent>

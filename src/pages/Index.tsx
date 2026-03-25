@@ -79,7 +79,7 @@ const Index = () => {
                 trend={{ value: 3.1, isPositive: false }}
               />
               <KPICard
-                title="En transit"
+                title="Chargée"
                 value={stats?.vehiclesInTransit || 0}
                 icon={<Ship className="h-5 w-5" />}
                 variant="warning"
