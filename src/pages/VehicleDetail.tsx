@@ -440,7 +440,7 @@ const VehicleDetailPage = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">Prix de revient</p>
-                  <p className="text-sm sm:text-base font-semibold truncate">{prixRevient > 0 ? formatCurrency(prixRevient) : 'N/A'}</p>
+                  <p className="text-sm sm:text-base font-semibold truncate">{tauxChangeReel > 0 && prixRevient > 0 ? formatCurrency(prixRevient) : 'N/A'}</p>
                 </div>
               </div>
             </CardContent>
