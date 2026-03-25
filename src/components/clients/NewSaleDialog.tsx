@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useClients, useVehicles, useUpdateVehicle } from '@/hooks/useApi';
 import { formatCurrency } from '@/lib/utils';
-import { Car, Search, Loader2, Check, Users, ArrowRight, ArrowLeft, DollarSign } from 'lucide-react';
+import { Car, Search, Loader2, Check, Users, ArrowRight, ArrowLeft, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface NewSaleDialogProps {
@@ -23,6 +23,11 @@ interface NewSaleDialogProps {
 }
 
 type Step = 'client' | 'vehicle' | 'price';
+
+interface VehicleSaleEntry {
+  vehicleId: string;
+  sellingPrice: string;
+}
 
 export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
   const { data: clients = [], isLoading: clientsLoading } = useClients();
@@ -33,8 +38,9 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
   const [clientSearch, setClientSearch] = useState('');
   const [vehicleSearch, setVehicleSearch] = useState('');
   const [selectedClient, setSelectedClient] = useState<any>(null);
-  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
-  const [sellingPrice, setSellingPrice] = useState('');
+  const [selectedVehicleIds, setSelectedVehicleIds] = useState<string[]>([]);
+  const [vehiclePrices, setVehiclePrices] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const filteredClients = clients.filter((c: any) => {
     const term = clientSearch.toLowerCase();
@@ -58,15 +64,24 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
     );
   });
 
-  const selectedVehicle = vehicles.find((v: any) => v.id === selectedVehicleId);
+  const selectedVehicles = vehicles.filter((v: any) => selectedVehicleIds.includes(v.id));
+
+  const toggleVehicle = (vehicleId: string) => {
+    setSelectedVehicleIds((prev) =>
+      prev.includes(vehicleId)
+        ? prev.filter((id) => id !== vehicleId)
+        : [...prev, vehicleId]
+    );
+  };
 
   const handleReset = () => {
     setStep('client');
     setClientSearch('');
     setVehicleSearch('');
     setSelectedClient(null);
-    setSelectedVehicleId(null);
-    setSellingPrice('');
+    setSelectedVehicleIds([]);
+    setVehiclePrices({});
+    setIsSubmitting(false);
   };
 
   const handleClose = (val: boolean) => {
@@ -74,23 +89,44 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
     onOpenChange(val);
   };
 
-  const handleAssign = () => {
-    if (!selectedClient || !selectedVehicleId) return;
-    const data: any = { clientId: selectedClient.id };
-    if (sellingPrice) {
-      data.sellingPrice = Number(sellingPrice);
-    }
-    updateVehicle.mutate(
-      { id: selectedVehicleId, data },
-      {
-        onSuccess: () => {
-          toast.success(`Véhicule affecté à ${selectedClient.nom} ${selectedClient.prenom}`);
-          handleReset();
-          onOpenChange(false);
-        },
-        onError: () => toast.error("Erreur lors de l'affectation"),
+  const updatePrice = (vehicleId: string, price: string) => {
+    setVehiclePrices((prev) => ({ ...prev, [vehicleId]: price }));
+  };
+
+  const allPricesFilled = selectedVehicleIds.every((id) => vehiclePrices[id] && Number(vehiclePrices[id]) > 0);
+
+  const handleAssign = async () => {
+    if (!selectedClient || selectedVehicleIds.length === 0) return;
+    setIsSubmitting(true);
+
+    try {
+      for (const vehicleId of selectedVehicleIds) {
+        const data: any = { clientId: selectedClient.id };
+        const price = vehiclePrices[vehicleId];
+        if (price) {
+          data.sellingPrice = Number(price);
+        }
+        await new Promise<void>((resolve, reject) => {
+          updateVehicle.mutate(
+            { id: vehicleId, data },
+            {
+              onSuccess: () => resolve(),
+              onError: () => reject(),
+            }
+          );
+        });
       }
-    );
+      toast.success(
+        selectedVehicleIds.length === 1
+          ? `Véhicule affecté à ${selectedClient.nom} ${selectedClient.prenom}`
+          : `${selectedVehicleIds.length} véhicules affectés à ${selectedClient.nom} ${selectedClient.prenom}`
+      );
+      handleReset();
+      onOpenChange(false);
+    } catch {
+      toast.error("Erreur lors de l'affectation");
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -99,13 +135,13 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
         <DialogHeader>
           <DialogTitle>
             {step === 'client' && 'Sélectionner un client'}
-            {step === 'vehicle' && 'Sélectionner un véhicule en stock'}
+            {step === 'vehicle' && 'Sélectionner les véhicules'}
             {step === 'price' && 'Prix de vente'}
           </DialogTitle>
           <DialogDescription>
             {step === 'client' && 'Étape 1/3 — Choisissez le client acheteur'}
-            {step === 'vehicle' && `Étape 2/3 — Choisissez un véhicule en stock pour ${selectedClient?.nom} ${selectedClient?.prenom}`}
-            {step === 'price' && 'Étape 3/3 — Définissez le prix de vente'}
+            {step === 'vehicle' && `Étape 2/3 — Sélectionnez un ou plusieurs véhicules pour ${selectedClient?.nom} ${selectedClient?.prenom}`}
+            {step === 'price' && `Étape 3/3 — Définissez le prix de vente pour ${selectedVehicleIds.length} véhicule(s)`}
           </DialogDescription>
         </DialogHeader>
 
@@ -164,6 +200,22 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
 
         {step === 'vehicle' && (
           <>
+            {/* Selected count badge */}
+            {selectedVehicleIds.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant="default" className="text-xs">
+                  {selectedVehicleIds.length} sélectionné(s)
+                </Badge>
+                {selectedVehicles.map((v: any) => (
+                  <Badge key={v.id} variant="secondary" className="text-xs gap-1">
+                    {v.brand} {v.model}
+                    <button type="button" onClick={() => toggleVehicle(v.id)} className="ml-0.5 hover:text-destructive">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -182,35 +234,38 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
                 <div className="text-center py-8 text-muted-foreground text-sm">Aucun véhicule en stock disponible</div>
               ) : (
                 <div className="space-y-2">
-                  {filteredVehicles.map((vehicle: any) => (
-                    <button
-                      key={vehicle.id}
-                      type="button"
-                      onClick={() => setSelectedVehicleId(vehicle.id)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
-                        selectedVehicleId === vehicle.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-accent/50'
-                      }`}
-                    >
-                      {vehicle.photoUrl ? (
-                        <img src={vehicle.photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-10 w-10 rounded-lg object-cover" />
-                      ) : (
-                        <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                          <Car className="h-5 w-5 text-secondary-foreground" />
+                  {filteredVehicles.map((vehicle: any) => {
+                    const isSelected = selectedVehicleIds.includes(vehicle.id);
+                    return (
+                      <button
+                        key={vehicle.id}
+                        type="button"
+                        onClick={() => toggleVehicle(vehicle.id)}
+                        className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
+                          isSelected ? 'border-primary bg-primary/5' : 'border-border hover:bg-accent/50'
+                        }`}
+                      >
+                        {vehicle.photoUrl ? (
+                          <img src={vehicle.photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-10 w-10 rounded-lg object-cover" />
+                        ) : (
+                          <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                            <Car className="h-5 w-5 text-secondary-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm">
+                            {vehicle.brand} {vehicle.model} ({vehicle.year})
+                            {vehicle.color && (
+                              <span className="ml-2 text-xs text-muted-foreground">• {vehicle.color}</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground truncate">VIN: {vehicle.vin}</div>
                         </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm">
-                          {vehicle.brand} {vehicle.model} ({vehicle.year})
-                          {vehicle.color && (
-                            <span className="ml-2 text-xs text-muted-foreground">• {vehicle.color}</span>
-                          )}
-                        </div>
-                        <div className="text-xs text-muted-foreground truncate">VIN: {vehicle.vin}</div>
-                      </div>
-                      <Badge variant="outline" className="text-xs shrink-0">En stock</Badge>
-                      {selectedVehicleId === vehicle.id && <Check className="h-4 w-4 text-primary shrink-0" />}
-                    </button>
-                  ))}
+                        <Badge variant="outline" className="text-xs shrink-0">En stock</Badge>
+                        {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </ScrollArea>
@@ -218,7 +273,7 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
               <Button variant="outline" onClick={() => setStep('client')} className="gap-2">
                 <ArrowLeft className="h-4 w-4" /> Retour
               </Button>
-              <Button onClick={() => setStep('price')} disabled={!selectedVehicleId} className="gap-2">
+              <Button onClick={() => setStep('price')} disabled={selectedVehicleIds.length === 0} className="gap-2">
                 Suivant <ArrowRight className="h-4 w-4" />
               </Button>
             </DialogFooter>
@@ -227,48 +282,49 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
 
         {step === 'price' && (
           <>
-            <div className="space-y-4">
-              {selectedVehicle && (
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30">
-                  {selectedVehicle.photoUrl ? (
-                    <img src={selectedVehicle.photoUrl} alt={`${selectedVehicle.brand} ${selectedVehicle.model}`} className="h-10 w-10 rounded-lg object-cover" />
-                  ) : (
-                    <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                      <Car className="h-5 w-5 text-secondary-foreground" />
+            <ScrollArea className={selectedVehicles.length > 2 ? 'h-[350px] pr-2' : ''}>
+              <div className="space-y-4">
+                {selectedVehicles.map((vehicle: any) => (
+                  <div key={vehicle.id} className="space-y-2 p-3 rounded-lg border border-border bg-muted/30">
+                    <div className="flex items-center gap-3">
+                      {vehicle.photoUrl ? (
+                        <img src={vehicle.photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-10 w-10 rounded-lg object-cover" />
+                      ) : (
+                        <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                          <Car className="h-5 w-5 text-secondary-foreground" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm">{vehicle.brand} {vehicle.model} ({vehicle.year})</div>
+                        <div className="text-xs text-muted-foreground">Coût de revient : {formatCurrency(vehicle.totalCost || 0)}</div>
+                      </div>
                     </div>
-                  )}
-                  <div>
-                    <div className="font-medium text-sm">{selectedVehicle.brand} {selectedVehicle.model} ({selectedVehicle.year})</div>
-                    <div className="text-xs text-muted-foreground">Coût de revient : {formatCurrency(selectedVehicle.totalCost || 0)}</div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Prix de vente (DZD)</Label>
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        value={vehiclePrices[vehicle.id] || ''}
+                        onChange={(e) => updatePrice(vehicle.id, e.target.value)}
+                        min={0}
+                      />
+                      {vehiclePrices[vehicle.id] && vehicle.totalCost ? (
+                        <p className={`text-xs font-medium ${Number(vehiclePrices[vehicle.id]) - Number(vehicle.totalCost) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                          Bénéfice estimé : {formatCurrency(Number(vehiclePrices[vehicle.id]) - Number(vehicle.totalCost))}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="sellingPriceSale">Prix de vente (DZD)</Label>
-                <div>
-                  <Input
-                    id="sellingPriceSale"
-                    type="number"
-                    placeholder="0"
-                    value={sellingPrice}
-                    onChange={(e) => setSellingPrice(e.target.value)}
-                    min={0}
-                  />
-                </div>
-                {sellingPrice && selectedVehicle?.totalCost ? (
-                  <p className={`text-sm font-medium ${Number(sellingPrice) - Number(selectedVehicle.totalCost) >= 0 ? 'text-success' : 'text-destructive'}`}>
-                    Bénéfice estimé : {formatCurrency(Number(sellingPrice) - Number(selectedVehicle.totalCost))}
-                  </p>
-                ) : null}
+                ))}
               </div>
-            </div>
+            </ScrollArea>
             <DialogFooter>
               <Button variant="outline" onClick={() => setStep('vehicle')} className="gap-2">
                 <ArrowLeft className="h-4 w-4" /> Retour
               </Button>
-              <Button onClick={handleAssign} disabled={!sellingPrice || updateVehicle.isPending}>
-                {updateVehicle.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Affecter
+              <Button onClick={handleAssign} disabled={!allPricesFilled || isSubmitting}>
+                {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Affecter {selectedVehicleIds.length > 1 ? `(${selectedVehicleIds.length})` : ''}
               </Button>
             </DialogFooter>
           </>
