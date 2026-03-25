@@ -10,6 +10,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { Search, AlertCircle, Car, DollarSign, Warehouse } from 'lucide-react';
+import carPlaceholder from '@/assets/car-placeholder.png';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
 
