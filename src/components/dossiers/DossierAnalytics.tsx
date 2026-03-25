@@ -67,7 +67,7 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
       recoveredFundsDZD,
       profit,
     };
-  }, [conteneurs, isDossierSolde, tauxChangeFinal]);
+  }, [conteneurs]);
 
 
   return (
