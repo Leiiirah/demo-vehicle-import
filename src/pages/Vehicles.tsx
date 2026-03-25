@@ -263,13 +263,7 @@ const VehiclesPage = () => {
                       >
                         <td>
                           <div className="flex items-center gap-3">
-                            {vehicle.photoUrl ? (
-                              <img src={vehicle.photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-10 w-10 rounded-lg object-cover" />
-                            ) : (
-                              <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
-                                <Car className="h-5 w-5 text-secondary-foreground" />
-                              </div>
-                            )}
+                            <img src={vehicle.photoUrl || carPlaceholder} alt={`${vehicle.brand} ${vehicle.model}`} className="h-10 w-10 rounded-lg object-cover" />
                             <div>
                               <p className="font-medium text-foreground">
                                 {vehicle.brand} {vehicle.model}
