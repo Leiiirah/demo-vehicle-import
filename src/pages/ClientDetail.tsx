@@ -266,7 +266,7 @@ const ClientDetailPage = () => {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Prix de vente</span>
-                <span className="font-medium">{formatCurrency(client.prixVente || 0)}</span>
+                <span className="font-medium">{formatCurrency(totalPrixVente)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Coût de revient</span>
