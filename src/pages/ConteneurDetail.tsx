@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ArrowLeft, Container, FolderOpen, Car, Edit, Plus, Ship, Anchor, AlertCircle, Trash2 } from 'lucide-react';
+import carPlaceholder from '@/assets/car-placeholder.png';
 import { AffecterVehiculeDialog } from '@/components/conteneurs/AffecterVehiculeDialog';
 import { EditConteneurDialog } from '@/components/conteneurs/EditConteneurDialog';
 import { Skeleton } from '@/components/ui/skeleton';
