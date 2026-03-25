@@ -72,7 +72,7 @@ export class Vehicle {
   @Column({
     type: 'enum',
     enum: VehicleStatus,
-    default: VehicleStatus.ORDERED,
+    default: VehicleStatus.IN_TRANSIT,
   })
   status: VehicleStatus;
 

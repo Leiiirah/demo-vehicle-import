@@ -63,7 +63,7 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
   const [vin, setVin] = useState('');
   const [color, setColor] = useState('');
   const [conteneurId, setConteneurId] = useState(preSelectedConteneurId || '');
-  const [status, setStatus] = useState<'ordered' | 'in_transit' | 'arrived'>('ordered');
+  const [status, setStatus] = useState<'ordered' | 'in_transit' | 'arrived'>('in_transit');
   const [supplierId, setSupplierId] = useState(preSelectedSupplierId || '');
 
   useEffect(() => {
@@ -156,7 +156,7 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
     setVin('');
     setColor('');
     setConteneurId(preSelectedConteneurId || '');
-    setStatus('ordered');
+    setStatus('in_transit');
     setSupplierId(preSelectedSupplierId || '');
     setOrderDate('');
     setEstimatedArrival('');
