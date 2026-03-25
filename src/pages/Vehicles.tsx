@@ -32,6 +32,7 @@ import {
 import { cn } from '@/lib/utils';
 import AddVehicleDialog from '@/components/vehicles/AddVehicleDialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { VehicleStatusSelect } from '@/components/vehicles/VehicleStatusSelect';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
