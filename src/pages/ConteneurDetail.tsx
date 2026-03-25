@@ -272,6 +272,8 @@ export default function ConteneurDetailPage() {
                     <TableHead>Passeport</TableHead>
                     <TableHead>Prix d'achat</TableHead>
                     <TableHead>Transport</TableHead>
+                    <TableHead>Transit (DZD)</TableHead>
+                    <TableHead>Divers (DZD)</TableHead>
                     <TableHead>Coût total</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead className="w-12"></TableHead>
