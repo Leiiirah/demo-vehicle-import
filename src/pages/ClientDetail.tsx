@@ -278,7 +278,7 @@ const ClientDetailPage = () => {
               </div>
               <div className="flex justify-between bg-warning/10 p-3 rounded-lg">
                 <span className="font-medium">Part client ({client.pourcentageBenefice || 0}%)</span>
-                <span className="font-bold text-warning">{formatCurrency(client.detteBenefice || 0)}</span>
+                <span className="font-bold text-warning">{formatCurrency(detteBenefice)}</span>
               </div>
             </CardContent>
           </Card>
