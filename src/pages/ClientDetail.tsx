@@ -218,7 +218,7 @@ const ClientDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Dette client</p>
-                  <p className="text-lg font-bold text-warning">{formatCurrency(client.detteBenefice || 0)}</p>
+                  <p className="text-lg font-bold text-warning">{formatCurrency(detteBenefice)}</p>
                 </div>
               </div>
             </CardContent>
