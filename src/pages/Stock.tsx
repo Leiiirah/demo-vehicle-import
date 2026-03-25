@@ -19,9 +19,12 @@ export default function StockPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const { data: vehicles, isLoading, error } = useVehicles();
 
-  // Only vehicles with status "ordered" (En stock)
+  // Only vehicles that are "En stock" (ordered), in a déchargée container, and not sold
   const stockVehicles = (vehicles || []).filter(
-    (v: any) => v.status === 'ordered'
+    (v: any) =>
+      v.status === 'ordered' &&
+      v.conteneur?.status === 'decharge' &&
+      v.status !== 'sold'
   );
 
   const filteredVehicles = stockVehicles.filter(
