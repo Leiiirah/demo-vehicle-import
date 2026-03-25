@@ -192,7 +192,7 @@ const ClientDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Prix vente</p>
-                  <p className="text-lg font-bold">{formatCurrency(client.prixVente || 0)}</p>
+                  <p className="text-lg font-bold">{formatCurrency(totalPrixVente)}</p>
                 </div>
               </div>
             </CardContent>
