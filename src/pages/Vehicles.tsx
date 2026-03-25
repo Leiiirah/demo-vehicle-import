@@ -304,7 +304,7 @@ const VehiclesPage = () => {
                           {formatCurrency(vehicle.totalCost)}
                           {isVehiclePaid(vehicle) && <span className="ml-1 text-xs">✓</span>}
                         </td>
-                        <td>{getStatusBadge(vehicle.status)}</td>
+                        <td><VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} /></td>
                         <td>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
