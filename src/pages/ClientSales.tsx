@@ -17,7 +17,7 @@ import {
 import { Label } from '@/components/ui/label';
 import {
   Users, Search, Download, Loader2, TrendingUp, DollarSign,
-  Car, CheckCircle, Clock, Eye, Trash2,
+  Car, CheckCircle, Clock, Eye, Trash2, FileText, Wallet, CreditCard,
 } from 'lucide-react';
 import { useClients, useVehicles, useDeleteClient, useUpdateVehicle } from '@/hooks/useApi';
 import { useCreateCaisseEntry } from '@/hooks/useCaisse';
@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
+import { exportClientTransactionsPDF } from '@/lib/exportClientTransactionsPDF';
 
 const ClientSalesPage = () => {
   const navigate = useNavigate();
@@ -78,8 +79,18 @@ const ClientSalesPage = () => {
   const totalRevenue = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.sellingPrice || 0), 0);
   const totalCost = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0);
   const totalProfit = totalRevenue - totalCost;
+  const totalPaid = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.amountPaid || 0), 0);
+  const totalRemaining = Math.max(0, totalRevenue - totalPaid);
   const soldeCount = soldVehicles.filter((v: any) => v.paymentStatus === 'solde').length;
   const versementCount = soldVehicles.filter((v: any) => v.paymentStatus === 'versement').length;
+
+  const handleExportClientPDF = (vehicle: any) => {
+    const client = vehicle.client;
+    if (!client) return;
+    const clientVehicles = soldVehicles.filter((v: any) => v.clientId === client.id);
+    exportClientTransactionsPDF(client, clientVehicles);
+    toast({ title: 'PDF généré', description: `Transactions de ${client.nom} ${client.prenom}` });
+  };
 
   const handleStatusChange = (vehicle: any, newStatus: string) => {
     if (newStatus === 'versement') {
@@ -230,7 +241,7 @@ const ClientSalesPage = () => {
         </div>
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total des ventes</CardTitle>
@@ -252,6 +263,39 @@ const ClientSalesPage = () => {
                 {formatCurrency(totalProfit)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Marge nette</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Transactions</CardTitle>
+              <Car className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{soldVehicles.length}</div>
+              <p className="text-xs text-muted-foreground mt-1">Véhicules vendus</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Payé</CardTitle>
+              <Wallet className="h-4 w-4 text-success" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-success">{formatCurrency(totalPaid)}</div>
+              <p className="text-xs text-muted-foreground mt-1">Encaissements</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Reste à payer</CardTitle>
+              <CreditCard className="h-4 w-4 text-destructive" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-destructive">{formatCurrency(totalRemaining)}</div>
+              <p className="text-xs text-muted-foreground mt-1">Créances</p>
             </CardContent>
           </Card>
 
@@ -409,13 +453,26 @@ const ClientSalesPage = () => {
                           </Select>
                         </TableCell>
                         <TableCell className="text-center">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => navigate(`/vehicles/${vehicle.id}`)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/vehicles/${vehicle.id}`)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleExportClientPDF(vehicle);
+                              }}
+                              title="Exporter PDF transactions client"
+                            >
+                              <FileText className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
