@@ -10,7 +10,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { Search, AlertCircle, Car, DollarSign, Warehouse } from 'lucide-react';
-import carPlaceholder from '@/assets/car-placeholder.png';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
 
@@ -166,7 +166,7 @@ export default function StockPage() {
                           >
                             <TableCell className="font-medium">
                               <div className="flex items-center gap-2">
-                                <img src={(vehicle as any).photoUrl || carPlaceholder} alt={`${vehicle.brand} ${vehicle.model}`} className="h-8 w-8 rounded object-cover" />
+                                {(vehicle as any).photoUrl ? <img src={(vehicle as any).photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-8 w-8 rounded object-cover" /> : <div className="h-8 w-8 rounded bg-muted flex items-center justify-center"><Car className="h-4 w-4 text-muted-foreground" /></div>}
                                 {vehicle.brand}
                               </div>
                             </TableCell>
