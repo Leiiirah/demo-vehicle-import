@@ -57,18 +57,6 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
 
     const profit = recoveredFundsDZD - soldVehiclesTotalCost;
 
-    // Différence Réelle / Théorique
-    // Prix de revient théorique = totalCost (uses theoreticalRate)
-    // Prix de revient réel = (purchasePrice + transportCost) * tauxChangeFinal + localFees
-    let differenceReelleTheorique = 0;
-    if (isDossierSolde && tauxChangeFinal > 0) {
-      differenceReelleTheorique = allVehicles.reduce((sum, v) => {
-        const prixTheorique = Number(v.totalCost);
-        const totalUSD = Number(v.purchasePrice) + Number(v.transportCost);
-        const prixReel = (totalUSD * tauxChangeFinal) + Number(v.localFees || 0);
-        return sum + (prixTheorique - prixReel);
-      }, 0);
-    }
 
     return {
       totalVehicles: allVehicles.length,
