@@ -66,7 +66,6 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
       totalInvestmentUSD,
       recoveredFundsDZD,
       profit,
-      differenceReelleTheorique,
     };
   }, [conteneurs, isDossierSolde, tauxChangeFinal]);
 
