@@ -108,13 +108,7 @@ export default function DossierDetailPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => {
-            if (dossier.supplierId) {
-              navigate(`/suppliers/${dossier.supplierId}`);
-            } else {
-              navigate('/dossiers');
-            }
-          }}>
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1">
