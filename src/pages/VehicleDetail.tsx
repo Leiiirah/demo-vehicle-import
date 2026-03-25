@@ -122,7 +122,7 @@ const VehicleDetailPage = () => {
       setPrixVehicule(Number(vehicle.purchasePrice) || 0);
       setPrixTransport(Number(vehicle.transportCost) || 0);
       setChargesTransit(Number(vehicle.localFees) || 0);
-      setTauxApproximatif(Number(vehicle.theoreticalRate) || 0);
+      setTauxChangeReel(Number(vehicle.theoreticalRate) || 0);
       setHasChanges(false);
     }
   }, [vehicle]);
