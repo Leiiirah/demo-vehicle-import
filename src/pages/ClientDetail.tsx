@@ -350,6 +350,90 @@ const ClientDetailPage = () => {
           {client.vehicles && client.vehicles.length > 0 && (
             <ClientVehiclesSection vehicles={client.vehicles} />
           )}
+
+          {/* Résumé des Transactions */}
+          {soldVehicles.length > 0 && (
+            <Card className="md:col-span-2">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Wallet className="h-5 w-5" />
+                  Résumé des Transactions
+                  <Badge variant="secondary" className="ml-1">{soldVehicles.length}</Badge>
+                </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => {
+                    exportClientTransactionsPDF(client, soldVehicles);
+                    toast.success('PDF généré avec succès');
+                  }}
+                >
+                  <FileText className="h-4 w-4" />
+                  Exporter PDF
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="p-3 rounded-lg bg-accent/50">
+                    <p className="text-xs text-muted-foreground">Total prix de vente</p>
+                    <p className="text-lg font-bold">{formatCurrency(totalPrixVente)}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-success/10">
+                    <p className="text-xs text-muted-foreground">Total payé</p>
+                    <p className="text-lg font-bold text-success">{formatCurrency(totalAmountPaid)}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-destructive/10">
+                    <p className="text-xs text-muted-foreground">Reste à payer</p>
+                    <p className="text-lg font-bold text-destructive">{formatCurrency(totalRemaining)}</p>
+                  </div>
+                </div>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Véhicule</TableHead>
+                        <TableHead className="text-right">Prix de vente</TableHead>
+                        <TableHead className="text-right">Montant payé</TableHead>
+                        <TableHead className="text-right">Reste</TableHead>
+                        <TableHead>Statut</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {soldVehicles.map((v: any) => {
+                        const sp = Number(v.sellingPrice || 0);
+                        const ap = Number(v.amountPaid || 0);
+                        const remaining = Math.max(0, sp - ap);
+                        return (
+                          <TableRow key={v.id}>
+                            <TableCell className="font-medium">{v.brand} {v.model} ({v.year})</TableCell>
+                            <TableCell className="text-right">{formatCurrency(sp)}</TableCell>
+                            <TableCell className="text-right text-success">{formatCurrency(ap)}</TableCell>
+                            <TableCell className="text-right">
+                              {remaining > 0 ? (
+                                <span className="text-destructive">{formatCurrency(remaining)}</span>
+                              ) : (
+                                <span className="text-success">0 DZD</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {v.paymentStatus === 'solde' ? (
+                                <Badge className="bg-success/10 text-success border-success/20" variant="outline">Soldé</Badge>
+                              ) : v.paymentStatus === 'versement' ? (
+                                <Badge className="bg-warning/10 text-warning border-warning/20" variant="outline">Versement</Badge>
+                              ) : (
+                                <Badge variant="secondary">En attente</Badge>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
