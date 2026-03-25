@@ -293,7 +293,7 @@ const ClientDetailPage = () => {
                 <div className="p-4 bg-warning/5 rounded-lg">
                   <p className="text-sm text-muted-foreground">Dette totale</p>
                   <p className="text-2xl font-bold text-warning mt-1">
-                    {formatCurrency(client.detteBenefice || 0)}
+                    {formatCurrency(detteBenefice)}
                   </p>
                 </div>
                 <div className="p-4 bg-accent/50 rounded-lg">
