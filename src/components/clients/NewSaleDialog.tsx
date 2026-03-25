@@ -89,8 +89,14 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
     onOpenChange(val);
   };
 
-  const updatePrice = (vehicleId: string, price: string) => {
-    setVehiclePrices((prev) => ({ ...prev, [vehicleId]: price }));
+  const formatWithSpaces = (value: string) => {
+    const num = value.replace(/\s/g, '').replace(/[^0-9]/g, '');
+    return num.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  };
+
+  const updatePrice = (vehicleId: string, rawInput: string) => {
+    const cleaned = rawInput.replace(/\s/g, '');
+    setVehiclePrices((prev) => ({ ...prev, [vehicleId]: cleaned }));
   };
 
   const allPricesFilled = selectedVehicleIds.every((id) => vehiclePrices[id] && Number(vehiclePrices[id]) > 0);
