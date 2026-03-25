@@ -382,13 +382,7 @@ const VehiclesPage = () => {
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        {vehicle.photoUrl ? (
-                          <img src={vehicle.photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-12 w-12 rounded-lg object-cover" />
-                        ) : (
-                          <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center">
-                            <Car className="h-6 w-6 text-secondary-foreground" />
-                          </div>
-                        )}
+                        <img src={vehicle.photoUrl || carPlaceholder} alt={`${vehicle.brand} ${vehicle.model}`} className="h-12 w-12 rounded-lg object-cover" />
                         <div>
                           <p className="font-semibold text-foreground">
                             {vehicle.brand} {vehicle.model}

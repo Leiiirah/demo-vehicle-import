@@ -166,7 +166,7 @@ export default function StockPage() {
                           >
                             <TableCell className="font-medium">
                               <div className="flex items-center gap-2">
-                                <Car className="h-4 w-4 text-muted-foreground" />
+                                <img src={(vehicle as any).photoUrl || carPlaceholder} alt={`${vehicle.brand} ${vehicle.model}`} className="h-8 w-8 rounded object-cover" />
                                 {vehicle.brand}
                               </div>
                             </TableCell>
