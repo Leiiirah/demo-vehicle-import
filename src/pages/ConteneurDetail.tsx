@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ArrowLeft, Container, FolderOpen, Car, Edit, Plus, Ship, Anchor, AlertCircle, Trash2 } from 'lucide-react';
+import carPlaceholder from '@/assets/car-placeholder.png';
 import { AffecterVehiculeDialog } from '@/components/conteneurs/AffecterVehiculeDialog';
 import { EditConteneurDialog } from '@/components/conteneurs/EditConteneurDialog';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -293,11 +294,7 @@ export default function ConteneurDetailPage() {
                         >
                           <TableCell className="font-medium">
                             <div className="flex items-center gap-2">
-                              {vehicule.photoUrl ? (
-                                <img src={vehicule.photoUrl} alt={`${vehicule.brand} ${vehicule.model}`} className="h-8 w-8 rounded object-cover" />
-                              ) : (
-                                <Car className="h-4 w-4 text-muted-foreground" />
-                              )}
+                              <img src={vehicule.photoUrl || carPlaceholder} alt={`${vehicule.brand} ${vehicule.model}`} className="h-8 w-8 rounded object-cover" />
                               <div>
                                 <p>{vehicule.brand} {vehicule.model}</p>
                                 <p className="text-xs text-muted-foreground">{vehicule.year}</p>
