@@ -91,7 +91,12 @@ const ClientDetailPage = () => {
     );
   }
 
-  const benefice = (client.prixVente || 0) - (client.coutRevient || 0);
+  // Compute from vehicles data
+  const soldVehicles = (client.vehicles || []).filter((v: any) => v.sellingPrice != null);
+  const totalPrixVente = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.sellingPrice || 0), 0);
+  const totalCoutRevient = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0);
+  const benefice = totalPrixVente - totalCoutRevient;
+  const detteBenefice = benefice * (client.pourcentageBenefice || 0) / 100;
 
   return (
     <DashboardLayout>
