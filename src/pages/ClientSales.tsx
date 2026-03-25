@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
+import { exportClientTransactionsPDF } from '@/lib/exportClientTransactionsPDF';
 
 const ClientSalesPage = () => {
   const navigate = useNavigate();
