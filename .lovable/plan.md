@@ -1,24 +1,47 @@
 
 
-# Simplifier le formulaire "Ajouter Client" - Section Calcul du benefice
+## Plan: Add Transaction Summary and PDF Export to Client Sales and Client Detail Pages
 
-## Probleme actuel
-Le formulaire de creation de client contient des champs manuels "Prix de vente (DZD)" et "Cout de revient (DZD)" qui ne devraient pas etre saisis a la main. Ces valeurs sont calculees automatiquement a partir des vehicules assignes au client (prix de revient = cout calcule du vehicule, prix de vente = prix de vente defini sur le vehicule).
+### What changes
 
-Au moment de la creation du client, aucun vehicule n'est encore assigne, donc ces champs n'ont pas de sens.
+**1. `/client-sales` page — Add per-client transaction KPIs**
+- Add a new KPI card: **Total Transactions** (count of all sold vehicles)
+- Add a new KPI card: **Total Payé** (sum of `amountPaid` across all sold vehicles)  
+- Add a new KPI card: **Reste à payer** (sum of remaining amounts across all sold vehicles)
 
-## Modification prevue
+**2. `/client-sales` page — Add PDF export button per client row**
+- Add a "PDF" button in the Actions column next to the Eye button
+- Clicking it generates a PDF for that client's transactions containing:
+  - Client info (name, phone)
+  - Table of all vehicles sold to that client (vehicle name, VIN, selling price, amount paid, remaining, status)
+  - Summary totals at the bottom (total selling price, total paid, total remaining)
 
-### Fichier : `src/components/clients/AddClientDialog.tsx`
+**3. `/clients/:id` (ClientDetail) page — Add transaction summary section**
+- Add a new Card section showing all vehicle transactions for this client:
+  - Table with: Vehicle, Prix de vente, Montant payé, Reste, Statut
+  - Summary row at bottom: Total prix de vente, Total payé, Total reste
+- Add a "Exporter PDF" button that generates the same PDF as above
 
-1. **Supprimer les champs manuels** : Retirer les inputs "Prix de vente (DZD)" et "Coût de revient (DZD)" du formulaire
-2. **Supprimer les states associes** : Retirer `prixVente`, `setPrixVente`, `coutRevient`, `setCoutRevient`
-3. **Supprimer le calcul local** : Retirer les variables `benefice` et `dette` et le bloc d'apercu conditionnel
-4. **Garder uniquement le pourcentage** : Le champ "Pourcentage sur benefice (%)" reste le seul champ dans la section "Calcul du benefice"
-5. **Ajouter une note explicative** : Un texte d'information sous le champ pourcentage indiquant que le benefice sera calcule automatiquement une fois les vehicules assignes
-6. **Nettoyer le submit** : Ne plus envoyer `prixVente`, `coutRevient`, ni `detteBenefice` lors de la creation (envoyer 0 par defaut)
+**4. Shared PDF generation utility**
+- Create `src/lib/exportClientTransactionsPDF.ts` using jsPDF (already in the project)
+- Accepts client info + vehicles array, generates a formatted PDF with:
+  - Header: Client name, phone, date
+  - Transaction table
+  - Totals summary
 
-### Resultat visuel
-La section "Calcul du benefice" affichera uniquement :
-- Le champ pourcentage (avec son input numerique et le symbole %)
-- Une note : "Le benefice et la dette seront calcules automatiquement en fonction des vehicules assignes."
+### Technical details
+
+**Files to create:**
+- `src/lib/exportClientTransactionsPDF.ts` — shared PDF generator using jsPDF
+
+**Files to modify:**
+- `src/pages/ClientSales.tsx`:
+  - Add "Total Transactions", "Total Payé", "Reste à payer" KPI cards
+  - Add PDF export button per row (group vehicles by client, generate PDF for selected client)
+  - Add a FileText icon button in the actions column
+- `src/pages/ClientDetail.tsx`:
+  - Add a transaction summary card with vehicle payment table and totals
+  - Add "Exporter PDF" button using the shared utility
+- `src/components/clients/ClientVehiclesSection.tsx`:
+  - Add columns for "Prix de vente", "Montant payé", "Reste" and a totals row
+
