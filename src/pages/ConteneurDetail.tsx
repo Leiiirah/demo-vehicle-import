@@ -17,6 +17,7 @@ import {
 import { ArrowLeft, Container, FolderOpen, Car, Edit, Plus, Ship, Anchor, AlertCircle, Trash2 } from 'lucide-react';
 
 import { AffecterVehiculeDialog } from '@/components/conteneurs/AffecterVehiculeDialog';
+import { VehicleStatusSelect } from '@/components/vehicles/VehicleStatusSelect';
 import { EditConteneurDialog } from '@/components/conteneurs/EditConteneurDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
