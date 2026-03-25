@@ -17,7 +17,7 @@ import {
 import { Label } from '@/components/ui/label';
 import {
   Users, Search, Download, Loader2, TrendingUp, DollarSign,
-  Car, CheckCircle, Clock, Eye, Trash2,
+  Car, CheckCircle, Clock, Eye, Trash2, FileText, Wallet, CreditCard,
 } from 'lucide-react';
 import { useClients, useVehicles, useDeleteClient, useUpdateVehicle } from '@/hooks/useApi';
 import { useCreateCaisseEntry } from '@/hooks/useCaisse';
