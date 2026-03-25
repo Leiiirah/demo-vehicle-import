@@ -181,6 +181,8 @@ export default function StockPage() {
                             <TableCell>{vehicle.supplier?.name || '-'}</TableCell>
                             <TableCell>{formatCurrency(Number(vehicle.purchasePrice || 0), 'USD')}</TableCell>
                             <TableCell>{formatCurrency(Number(vehicle.transportCost || 0), 'USD')}</TableCell>
+                            <TableCell>{formatCurrency(Number(vehicle.passeportCost || 0))}</TableCell>
+                            <TableCell>{formatCurrency(Number(vehicle.localFees || 0))}</TableCell>
                             <TableCell className="font-medium">{formatCurrency(Number(vehicle.totalCost || 0))}</TableCell>
                           </TableRow>
                         ))
