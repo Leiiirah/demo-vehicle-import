@@ -207,9 +207,10 @@ const VehicleDetailPage = () => {
   const clientShare = (benefice * clientImport.profitPercentage) / 100;
   const companyShare = benefice - clientShare;
 
-  // Handle taux approximatif change
-  const handleTauxApproximatifChange = (value: number) => {
-    setTauxApproximatif(value);
+  // Handle taux réel change
+  const handleTauxReelChange = (value: number) => {
+    setTauxChangeReel(value);
+    setHasChanges(true);
   };
 
   // Gestion des charges diverses via API
