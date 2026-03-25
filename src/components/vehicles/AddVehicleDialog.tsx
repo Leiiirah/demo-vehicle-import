@@ -156,7 +156,7 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
     setVin('');
     setColor('');
     setConteneurId(preSelectedConteneurId || '');
-    setStatus('ordered');
+    setStatus('in_transit');
     setSupplierId(preSelectedSupplierId || '');
     setOrderDate('');
     setEstimatedArrival('');
