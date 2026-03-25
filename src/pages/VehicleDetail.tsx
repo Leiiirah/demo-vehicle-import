@@ -191,8 +191,8 @@ const VehicleDetailPage = () => {
   // Calculs
   const totalUSD = prixVehicule + prixTransport;
 
-  // Total USD converti en DZD via taux approximatif
-  const totalUSDenDZD = totalUSD * tauxApproximatif;
+  // Total USD converti en DZD via taux réel
+  const totalUSDenDZD = totalUSD * tauxChangeReel;
 
   // Total charges diverses
   const totalChargesDivers = chargesDivers.reduce((sum, c) => sum + Number(c.amount), 0);
