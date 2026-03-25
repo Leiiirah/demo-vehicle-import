@@ -197,14 +197,8 @@ const VehicleDetailPage = () => {
   // Total charges diverses
   const totalChargesDivers = chargesDivers.reduce((sum, c) => sum + Number(c.amount), 0);
 
-  // Prix de revient approximatif
-  const prixRevient = totalUSDenDZD + chargesTransit + totalChargesDivers;
-
-  // Prix de revient final (using real weighted exchange rate)
-  const prixRevientFinal = tauxChangeFinal > 0 ? (totalUSD * tauxChangeFinal) + chargesTransit + totalChargesDivers : null;
-
-  // Écart entre final et approximatif
-  const ecartPrixRevient = prixRevientFinal !== null && prixRevient > 0 ? prixRevientFinal - prixRevient : null;
+  // Prix de revient (calculé uniquement si taux réel saisi)
+  const prixRevient = tauxChangeReel > 0 ? totalUSDenDZD + chargesTransit + totalChargesDivers : 0;
 
   // Calcul de la répartition des bénéfices (safe access after loading check)
   const sellingPrice = vehicle?.sellingPrice ?? 0;
