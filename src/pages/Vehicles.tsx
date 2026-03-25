@@ -32,6 +32,7 @@ import {
 import { cn } from '@/lib/utils';
 import AddVehicleDialog from '@/components/vehicles/AddVehicleDialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { VehicleStatusSelect } from '@/components/vehicles/VehicleStatusSelect';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -304,7 +305,7 @@ const VehiclesPage = () => {
                           {formatCurrency(vehicle.totalCost)}
                           {isVehiclePaid(vehicle) && <span className="ml-1 text-xs">✓</span>}
                         </td>
-                        <td>{getStatusBadge(vehicle.status)}</td>
+                        <td><VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} /></td>
                         <td>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -392,7 +393,7 @@ const VehiclesPage = () => {
                           </p>
                         </div>
                       </div>
-                      {getStatusBadge(vehicle.status)}
+                      <VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} />
                     </div>
 
                     <div className="space-y-2 text-sm">

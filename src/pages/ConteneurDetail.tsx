@@ -17,6 +17,7 @@ import {
 import { ArrowLeft, Container, FolderOpen, Car, Edit, Plus, Ship, Anchor, AlertCircle, Trash2 } from 'lucide-react';
 
 import { AffecterVehiculeDialog } from '@/components/conteneurs/AffecterVehiculeDialog';
+import { VehicleStatusSelect } from '@/components/vehicles/VehicleStatusSelect';
 import { EditConteneurDialog } from '@/components/conteneurs/EditConteneurDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -322,10 +323,8 @@ export default function ConteneurDetailPage() {
                           <TableCell>{formatCurrency(Number(vehicule.purchasePrice || 0), 'USD')}</TableCell>
                           <TableCell>{formatCurrency(Number(vehicule.transportCost || 0), 'USD')}</TableCell>
                           <TableCell className="font-medium">{formatCurrency(Number(vehicule.totalCost || 0))}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={vStatus.className}>
-                              {vStatus.label}
-                            </Badge>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <VehicleStatusSelect vehicleId={vehicule.id} currentStatus={vehicule.status} />
                           </TableCell>
                           <TableCell>
                             <AlertDialog>
