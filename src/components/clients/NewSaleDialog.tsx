@@ -308,11 +308,11 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
                     <div className="space-y-1">
                       <Label className="text-xs">Prix de vente (DZD)</Label>
                       <Input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
                         placeholder="0"
-                        value={vehiclePrices[vehicle.id] || ''}
+                        value={formatWithSpaces(vehiclePrices[vehicle.id] || '')}
                         onChange={(e) => updatePrice(vehicle.id, e.target.value)}
-                        min={0}
                       />
                       {vehiclePrices[vehicle.id] && vehicle.totalCost ? (
                         <p className={`text-xs font-medium ${Number(vehiclePrices[vehicle.id]) - Number(vehicle.totalCost) >= 0 ? 'text-success' : 'text-destructive'}`}>
