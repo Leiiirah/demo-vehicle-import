@@ -488,22 +488,6 @@ const VehicleDetailPage = () => {
           </Card>
         </div>
 
-        {/* Écart réel / approx. */}
-        <Card>
-          <CardContent className="pt-3 sm:pt-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className={cn('h-8 sm:h-9 w-8 sm:w-9 rounded-lg flex items-center justify-center flex-shrink-0', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'bg-destructive/10' : 'bg-success/10') : 'bg-muted')}>
-                <TrendingUp className={cn('h-4 w-4', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'text-destructive' : 'text-success') : 'text-muted-foreground')} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Écart réel / approx.</p>
-                <p className={cn('text-sm sm:text-base font-semibold truncate', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'text-destructive' : 'text-success') : '')}>
-                  {ecartPrixRevient !== null ? `${ecartPrixRevient >= 0 ? '+' : ''}${formatCurrency(ecartPrixRevient)}` : 'N/A'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Tabs */}
         <Tabs defaultValue="costs" className="space-y-4">
