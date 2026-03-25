@@ -319,7 +319,7 @@ export const profitHistory = [
 
 export const vehiclesByStatus = [
   { name: 'Commandé', value: 8, color: 'hsl(0, 72%, 50%)' },
-  { name: 'En transit', value: 12, color: 'hsl(38, 92%, 50%)' },
+  { name: 'Chargée', value: 12, color: 'hsl(38, 92%, 50%)' },
   { name: 'Arrivé', value: 8, color: 'hsl(142, 71%, 45%)' },
   { name: 'Vendu', value: 45, color: 'hsl(0, 0%, 45%)' },
 ];

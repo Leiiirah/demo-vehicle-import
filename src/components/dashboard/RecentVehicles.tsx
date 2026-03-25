@@ -16,7 +16,7 @@ export function TopVehiclesByCount() {
     };
     const labels = {
       ordered: 'En stock',
-      in_transit: 'En transit',
+      in_transit: 'Chargée',
       arrived: 'Arrivé',
       sold: 'Vendu',
     };
