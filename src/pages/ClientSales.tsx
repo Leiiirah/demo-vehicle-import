@@ -79,8 +79,18 @@ const ClientSalesPage = () => {
   const totalRevenue = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.sellingPrice || 0), 0);
   const totalCost = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0);
   const totalProfit = totalRevenue - totalCost;
+  const totalPaid = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.amountPaid || 0), 0);
+  const totalRemaining = Math.max(0, totalRevenue - totalPaid);
   const soldeCount = soldVehicles.filter((v: any) => v.paymentStatus === 'solde').length;
   const versementCount = soldVehicles.filter((v: any) => v.paymentStatus === 'versement').length;
+
+  const handleExportClientPDF = (vehicle: any) => {
+    const client = vehicle.client;
+    if (!client) return;
+    const clientVehicles = soldVehicles.filter((v: any) => v.clientId === client.id);
+    exportClientTransactionsPDF(client, clientVehicles);
+    toast({ title: 'PDF généré', description: `Transactions de ${client.nom} ${client.prenom}` });
+  };
 
   const handleStatusChange = (vehicle: any, newStatus: string) => {
     if (newStatus === 'versement') {
