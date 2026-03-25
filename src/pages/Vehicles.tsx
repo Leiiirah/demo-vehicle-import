@@ -263,7 +263,7 @@ const VehiclesPage = () => {
                       >
                         <td>
                           <div className="flex items-center gap-3">
-                            <img src={vehicle.photoUrl || carPlaceholder} alt={`${vehicle.brand} ${vehicle.model}`} className="h-10 w-10 rounded-lg object-cover" />
+                            {vehicle.photoUrl ? <img src={vehicle.photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-10 w-10 rounded-lg object-cover" /> : <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center"><Car className="h-5 w-5 text-muted-foreground" /></div>}
                             <div>
                               <p className="font-medium text-foreground">
                                 {vehicle.brand} {vehicle.model}
