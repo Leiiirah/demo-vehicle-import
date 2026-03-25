@@ -35,6 +35,7 @@ import { ClientVehiclesSection } from '@/components/clients/ClientVehiclesSectio
 import { Car } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { exportClientTransactionsPDF } from '@/lib/exportClientTransactionsPDF';
 
 const ClientDetailPage = () => {
   const { id } = useParams();
