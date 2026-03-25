@@ -169,7 +169,7 @@ const ClientsPage = () => {
                         </td>
                         <td>
                           <span className="font-medium">
-                            {formatCurrency(client.prixVente || 0)}
+                            {formatCurrency((client.vehicles || []).filter((v: any) => v.sellingPrice != null).reduce((s: number, v: any) => s + Number(v.sellingPrice || 0), 0))}
                           </span>
                         </td>
                         <td>
