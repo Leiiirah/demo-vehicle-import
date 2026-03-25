@@ -91,7 +91,12 @@ const ClientDetailPage = () => {
     );
   }
 
-  const benefice = (client.prixVente || 0) - (client.coutRevient || 0);
+  // Compute from vehicles data
+  const soldVehicles = (client.vehicles || []).filter((v: any) => v.sellingPrice != null);
+  const totalPrixVente = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.sellingPrice || 0), 0);
+  const totalCoutRevient = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0);
+  const benefice = totalPrixVente - totalCoutRevient;
+  const detteBenefice = benefice * (client.pourcentageBenefice || 0) / 100;
 
   return (
     <DashboardLayout>
@@ -187,7 +192,7 @@ const ClientDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Prix vente</p>
-                  <p className="text-lg font-bold">{formatCurrency(client.prixVente || 0)}</p>
+                  <p className="text-lg font-bold">{formatCurrency(totalPrixVente)}</p>
                 </div>
               </div>
             </CardContent>
@@ -213,7 +218,7 @@ const ClientDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Dette client</p>
-                  <p className="text-lg font-bold text-warning">{formatCurrency(client.detteBenefice || 0)}</p>
+                  <p className="text-lg font-bold text-warning">{formatCurrency(detteBenefice)}</p>
                 </div>
               </div>
             </CardContent>
@@ -261,11 +266,11 @@ const ClientDetailPage = () => {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Prix de vente</span>
-                <span className="font-medium">{formatCurrency(client.prixVente || 0)}</span>
+                <span className="font-medium">{formatCurrency(totalPrixVente)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Coût de revient</span>
-                <span className="font-medium">- {formatCurrency(client.coutRevient || 0)}</span>
+                <span className="font-medium">- {formatCurrency(totalCoutRevient)}</span>
               </div>
               <div className="border-t border-border pt-3 flex justify-between">
                 <span className="font-medium">Bénéfice</span>
@@ -273,7 +278,7 @@ const ClientDetailPage = () => {
               </div>
               <div className="flex justify-between bg-warning/10 p-3 rounded-lg">
                 <span className="font-medium">Part client ({client.pourcentageBenefice || 0}%)</span>
-                <span className="font-bold text-warning">{formatCurrency(client.detteBenefice || 0)}</span>
+                <span className="font-bold text-warning">{formatCurrency(detteBenefice)}</span>
               </div>
             </CardContent>
           </Card>
@@ -288,7 +293,7 @@ const ClientDetailPage = () => {
                 <div className="p-4 bg-warning/5 rounded-lg">
                   <p className="text-sm text-muted-foreground">Dette totale</p>
                   <p className="text-2xl font-bold text-warning mt-1">
-                    {formatCurrency(client.detteBenefice || 0)}
+                    {formatCurrency(detteBenefice)}
                   </p>
                 </div>
                 <div className="p-4 bg-accent/50 rounded-lg">

@@ -42,7 +42,10 @@ const ClientsPage = () => {
 
 
   const totalVehicles = (clients || []).reduce((sum, c) => sum + (c.vehicles?.length || 0), 0);
-  const totalPrixVente = (clients || []).reduce((sum, c) => sum + (c.prixVente || 0), 0);
+  const totalPrixVente = (clients || []).reduce((sum, c) => {
+    const sold = (c.vehicles || []).filter((v: any) => v.sellingPrice != null);
+    return sum + sold.reduce((s: number, v: any) => s + Number(v.sellingPrice || 0), 0);
+  }, 0);
 
   if (error) {
     return (
@@ -166,7 +169,7 @@ const ClientsPage = () => {
                         </td>
                         <td>
                           <span className="font-medium">
-                            {formatCurrency(client.prixVente || 0)}
+                            {formatCurrency((client.vehicles || []).filter((v: any) => v.sellingPrice != null).reduce((s: number, v: any) => s + Number(v.sellingPrice || 0), 0))}
                           </span>
                         </td>
                         <td>
