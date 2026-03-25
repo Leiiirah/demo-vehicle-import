@@ -110,8 +110,8 @@ const VehicleDetailPage = () => {
   // État pour les charges DZD
   const [chargesTransit, setChargesTransit] = useState<number>(0);
 
-  // Taux de change approximatif
-  const [tauxApproximatif, setTauxApproximatif] = useState<number>(0);
+  // Taux de change réel (saisi par l'admin)
+  const [tauxChangeReel, setTauxChangeReel] = useState<number>(0);
 
   // Local state for new charge being added (before saving)
   const [newCharge, setNewCharge] = useState<{ label: string; amount: number } | null>(null);
@@ -122,7 +122,7 @@ const VehicleDetailPage = () => {
       setPrixVehicule(Number(vehicle.purchasePrice) || 0);
       setPrixTransport(Number(vehicle.transportCost) || 0);
       setChargesTransit(Number(vehicle.localFees) || 0);
-      setTauxApproximatif(Number(vehicle.theoreticalRate) || 0);
+      setTauxChangeReel(Number(vehicle.theoreticalRate) || 0);
       setHasChanges(false);
     }
   }, [vehicle]);
@@ -137,6 +137,7 @@ const VehicleDetailPage = () => {
       return api.updateVehicle(id, {
         purchasePrice: prixVehicule,
         localFees: chargesTransit,
+        theoreticalRate: tauxChangeReel,
       });
     },
     onMutate: async () => {
@@ -191,20 +192,14 @@ const VehicleDetailPage = () => {
   // Calculs
   const totalUSD = prixVehicule + prixTransport;
 
-  // Total USD converti en DZD via taux approximatif
-  const totalUSDenDZD = totalUSD * tauxApproximatif;
+  // Total USD converti en DZD via taux réel
+  const totalUSDenDZD = totalUSD * tauxChangeReel;
 
   // Total charges diverses
   const totalChargesDivers = chargesDivers.reduce((sum, c) => sum + Number(c.amount), 0);
 
-  // Prix de revient approximatif
-  const prixRevient = totalUSDenDZD + chargesTransit + totalChargesDivers;
-
-  // Prix de revient final (using real weighted exchange rate)
-  const prixRevientFinal = tauxChangeFinal > 0 ? (totalUSD * tauxChangeFinal) + chargesTransit + totalChargesDivers : null;
-
-  // Écart entre final et approximatif
-  const ecartPrixRevient = prixRevientFinal !== null && prixRevient > 0 ? prixRevientFinal - prixRevient : null;
+  // Prix de revient (calculé uniquement si taux réel saisi)
+  const prixRevient = tauxChangeReel > 0 ? totalUSDenDZD + chargesTransit + totalChargesDivers : 0;
 
   // Calcul de la répartition des bénéfices (safe access after loading check)
   const sellingPrice = vehicle?.sellingPrice ?? 0;
@@ -213,9 +208,10 @@ const VehicleDetailPage = () => {
   const clientShare = (benefice * clientImport.profitPercentage) / 100;
   const companyShare = benefice - clientShare;
 
-  // Handle taux approximatif change
-  const handleTauxApproximatifChange = (value: number) => {
-    setTauxApproximatif(value);
+  // Handle taux réel change
+  const handleTauxReelChange = (value: number) => {
+    setTauxChangeReel(value);
+    setHasChanges(true);
   };
 
   // Gestion des charges diverses via API
@@ -445,7 +441,7 @@ const VehicleDetailPage = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">Prix de revient</p>
-                  <p className="text-sm sm:text-base font-semibold truncate">{prixRevient > 0 ? formatCurrency(prixRevient) : 'N/A'}</p>
+                  <p className="text-sm sm:text-base font-semibold truncate">{tauxChangeReel > 0 && prixRevient > 0 ? formatCurrency(prixRevient) : 'N/A'}</p>
                 </div>
               </div>
             </CardContent>
@@ -493,22 +489,6 @@ const VehicleDetailPage = () => {
           </Card>
         </div>
 
-        {/* Écart réel / approx. */}
-        <Card>
-          <CardContent className="pt-3 sm:pt-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className={cn('h-8 sm:h-9 w-8 sm:w-9 rounded-lg flex items-center justify-center flex-shrink-0', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'bg-destructive/10' : 'bg-success/10') : 'bg-muted')}>
-                <TrendingUp className={cn('h-4 w-4', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'text-destructive' : 'text-success') : 'text-muted-foreground')} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Écart réel / approx.</p>
-                <p className={cn('text-sm sm:text-base font-semibold truncate', ecartPrixRevient !== null ? (ecartPrixRevient >= 0 ? 'text-destructive' : 'text-success') : '')}>
-                  {ecartPrixRevient !== null ? `${ecartPrixRevient >= 0 ? '+' : ''}${formatCurrency(ecartPrixRevient)}` : 'N/A'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Tabs */}
         <Tabs defaultValue="costs" className="space-y-4">
@@ -679,12 +659,12 @@ const VehicleDetailPage = () => {
 
               {/* Colonne droite : Taux + Prix de revient */}
               <div className="space-y-4">
-                {/* Taux de change approximatif */}
+                {/* Taux de change réel */}
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
                       <TrendingUp className="h-4 w-4" />
-                      Taux de change approximatif
+                      Taux de change réel
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -693,8 +673,8 @@ const VehicleDetailPage = () => {
                       <Input
                         type="number"
                         step="0.01"
-                        value={tauxApproximatif || ''}
-                        onChange={(e) => handleTauxApproximatifChange(Number(e.target.value))}
+                        value={tauxChangeReel || ''}
+                        onChange={(e) => handleTauxReelChange(Number(e.target.value))}
                         placeholder="Ex: 134.50"
                       />
                     </div>
@@ -704,29 +684,35 @@ const VehicleDetailPage = () => {
                 {/* Récap prix de revient */}
                 <Card className="border-primary/30 bg-primary/5">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Prix de revient approximatif</CardTitle>
+                    <CardTitle className="text-base">Prix de revient</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          Total USD ({formatCurrency(totalUSD, 'USD')} × {tauxApproximatif.toFixed(2)})
-                        </span>
-                        <span>{formatCurrency(totalUSDenDZD)}</span>
+                    {tauxChangeReel > 0 ? (
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Total USD ({formatCurrency(totalUSD, 'USD')} × {tauxChangeReel.toFixed(2)})
+                          </span>
+                          <span>{formatCurrency(totalUSDenDZD)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Charges Transit</span>
+                          <span>{formatCurrency(chargesTransit)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Charges Divers</span>
+                          <span>{formatCurrency(totalChargesDivers)}</span>
+                        </div>
+                        <div className="flex justify-between pt-3 border-t border-primary/20">
+                          <span className="font-semibold">Prix de revient</span>
+                          <span className="text-xl font-bold text-success">{formatCurrency(prixRevient)}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Charges Transit</span>
-                        <span>{formatCurrency(chargesTransit)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Charges Divers</span>
-                        <span>{formatCurrency(totalChargesDivers)}</span>
-                      </div>
-                      <div className="flex justify-between pt-3 border-t border-primary/20">
-                        <span className="font-semibold">Prix de revient approximatif</span>
-                        <span className="text-xl font-bold text-success">{formatCurrency(prixRevient)}</span>
-                      </div>
-                    </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Saisissez le taux de change réel pour calculer le prix de revient
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
 

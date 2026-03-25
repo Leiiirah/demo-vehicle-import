@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Car, Package, DollarSign, TrendingUp, ArrowDownUp } from 'lucide-react';
+import { Car, Package, DollarSign, TrendingUp } from 'lucide-react';
 import type { Conteneur, Vehicle, Payment } from '@/services/api';
 import { api } from '@/services/api';
 import { formatCurrency } from '@/lib/utils';
@@ -57,18 +57,6 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
 
     const profit = recoveredFundsDZD - soldVehiclesTotalCost;
 
-    // Différence Réelle / Théorique
-    // Prix de revient théorique = totalCost (uses theoreticalRate)
-    // Prix de revient réel = (purchasePrice + transportCost) * tauxChangeFinal + localFees
-    let differenceReelleTheorique = 0;
-    if (isDossierSolde && tauxChangeFinal > 0) {
-      differenceReelleTheorique = allVehicles.reduce((sum, v) => {
-        const prixTheorique = Number(v.totalCost);
-        const totalUSD = Number(v.purchasePrice) + Number(v.transportCost);
-        const prixReel = (totalUSD * tauxChangeFinal) + Number(v.localFees || 0);
-        return sum + (prixTheorique - prixReel);
-      }, 0);
-    }
 
     return {
       totalVehicles: allVehicles.length,
@@ -78,9 +66,8 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
       totalInvestmentUSD,
       recoveredFundsDZD,
       profit,
-      differenceReelleTheorique,
     };
-  }, [conteneurs, isDossierSolde, tauxChangeFinal]);
+  }, [conteneurs]);
 
 
   return (
@@ -156,25 +143,6 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
         </Card>
       </div>
 
-      {/* Différence Réelle / Théorique - only when dossier is soldé */}
-      {isDossierSolde && (
-        <Card className="border-2" style={{ borderColor: 'hsl(142, 71%, 45%)', backgroundColor: 'hsl(142, 71%, 45%, 0.12)' }}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium" style={{ color: 'hsl(142, 71%, 45%)' }}>
-              Différence Réelle / Théorique
-            </CardTitle>
-            <ArrowDownUp className="h-4 w-4" style={{ color: 'hsl(142, 71%, 45%)' }} />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${stats.differenceReelleTheorique >= 0 ? 'text-success' : 'text-destructive'}`}>
-              {stats.differenceReelleTheorique >= 0 ? '+' : ''}{formatCurrency(stats.differenceReelleTheorique)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Σ (Prix de revient théorique − Prix de revient réel) • Taux réel moyen : {tauxChangeFinal.toFixed(2)} DZD/$
-            </p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
