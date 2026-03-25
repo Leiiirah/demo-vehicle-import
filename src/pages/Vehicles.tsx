@@ -177,7 +177,7 @@ const VehiclesPage = () => {
             <DropdownMenuContent align="start" className="w-[200px]">
               {[
                 { value: 'ordered', label: 'En stock' },
-                { value: 'in_transit', label: 'En transit' },
+                { value: 'in_transit', label: 'Chargée' },
                 { value: 'arrived', label: 'Arrivé' },
                 { value: 'sold', label: 'Vendu' },
               ].map((status) => (

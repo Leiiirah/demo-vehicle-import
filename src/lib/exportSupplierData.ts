@@ -11,7 +11,7 @@ interface DossierWithConteneurs {
 }
 
 const statusLabels: Record<string, string> = { en_cours: 'En cours', termine: 'Terminé', annule: 'Annulé' };
-const vStatusLabels: Record<string, string> = { ordered: 'En stock', in_transit: 'En transit', arrived: 'Arrivé', sold: 'Vendu' };
+const vStatusLabels: Record<string, string> = { ordered: 'En stock', in_transit: 'Chargée', arrived: 'Arrivé', sold: 'Vendu' };
 const typeLabels: Record<string, string> = { supplier_payment: 'Paiement fournisseur', client_payment: 'Paiement client', transport: 'Transport', fees: 'Frais' };
 
 function addHeader(doc: jsPDF, title: string, supplierName: string) {

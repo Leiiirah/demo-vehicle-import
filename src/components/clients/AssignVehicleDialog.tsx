@@ -66,7 +66,7 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
 
   const statusLabels: Record<string, string> = {
     ordered: 'En stock',
-    in_transit: 'En transit',
+    in_transit: 'Chargée',
     arrived: 'Arrivé',
     sold: 'Vendu',
   };
