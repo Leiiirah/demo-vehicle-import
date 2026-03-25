@@ -6,9 +6,9 @@ interface VehicleTransaction {
   model: string;
   year: number;
   vin: string;
-  sellingPrice: number;
-  amountPaid: number;
-  paymentStatus: string;
+  sellingPrice?: number | null;
+  amountPaid?: number | null;
+  paymentStatus?: string | null;
 }
 
 interface ClientInfo {
