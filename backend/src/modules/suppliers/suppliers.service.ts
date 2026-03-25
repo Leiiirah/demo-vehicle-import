@@ -27,11 +27,12 @@ export class SuppliersService {
     );
     const vehiclesSupplied = (supplier.vehicles || []).length;
     const creditBalance = Number(supplier.creditBalance) || 0;
-    const remainingDebt =
+    const totalInvestment =
       (supplier.vehicles || []).reduce(
-        (sum, v) => sum + Number(v.purchasePrice || 0),
+        (sum, v) => sum + Number(v.purchasePrice || 0) + Number(v.transportCost || 0),
         0,
-      ) - totalPaid;
+      );
+    const remainingDebt = totalInvestment - totalPaid;
 
     return {
       ...supplier,
