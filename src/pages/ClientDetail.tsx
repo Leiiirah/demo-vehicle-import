@@ -104,6 +104,8 @@ const ClientDetailPage = () => {
   const totalCoutRevient = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0);
   const benefice = totalPrixVente - totalCoutRevient;
   const detteBenefice = benefice * (client.pourcentageBenefice || 0) / 100;
+  const totalAmountPaid = soldVehicles.reduce((sum: number, v: any) => sum + Number(v.amountPaid || 0), 0);
+  const totalRemaining = Math.max(0, totalPrixVente - totalAmountPaid);
 
   return (
     <DashboardLayout>
