@@ -324,6 +324,8 @@ export default function ConteneurDetailPage() {
                           </TableCell>
                           <TableCell>{formatCurrency(Number(vehicule.purchasePrice || 0), 'USD')}</TableCell>
                           <TableCell>{formatCurrency(Number(vehicule.transportCost || 0), 'USD')}</TableCell>
+                          <TableCell>{formatCurrency(Number(vehicule.passeportCost || 0))}</TableCell>
+                          <TableCell>{formatCurrency(Number(vehicule.localFees || 0))}</TableCell>
                           <TableCell className="font-medium">{formatCurrency(Number(vehicule.totalCost || 0))}</TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <VehicleStatusSelect vehicleId={vehicule.id} currentStatus={vehicule.status} />
