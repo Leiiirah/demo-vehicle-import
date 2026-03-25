@@ -270,7 +270,7 @@ const ClientDetailPage = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Coût de revient</span>
-                <span className="font-medium">- {formatCurrency(client.coutRevient || 0)}</span>
+                <span className="font-medium">- {formatCurrency(totalCoutRevient)}</span>
               </div>
               <div className="border-t border-border pt-3 flex justify-between">
                 <span className="font-medium">Bénéfice</span>
