@@ -143,25 +143,6 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
         </Card>
       </div>
 
-      {/* Différence Réelle / Théorique - only when dossier is soldé */}
-      {isDossierSolde && (
-        <Card className="border-2" style={{ borderColor: 'hsl(142, 71%, 45%)', backgroundColor: 'hsl(142, 71%, 45%, 0.12)' }}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium" style={{ color: 'hsl(142, 71%, 45%)' }}>
-              Différence Réelle / Théorique
-            </CardTitle>
-            <ArrowDownUp className="h-4 w-4" style={{ color: 'hsl(142, 71%, 45%)' }} />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${stats.differenceReelleTheorique >= 0 ? 'text-success' : 'text-destructive'}`}>
-              {stats.differenceReelleTheorique >= 0 ? '+' : ''}{formatCurrency(stats.differenceReelleTheorique)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Σ (Prix de revient théorique − Prix de revient réel) • Taux réel moyen : {tauxChangeFinal.toFixed(2)} DZD/$
-            </p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

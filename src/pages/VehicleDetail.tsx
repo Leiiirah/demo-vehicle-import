@@ -137,6 +137,7 @@ const VehicleDetailPage = () => {
       return api.updateVehicle(id, {
         purchasePrice: prixVehicule,
         localFees: chargesTransit,
+        theoreticalRate: tauxChangeReel,
       });
     },
     onMutate: async () => {
