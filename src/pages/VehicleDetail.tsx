@@ -658,12 +658,12 @@ const VehicleDetailPage = () => {
 
               {/* Colonne droite : Taux + Prix de revient */}
               <div className="space-y-4">
-                {/* Taux de change approximatif */}
+                {/* Taux de change réel */}
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
                       <TrendingUp className="h-4 w-4" />
-                      Taux de change approximatif
+                      Taux de change réel
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -672,8 +672,8 @@ const VehicleDetailPage = () => {
                       <Input
                         type="number"
                         step="0.01"
-                        value={tauxApproximatif || ''}
-                        onChange={(e) => handleTauxApproximatifChange(Number(e.target.value))}
+                        value={tauxChangeReel || ''}
+                        onChange={(e) => handleTauxReelChange(Number(e.target.value))}
                         placeholder="Ex: 134.50"
                       />
                     </div>
@@ -683,29 +683,35 @@ const VehicleDetailPage = () => {
                 {/* Récap prix de revient */}
                 <Card className="border-primary/30 bg-primary/5">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Prix de revient approximatif</CardTitle>
+                    <CardTitle className="text-base">Prix de revient</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          Total USD ({formatCurrency(totalUSD, 'USD')} × {tauxApproximatif.toFixed(2)})
-                        </span>
-                        <span>{formatCurrency(totalUSDenDZD)}</span>
+                    {tauxChangeReel > 0 ? (
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Total USD ({formatCurrency(totalUSD, 'USD')} × {tauxChangeReel.toFixed(2)})
+                          </span>
+                          <span>{formatCurrency(totalUSDenDZD)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Charges Transit</span>
+                          <span>{formatCurrency(chargesTransit)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Charges Divers</span>
+                          <span>{formatCurrency(totalChargesDivers)}</span>
+                        </div>
+                        <div className="flex justify-between pt-3 border-t border-primary/20">
+                          <span className="font-semibold">Prix de revient</span>
+                          <span className="text-xl font-bold text-success">{formatCurrency(prixRevient)}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Charges Transit</span>
-                        <span>{formatCurrency(chargesTransit)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Charges Divers</span>
-                        <span>{formatCurrency(totalChargesDivers)}</span>
-                      </div>
-                      <div className="flex justify-between pt-3 border-t border-primary/20">
-                        <span className="font-semibold">Prix de revient approximatif</span>
-                        <span className="text-xl font-bold text-success">{formatCurrency(prixRevient)}</span>
-                      </div>
-                    </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Saisissez le taux de change réel pour calculer le prix de revient
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
 
