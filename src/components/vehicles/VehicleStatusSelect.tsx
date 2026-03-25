@@ -21,7 +21,7 @@ export function VehicleStatusSelect({ vehicleId, currentStatus }: VehicleStatusS
   const handleChange = (newStatus: string) => {
     if (newStatus === currentStatus) return;
     updateVehicle.mutate(
-      { id: vehicleId, data: { status: newStatus } },
+      { id: vehicleId, data: { status: newStatus as any } },
       {
         onSuccess: () => toast.success('Statut mis à jour'),
         onError: () => toast.error('Erreur lors de la mise à jour'),

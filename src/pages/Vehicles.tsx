@@ -393,7 +393,7 @@ const VehiclesPage = () => {
                           </p>
                         </div>
                       </div>
-                      {getStatusBadge(vehicle.status)}
+                      <VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} />
                     </div>
 
                     <div className="space-y-2 text-sm">
