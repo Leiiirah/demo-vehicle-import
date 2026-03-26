@@ -519,12 +519,11 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
                             <Label className="text-xs">Montant USD</Label>
                             <div className="relative">
                               <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
-                              <Input
-                                type="number"
+                              <FormattedNumberInput
                                 className="pl-5"
                                 placeholder="0"
                                 value={v.montantUSD || ''}
-                                onChange={(e) => updateVersement(v.id, 'montantUSD', Number(e.target.value))}
+                                onValueChange={(val) => updateVersement(v.id, 'montantUSD', val)}
                               />
                             </div>
                           </div>
