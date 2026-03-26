@@ -278,11 +278,10 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
               </div>
               <div className="space-y-2">
                 <Label htmlFor="localFees">Frais locaux (DZD)</Label>
-                <Input
+                <FormattedNumberInput
                   id="localFees"
-                  type="number"
                   value={formData.localFees}
-                  onChange={(e) => setFormData({ ...formData, localFees: parseFloat(e.target.value) || 0 })}
+                  onValueChange={(v) => setFormData({ ...formData, localFees: v })}
                 />
               </div>
             </div>
