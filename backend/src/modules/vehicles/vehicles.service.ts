@@ -118,6 +118,14 @@ export class VehiclesService {
       throw new NotFoundException('Vehicle not found');
     }
 
+    // Auto-set status to sold when assigning a client
+    if (updateVehicleDto.clientId) {
+      updateVehicleDto.status = 'sold' as any;
+      if (!updateVehicleDto.soldDate && !vehicle.soldDate) {
+        updateVehicleDto.soldDate = new Date();
+      }
+    }
+
     // If updating passport, recalculate passport cost
     if (updateVehicleDto.passeportId) {
       const passeport = await this.passeportRepository.findOne({
