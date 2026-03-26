@@ -181,11 +181,23 @@ export default function ConteneurDetailPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Coût transport</CardTitle>
+              <CardTitle className="text-sm font-medium">Coût total</CardTitle>
               <Ship className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold">{formatCurrency(Number(conteneur.coutTransport || 0), 'USD')}</div>
+              {(() => {
+                const totalPurchase = vehicules.reduce((sum, v) => sum + Number(v.purchasePrice || 0), 0);
+                const totalTransport = Number(conteneur.coutTransport || 0);
+                const coutTotal = totalPurchase + totalTransport;
+                return (
+                  <div>
+                    <div className="text-lg font-bold">{formatCurrency(coutTotal, 'USD')}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Achat: {formatCurrency(totalPurchase, 'USD')} + Transport: {formatCurrency(totalTransport, 'USD')}
+                    </p>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </div>
