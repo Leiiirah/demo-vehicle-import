@@ -112,7 +112,7 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
               {formatCurrency(stats.totalInvestmentUSD, 'USD')}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Prix d'achat total des véhicules
+              Achat: {formatCurrency(stats.totalPurchaseUSD, 'USD')} + Transport: {formatCurrency(stats.totalTransportUSD, 'USD')}
             </p>
           </CardContent>
         </Card>
