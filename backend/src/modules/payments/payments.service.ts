@@ -138,7 +138,7 @@ export class PaymentsService {
     if (newTotal > stats.totalDue) {
       return {
         valid: false,
-        message: `Le montant total des paiements (${newTotal} USD) dépasse le prix total des véhicules (${stats.totalDue} USD)`,
+        message: `Le montant total des paiements (${newTotal} USD) dépasse le total dû (${stats.totalDue} USD)`,
       };
     }
 
