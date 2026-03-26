@@ -369,6 +369,9 @@ const CaissePage = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox checked={allPageSelected} onCheckedChange={toggleSelectAll} />
+                  </TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Description</TableHead>
