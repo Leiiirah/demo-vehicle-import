@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { format } from 'date-fns';
+import { useQueryClient } from '@tanstack/react-query';
 import { fr } from 'date-fns/locale';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { formatCurrency, cn } from '@/lib/utils';
@@ -28,11 +29,13 @@ import {
 } from 'lucide-react';
 import { useCaisseEntries, useCaisseSummary, useDeleteCaisseEntry, useCaisseBalance, usePurgeCaisse } from '@/hooks/useCaisse';
 import { AddCaisseEntryDialog } from '@/components/caisse/AddCaisseEntryDialog';
+import { api } from '@/services/api';
 import { CaisseBalanceCard } from '@/components/caisse/CaisseBalanceCard';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 const CaissePage = () => {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { data: entries = [], isLoading } = useCaisseEntries();
   const { data: summary } = useCaisseSummary();
@@ -87,12 +90,31 @@ const CaissePage = () => {
     }
   };
 
-  const handleDelete = (id: string) => {
-    deleteMutation.mutate(id, {
-      onSuccess: () => toast({ title: 'Mouvement supprimé' }),
-      onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
-    });
-  };
+  const handleDelete = useCallback(async (entry: any) => {
+    try {
+      const source = entry._source;
+      const rawId = entry.id;
+
+      if (source === 'manual') {
+        await api.deleteCaisseEntry(rawId);
+      } else if (source === 'vehicle_charge') {
+        // id format: "vc-<uuid>"
+        const realId = rawId.replace('vc-', '');
+        await api.deleteVehicleCharge(realId);
+      } else if (source === 'payment') {
+        // id format: "pay-<uuid>"
+        const realId = rawId.replace('pay-', '');
+        await api.deletePayment(realId);
+      } else if (source === 'vehicle_sale') {
+        toast({ title: 'Impossible', description: 'Pour supprimer une vente, modifiez le statut du véhicule.', variant: 'destructive' });
+        return;
+      }
+      toast({ title: 'Mouvement supprimé' });
+      queryClient.invalidateQueries({ queryKey: ['caisse'] });
+    } catch (err: any) {
+      toast({ title: 'Erreur', description: err.message, variant: 'destructive' });
+    }
+  }, [toast, deleteMutation]);
 
   const handlePurge = () => {
     purgeMutation.mutate(undefined, {
@@ -328,7 +350,7 @@ const CaissePage = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                         {entry._source === 'manual' && (
+                         {entry._source !== 'vehicle_sale' && (
                            <AlertDialog>
                              <AlertDialogTrigger asChild>
                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
@@ -344,7 +366,7 @@ const CaissePage = () => {
                                </AlertDialogHeader>
                                <AlertDialogFooter>
                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                 <AlertDialogAction onClick={() => handleDelete(entry.id)}>
+                                 <AlertDialogAction onClick={() => handleDelete(entry)}>
                                    Supprimer
                                  </AlertDialogAction>
                                </AlertDialogFooter>
