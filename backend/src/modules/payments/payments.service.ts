@@ -105,7 +105,7 @@ export class PaymentsService {
       .where('conteneur.dossierId = :dossierId', { dossierId })
       .getMany();
 
-    const totalDue = vehicles.reduce((sum, v) => sum + Number(v.purchasePrice), 0);
+    const totalDue = vehicles.reduce((sum, v) => sum + Number(v.purchasePrice) + Number(v.transportCost || 0), 0);
 
     // Get all payments for this dossier
     const payments = await this.paymentRepository.find({
@@ -138,7 +138,7 @@ export class PaymentsService {
     if (newTotal > stats.totalDue) {
       return {
         valid: false,
-        message: `Le montant total des paiements (${newTotal} USD) dépasse le prix total des véhicules (${stats.totalDue} USD)`,
+        message: `Le montant total des paiements (${newTotal} USD) dépasse le total dû (${stats.totalDue} USD)`,
       };
     }
 
