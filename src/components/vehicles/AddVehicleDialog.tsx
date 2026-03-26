@@ -614,12 +614,11 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
                           value={c.libelle}
                           onChange={(e) => updateChargeDivers(c.id, 'libelle', e.target.value)}
                         />
-                        <Input
-                          type="number"
+                        <FormattedNumberInput
                           placeholder="Montant"
                           className="w-32"
                           value={c.montant || ''}
-                          onChange={(e) => updateChargeDivers(c.id, 'montant', Number(e.target.value))}
+                          onValueChange={(val) => updateChargeDivers(c.id, 'montant', val)}
                         />
                         <Button
                           type="button"

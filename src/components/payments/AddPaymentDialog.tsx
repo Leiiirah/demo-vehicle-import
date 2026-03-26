@@ -182,11 +182,11 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="exchangeRate">Taux de change (USD/DZD)</Label>
-                <Input
+                <FormattedNumberInput
                   id="exchangeRate"
-                  type="number"
-                  step="0.01"
-                  {...register('exchangeRate', { valueAsNumber: true })}
+                  allowDecimals
+                  value={watch('exchangeRate') || ''}
+                  onValueChange={(v) => setValue('exchangeRate', v)}
                 />
                 {errors.exchangeRate && (
                   <p className="text-sm text-destructive">{errors.exchangeRate.message}</p>
