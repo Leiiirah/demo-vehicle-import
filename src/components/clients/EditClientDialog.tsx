@@ -154,12 +154,11 @@ export function EditClientDialog({ open, onOpenChange, client }: EditClientDialo
             </div>
             <div className="space-y-2">
               <Label htmlFor="pourcentageBenefice">% Bénéfice</Label>
-              <Input
+              <FormattedNumberInput
                 id="pourcentageBenefice"
-                type="number"
-                step="0.01"
+                allowDecimals
                 value={formData.pourcentageBenefice}
-                onChange={(e) => setFormData({ ...formData, pourcentageBenefice: parseFloat(e.target.value) || 0 })}
+                onValueChange={(v) => setFormData({ ...formData, pourcentageBenefice: v })}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
