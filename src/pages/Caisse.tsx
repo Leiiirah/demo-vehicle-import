@@ -384,7 +384,15 @@ const CaissePage = () => {
               <TableBody>
                 {filteredEntries.length > 0 ? (
                   paginatedItems.map((entry: any) => (
-                    <TableRow key={entry.id}>
+                    <TableRow key={entry.id} className={selectedIds.has(entry.id) ? 'bg-muted/50' : ''}>
+                      <TableCell>
+                        {entry._source !== 'vehicle_sale' && (
+                          <Checkbox
+                            checked={selectedIds.has(entry.id)}
+                            onCheckedChange={() => toggleSelect(entry.id)}
+                          />
+                        )}
+                      </TableCell>
                       <TableCell className="whitespace-nowrap">
                         {new Date(entry.date).toLocaleDateString('fr-FR', {
                           day: '2-digit', month: 'short', year: 'numeric',
