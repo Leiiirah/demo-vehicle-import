@@ -581,12 +581,11 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
                 </p>
                 <div className="space-y-2">
                   <Label htmlFor="chargesTransit">Montant total *</Label>
-                  <Input 
+                  <FormattedNumberInput 
                     id="chargesTransit" 
-                    type="number" 
                     placeholder="0"
                     value={chargesTransit || ''}
-                    onChange={(e) => setChargesTransit(Number(e.target.value))}
+                    onValueChange={(v) => setChargesTransit(v)}
                   />
                 </div>
               </div>
