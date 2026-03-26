@@ -110,9 +110,7 @@ const CaissePage = () => {
         return;
       }
       toast({ title: 'Mouvement supprimé' });
-      // Invalidate queries
-      deleteMutation.reset();
-      window.location.reload();
+      queryClient.invalidateQueries({ queryKey: ['caisse'] });
     } catch (err: any) {
       toast({ title: 'Erreur', description: err.message, variant: 'destructive' });
     }
