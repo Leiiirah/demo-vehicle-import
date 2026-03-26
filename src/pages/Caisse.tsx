@@ -350,7 +350,7 @@ const CaissePage = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                         {entry._source === 'manual' && (
+                         {entry._source !== 'vehicle_sale' && (
                            <AlertDialog>
                              <AlertDialogTrigger asChild>
                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
@@ -366,7 +366,7 @@ const CaissePage = () => {
                                </AlertDialogHeader>
                                <AlertDialogFooter>
                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                 <AlertDialogAction onClick={() => handleDelete(entry.id)}>
+                                 <AlertDialogAction onClick={() => handleDelete(entry)}>
                                    Supprimer
                                  </AlertDialogAction>
                                </AlertDialogFooter>
