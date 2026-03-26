@@ -181,11 +181,10 @@ export function EditClientDialog({ open, onOpenChange, client }: EditClientDialo
             </div>
             <div className="space-y-2">
               <Label htmlFor="detteBenefice">Dette bénéfice (DZD)</Label>
-              <Input
+              <FormattedNumberInput
                 id="detteBenefice"
-                type="number"
                 value={formData.detteBenefice}
-                onChange={(e) => setFormData({ ...formData, detteBenefice: parseFloat(e.target.value) || 0 })}
+                onValueChange={(v) => setFormData({ ...formData, detteBenefice: v })}
               />
             </div>
             <div className="flex items-center justify-between">

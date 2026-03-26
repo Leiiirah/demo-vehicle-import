@@ -156,11 +156,10 @@ export function EditConteneurDialog({ open, onOpenChange, conteneur }: EditConte
             </div>
             <div className="space-y-2">
               <Label htmlFor="coutTransport">Coût transport (USD)</Label>
-              <Input
+              <FormattedNumberInput
                 id="coutTransport"
-                type="number"
                 value={formData.coutTransport}
-                onChange={(e) => setFormData({ ...formData, coutTransport: parseFloat(e.target.value) || 0 })}
+                onValueChange={(v) => setFormData({ ...formData, coutTransport: v })}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">

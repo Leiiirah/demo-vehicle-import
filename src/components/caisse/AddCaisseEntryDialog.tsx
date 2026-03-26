@@ -91,13 +91,10 @@ export function AddCaisseEntryDialog() {
 
           <div className="space-y-2">
             <Label>Montant (DZD)</Label>
-            <Input
-              type="number"
+            <FormattedNumberInput
               value={montant}
-              onChange={(e) => setMontant(e.target.value)}
+              onValueChange={(v) => setMontant(String(v))}
               placeholder="0"
-              min="0"
-              step="0.01"
               required
             />
           </div>

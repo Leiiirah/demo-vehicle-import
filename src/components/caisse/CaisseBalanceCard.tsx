@@ -91,10 +91,9 @@ export function CaisseBalanceCard() {
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">
                   Montant disponible (DZD)
                 </label>
-                <Input
-                  type="number"
+                <FormattedNumberInput
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
+                  onValueChange={(v) => setInputValue(String(v))}
                   placeholder="0"
                   autoFocus
                 />
