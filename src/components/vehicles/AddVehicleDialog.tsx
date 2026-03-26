@@ -529,12 +529,11 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
                           </div>
                           <div className="space-y-1">
                             <Label className="text-xs">Taux de change</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
+                            <FormattedNumberInput
+                              allowDecimals
                               placeholder="Ex: 134.50"
                               value={v.tauxChange || ''}
-                              onChange={(e) => updateVersement(v.id, 'tauxChange', Number(e.target.value))}
+                              onValueChange={(val) => updateVersement(v.id, 'tauxChange', val)}
                             />
                           </div>
                         </div>
