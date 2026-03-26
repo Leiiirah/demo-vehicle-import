@@ -42,10 +42,17 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
     const soldCount = allVehicles.filter((v) => v.status === 'sold').length;
     const stockCount = allVehicles.length - soldCount;
 
-    const totalInvestmentUSD = allVehicles.reduce(
-      (sum, v) => sum + Number(v.purchasePrice),
+    const totalPurchaseUSD = allVehicles.reduce(
+      (sum, v) => sum + Number(v.purchasePrice || 0),
       0
     );
+
+    const totalTransportUSD = conteneurs.reduce(
+      (sum, c) => sum + Number(c.coutTransport || 0),
+      0
+    );
+
+    const totalInvestmentUSD = totalPurchaseUSD + totalTransportUSD;
 
     const recoveredFundsDZD = allVehicles
       .filter((v) => v.status === 'sold' && v.sellingPrice)
