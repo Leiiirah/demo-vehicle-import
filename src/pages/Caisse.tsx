@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -49,6 +50,8 @@ const CaissePage = () => {
   const [typeFilter, setTypeFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const filteredEntries = useMemo(() => {
     return (entries as any[]).filter((e) => {
@@ -122,6 +125,60 @@ const CaissePage = () => {
       onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
     });
   };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const deletableOnPage = paginatedItems.filter((e: any) => e._source !== 'vehicle_sale');
+  const allPageSelected = deletableOnPage.length > 0 && deletableOnPage.every((e: any) => selectedIds.has(e.id));
+
+  const toggleSelectAll = () => {
+    if (allPageSelected) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        deletableOnPage.forEach((e: any) => next.delete(e.id));
+        return next;
+      });
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        deletableOnPage.forEach((e: any) => next.add(e.id));
+        return next;
+      });
+    }
+  };
+
+  const handleBulkDelete = useCallback(async () => {
+    setBulkDeleting(true);
+    const allEntries = entries as any[];
+    let deleted = 0;
+    let errors = 0;
+    for (const id of selectedIds) {
+      const entry = allEntries.find((e: any) => e.id === id);
+      if (!entry || entry._source === 'vehicle_sale') continue;
+      try {
+        if (entry._source === 'manual') {
+          await api.deleteCaisseEntry(id);
+        } else if (entry._source === 'vehicle_charge') {
+          await api.deleteVehicleCharge(id.replace('vc-', ''));
+        } else if (entry._source === 'payment') {
+          await api.deletePayment(id.replace('pay-', ''));
+        }
+        deleted++;
+      } catch {
+        errors++;
+      }
+    }
+    setSelectedIds(new Set());
+    setBulkDeleting(false);
+    queryClient.invalidateQueries({ queryKey: ['caisse'] });
+    toast({ title: `${deleted} mouvement(s) supprimé(s)${errors ? `, ${errors} erreur(s)` : ''}` });
+  }, [selectedIds, entries, queryClient, toast]);
 
   if (isLoading) {
     return (
@@ -281,13 +338,40 @@ const CaissePage = () => {
 
         {/* History Table */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Historique des mouvements</CardTitle>
+            {selectedIds.size > 0 && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" className="gap-2" disabled={bulkDeleting}>
+                    {bulkDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                    Supprimer ({selectedIds.size})
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Supprimer {selectedIds.size} mouvement(s) ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action est irréversible.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Supprimer tout
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox checked={allPageSelected} onCheckedChange={toggleSelectAll} />
+                  </TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Description</TableHead>
@@ -300,7 +384,15 @@ const CaissePage = () => {
               <TableBody>
                 {filteredEntries.length > 0 ? (
                   paginatedItems.map((entry: any) => (
-                    <TableRow key={entry.id}>
+                    <TableRow key={entry.id} className={selectedIds.has(entry.id) ? 'bg-muted/50' : ''}>
+                      <TableCell>
+                        {entry._source !== 'vehicle_sale' && (
+                          <Checkbox
+                            checked={selectedIds.has(entry.id)}
+                            onCheckedChange={() => toggleSelect(entry.id)}
+                          />
+                        )}
+                      </TableCell>
                       <TableCell className="whitespace-nowrap">
                         {new Date(entry.date).toLocaleDateString('fr-FR', {
                           day: '2-digit', month: 'short', year: 'numeric',
@@ -378,7 +470,7 @@ const CaissePage = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       Aucun mouvement enregistré
                     </TableCell>
                   </TableRow>
