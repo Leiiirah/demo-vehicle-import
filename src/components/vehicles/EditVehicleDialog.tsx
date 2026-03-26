@@ -270,11 +270,10 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="purchasePrice">Prix d'achat (USD)</Label>
-                <Input
+                <FormattedNumberInput
                   id="purchasePrice"
-                  type="number"
                   value={formData.purchasePrice}
-                  onChange={(e) => setFormData({ ...formData, purchasePrice: parseFloat(e.target.value) || 0 })}
+                  onValueChange={(v) => setFormData({ ...formData, purchasePrice: v })}
                 />
               </div>
               <div className="space-y-2">
