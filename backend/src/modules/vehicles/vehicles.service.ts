@@ -122,7 +122,7 @@ export class VehiclesService {
     if (updateVehicleDto.clientId) {
       updateVehicleDto.status = 'sold' as any;
       if (!updateVehicleDto.soldDate && !vehicle.soldDate) {
-        updateVehicleDto.soldDate = new Date();
+        updateVehicleDto.soldDate = new Date().toISOString().split('T')[0];
       }
     }
 
