@@ -21,10 +21,7 @@ export default function StockPage() {
 
   // Only vehicles that are "En stock" (ordered), in a déchargée container, and not sold
   const stockVehicles = (vehicles || []).filter(
-    (v: any) =>
-      v.status === 'ordered' &&
-      v.conteneur?.status === 'decharge' &&
-      v.status !== 'sold'
+    (v: any) => v.status === 'ordered'
   );
 
   const filteredVehicles = stockVehicles.filter(
