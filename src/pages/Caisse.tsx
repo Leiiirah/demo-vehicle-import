@@ -87,12 +87,33 @@ const CaissePage = () => {
     }
   };
 
-  const handleDelete = (id: string) => {
-    deleteMutation.mutate(id, {
-      onSuccess: () => toast({ title: 'Mouvement supprimé' }),
-      onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
-    });
-  };
+  const handleDelete = useCallback(async (entry: any) => {
+    try {
+      const source = entry._source;
+      const rawId = entry.id;
+
+      if (source === 'manual') {
+        await api.deleteCaisseEntry(rawId);
+      } else if (source === 'vehicle_charge') {
+        // id format: "vc-<uuid>"
+        const realId = rawId.replace('vc-', '');
+        await api.deleteVehicleCharge(realId);
+      } else if (source === 'payment') {
+        // id format: "pay-<uuid>"
+        const realId = rawId.replace('pay-', '');
+        await api.deletePayment(realId);
+      } else if (source === 'vehicle_sale') {
+        toast({ title: 'Impossible', description: 'Pour supprimer une vente, modifiez le statut du véhicule.', variant: 'destructive' });
+        return;
+      }
+      toast({ title: 'Mouvement supprimé' });
+      // Invalidate queries
+      deleteMutation.reset();
+      window.location.reload();
+    } catch (err: any) {
+      toast({ title: 'Erreur', description: err.message, variant: 'destructive' });
+    }
+  }, [toast, deleteMutation]);
 
   const handlePurge = () => {
     purgeMutation.mutate(undefined, {
