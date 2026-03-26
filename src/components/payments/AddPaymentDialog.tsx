@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/scrollable-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -152,12 +153,12 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="amount">Montant *</Label>
-                <Input
+                <FormattedNumberInput
                   id="amount"
-                  type="number"
-                  step="0.01"
-                  placeholder="10000"
-                  {...register('amount', { valueAsNumber: true })}
+                  allowDecimals
+                  placeholder="10 000"
+                  value={watch('amount') || ''}
+                  onValueChange={(v) => setValue('amount', v)}
                 />
                 {errors.amount && (
                   <p className="text-sm text-destructive">{errors.amount.message}</p>
@@ -181,11 +182,11 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="exchangeRate">Taux de change (USD/DZD)</Label>
-                <Input
+                <FormattedNumberInput
                   id="exchangeRate"
-                  type="number"
-                  step="0.01"
-                  {...register('exchangeRate', { valueAsNumber: true })}
+                  allowDecimals
+                  value={watch('exchangeRate') || ''}
+                  onValueChange={(v) => setValue('exchangeRate', v)}
                 />
                 {errors.exchangeRate && (
                   <p className="text-sm text-destructive">{errors.exchangeRate.message}</p>

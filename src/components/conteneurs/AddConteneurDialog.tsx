@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/scrollable-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -189,12 +190,11 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
               </Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <Input 
+                <FormattedNumberInput 
                   id="coutTransport" 
-                  type="number"
-                  placeholder="Ex: 3500"
+                  placeholder="Ex: 3 500"
                   value={coutTransport}
-                  onChange={(e) => setCoutTransport(e.target.value)}
+                  onValueChange={(v) => setCoutTransport(String(v))}
                   className="pl-7"
                 />
               </div>

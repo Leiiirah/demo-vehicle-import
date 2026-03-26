@@ -4,6 +4,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Badge } from '@/components/ui/badge';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -522,14 +523,11 @@ const ClientSalesPage = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="versementAmount">Montant du versement (DZD)</Label>
-                <Input
+                <FormattedNumberInput
                   id="versementAmount"
-                  type="number"
                   placeholder="0"
                   value={versementAmount}
-                  onChange={(e) => setVersementAmount(e.target.value)}
-                  min={0}
-                  max={Number(versementVehicle.sellingPrice || 0) - Number(versementVehicle.amountPaid || 0)}
+                  onValueChange={(v) => setVersementAmount(String(v))}
                 />
               </div>
             </div>

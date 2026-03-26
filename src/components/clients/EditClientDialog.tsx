@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/scrollable-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
@@ -154,41 +155,37 @@ export function EditClientDialog({ open, onOpenChange, client }: EditClientDialo
             </div>
             <div className="space-y-2">
               <Label htmlFor="pourcentageBenefice">% Bénéfice</Label>
-              <Input
+              <FormattedNumberInput
                 id="pourcentageBenefice"
-                type="number"
-                step="0.01"
+                allowDecimals
                 value={formData.pourcentageBenefice}
-                onChange={(e) => setFormData({ ...formData, pourcentageBenefice: parseFloat(e.target.value) || 0 })}
+                onValueChange={(v) => setFormData({ ...formData, pourcentageBenefice: v })}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="prixVente">Prix vente (DZD)</Label>
-                <Input
+                <FormattedNumberInput
                   id="prixVente"
-                  type="number"
                   value={formData.prixVente}
-                  onChange={(e) => setFormData({ ...formData, prixVente: parseFloat(e.target.value) || 0 })}
+                  onValueChange={(v) => setFormData({ ...formData, prixVente: v })}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="coutRevient">Coût revient (DZD)</Label>
-                <Input
+                <FormattedNumberInput
                   id="coutRevient"
-                  type="number"
                   value={formData.coutRevient}
-                  onChange={(e) => setFormData({ ...formData, coutRevient: parseFloat(e.target.value) || 0 })}
+                  onValueChange={(v) => setFormData({ ...formData, coutRevient: v })}
                 />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="detteBenefice">Dette bénéfice (DZD)</Label>
-              <Input
+              <FormattedNumberInput
                 id="detteBenefice"
-                type="number"
                 value={formData.detteBenefice}
-                onChange={(e) => setFormData({ ...formData, detteBenefice: parseFloat(e.target.value) || 0 })}
+                onValueChange={(v) => setFormData({ ...formData, detteBenefice: v })}
               />
             </div>
             <div className="flex items-center justify-between">

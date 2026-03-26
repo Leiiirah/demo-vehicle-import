@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/scrollable-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
@@ -269,40 +270,36 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="purchasePrice">Prix d'achat (USD)</Label>
-                <Input
+                <FormattedNumberInput
                   id="purchasePrice"
-                  type="number"
                   value={formData.purchasePrice}
-                  onChange={(e) => setFormData({ ...formData, purchasePrice: parseFloat(e.target.value) || 0 })}
+                  onValueChange={(v) => setFormData({ ...formData, purchasePrice: v })}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="localFees">Frais locaux (DZD)</Label>
-                <Input
+                <FormattedNumberInput
                   id="localFees"
-                  type="number"
                   value={formData.localFees}
-                  onChange={(e) => setFormData({ ...formData, localFees: parseFloat(e.target.value) || 0 })}
+                  onValueChange={(v) => setFormData({ ...formData, localFees: v })}
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="totalCost">Coût total (DZD)</Label>
-                <Input
+                <FormattedNumberInput
                   id="totalCost"
-                  type="number"
                   value={formData.totalCost}
-                  onChange={(e) => setFormData({ ...formData, totalCost: parseFloat(e.target.value) || 0 })}
+                  onValueChange={(v) => setFormData({ ...formData, totalCost: v })}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="sellingPrice">Prix de vente (DZD)</Label>
-                <Input
+                <FormattedNumberInput
                   id="sellingPrice"
-                  type="number"
                   value={formData.sellingPrice}
-                  onChange={(e) => setFormData({ ...formData, sellingPrice: parseFloat(e.target.value) || 0 })}
+                  onValueChange={(v) => setFormData({ ...formData, sellingPrice: v })}
                 />
               </div>
             </div>

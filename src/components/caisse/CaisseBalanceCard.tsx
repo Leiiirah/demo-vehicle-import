@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
 } from '@/components/ui/dialog';
@@ -91,10 +92,9 @@ export function CaisseBalanceCard() {
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">
                   Montant disponible (DZD)
                 </label>
-                <Input
-                  type="number"
+                <FormattedNumberInput
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
+                  onValueChange={(v) => setInputValue(String(v))}
                   placeholder="0"
                   autoFocus
                 />

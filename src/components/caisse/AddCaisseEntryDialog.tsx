@@ -4,6 +4,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -91,13 +92,10 @@ export function AddCaisseEntryDialog() {
 
           <div className="space-y-2">
             <Label>Montant (DZD)</Label>
-            <Input
-              type="number"
+            <FormattedNumberInput
               value={montant}
-              onChange={(e) => setMontant(e.target.value)}
+              onValueChange={(v) => setMontant(String(v))}
               placeholder="0"
-              min="0"
-              step="0.01"
               required
             />
           </div>

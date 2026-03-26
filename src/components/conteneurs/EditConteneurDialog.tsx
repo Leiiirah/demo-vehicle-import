@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/scrollable-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
@@ -156,11 +157,10 @@ export function EditConteneurDialog({ open, onOpenChange, conteneur }: EditConte
             </div>
             <div className="space-y-2">
               <Label htmlFor="coutTransport">Coût transport (USD)</Label>
-              <Input
+              <FormattedNumberInput
                 id="coutTransport"
-                type="number"
                 value={formData.coutTransport}
-                onChange={(e) => setFormData({ ...formData, coutTransport: parseFloat(e.target.value) || 0 })}
+                onValueChange={(v) => setFormData({ ...formData, coutTransport: v })}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">

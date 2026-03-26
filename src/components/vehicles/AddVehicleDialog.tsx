@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/scrollable-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -433,13 +434,12 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
                   <Label htmlFor="prixVehicule">Prix FOB *</Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                    <Input 
+                    <FormattedNumberInput 
                       id="prixVehicule" 
-                      type="number" 
                       className="pl-7" 
                       placeholder="0"
                       value={prixVehicule || ''}
-                      onChange={(e) => setPrixVehicule(Number(e.target.value))}
+                      onValueChange={(v) => setPrixVehicule(v)}
                     />
                   </div>
                 </div>
@@ -455,13 +455,12 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
                   <Label htmlFor="prixTransport">Fret + Assurance *</Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                    <Input 
+                    <FormattedNumberInput 
                       id="prixTransport" 
-                      type="number" 
                       className="pl-7" 
                       placeholder="0"
                       value={prixTransport || ''}
-                      onChange={(e) => setPrixTransport(Number(e.target.value))}
+                      onValueChange={(v) => setPrixTransport(v)}
                     />
                   </div>
                 </div>
@@ -520,23 +519,21 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
                             <Label className="text-xs">Montant USD</Label>
                             <div className="relative">
                               <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
-                              <Input
-                                type="number"
+                              <FormattedNumberInput
                                 className="pl-5"
                                 placeholder="0"
                                 value={v.montantUSD || ''}
-                                onChange={(e) => updateVersement(v.id, 'montantUSD', Number(e.target.value))}
+                                onValueChange={(val) => updateVersement(v.id, 'montantUSD', val)}
                               />
                             </div>
                           </div>
                           <div className="space-y-1">
                             <Label className="text-xs">Taux de change</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
+                            <FormattedNumberInput
+                              allowDecimals
                               placeholder="Ex: 134.50"
                               value={v.tauxChange || ''}
-                              onChange={(e) => updateVersement(v.id, 'tauxChange', Number(e.target.value))}
+                              onValueChange={(val) => updateVersement(v.id, 'tauxChange', val)}
                             />
                           </div>
                         </div>
@@ -584,12 +581,11 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
                 </p>
                 <div className="space-y-2">
                   <Label htmlFor="chargesTransit">Montant total *</Label>
-                  <Input 
+                  <FormattedNumberInput 
                     id="chargesTransit" 
-                    type="number" 
                     placeholder="0"
                     value={chargesTransit || ''}
-                    onChange={(e) => setChargesTransit(Number(e.target.value))}
+                    onValueChange={(v) => setChargesTransit(v)}
                   />
                 </div>
               </div>
@@ -618,12 +614,11 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
                           value={c.libelle}
                           onChange={(e) => updateChargeDivers(c.id, 'libelle', e.target.value)}
                         />
-                        <Input
-                          type="number"
+                        <FormattedNumberInput
                           placeholder="Montant"
                           className="w-32"
                           value={c.montant || ''}
-                          onChange={(e) => updateChargeDivers(c.id, 'montant', Number(e.target.value))}
+                          onValueChange={(val) => updateChargeDivers(c.id, 'montant', val)}
                         />
                         <Button
                           type="button"
