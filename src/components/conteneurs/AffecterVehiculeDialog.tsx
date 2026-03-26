@@ -356,12 +356,11 @@ export const AffecterVehiculeDialog = ({
                   </Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                    <Input 
+                    <FormattedNumberInput 
                       id="prixVehicule" 
-                      type="number"
-                      placeholder="Ex: 45000"
+                      placeholder="Ex: 45 000"
                       value={prixVehicule}
-                      onChange={(e) => setPrixVehicule(e.target.value)}
+                      onValueChange={(v) => setPrixVehicule(String(v))}
                       className="pl-7"
                     />
                   </div>
