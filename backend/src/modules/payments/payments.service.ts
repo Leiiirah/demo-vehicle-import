@@ -105,7 +105,7 @@ export class PaymentsService {
       .where('conteneur.dossierId = :dossierId', { dossierId })
       .getMany();
 
-    const totalDue = vehicles.reduce((sum, v) => sum + Number(v.purchasePrice), 0);
+    const totalDue = vehicles.reduce((sum, v) => sum + Number(v.purchasePrice) + Number(v.transportCost || 0), 0);
 
     // Get all payments for this dossier
     const payments = await this.paymentRepository.find({
