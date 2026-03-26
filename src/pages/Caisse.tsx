@@ -35,6 +35,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 const CaissePage = () => {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { data: entries = [], isLoading } = useCaisseEntries();
   const { data: summary } = useCaisseSummary();
