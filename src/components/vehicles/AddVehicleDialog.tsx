@@ -25,6 +25,7 @@ import { Car, DollarSign, Truck, FileText, Plus, Trash2, CreditCard, Loader2, Up
 import { api, type CreateVehicleData } from '@/services/api';
 import { toast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
+import { BrandCombobox } from '@/components/vehicles/BrandCombobox';
 
 interface AddVehicleDialogProps {
   children?: React.ReactNode;

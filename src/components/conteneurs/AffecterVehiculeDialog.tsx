@@ -23,6 +23,7 @@ import {
 import { Car, Plus, Link2, DollarSign, Loader2, Upload, X } from 'lucide-react';
 import { api, Vehicle, Conteneur } from '@/services/api';
 import { toast } from 'sonner';
+import { BrandCombobox } from '@/components/vehicles/BrandCombobox';
 
 interface AffecterVehiculeDialogProps {
   open: boolean;
