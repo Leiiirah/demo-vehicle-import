@@ -5,7 +5,7 @@ import { api } from '@/services/api';
 import { formatCurrency } from '@/lib/utils';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useSupplier, useDossiers, useVehicles, usePayments } from '@/hooks/useApi';
-import { exportSupplierDossiers, exportSupplierTransactions } from '@/lib/exportSupplierData';
+import { exportSupplierFullReport } from '@/lib/exportSupplierData';
 import { 
   Building2, 
   ArrowLeft, 
@@ -143,13 +143,9 @@ const SupplierDetailPage = () => {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => { exportSupplierDossiers(supplier.name, supplierDossiers, supplierVehicles); toast.success('Dossiers exportés'); }}>
+            <Button variant="outline" onClick={() => { exportSupplierFullReport(supplier.name, supplierDossiers, supplierVehicles, supplierPayments, supplier); toast.success('Rapport exporté'); }}>
               <Download className="h-4 w-4 mr-2" />
-              Exporter Dossiers
-            </Button>
-            <Button variant="outline" onClick={() => { exportSupplierTransactions(supplier.name, supplierPayments, supplier); toast.success('Transactions exportées'); }}>
-              <Download className="h-4 w-4 mr-2" />
-              Exporter Transactions
+              Exporter PDF
             </Button>
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setEditDialogOpen(true)}>
               <Edit className="h-4 w-4 mr-2" />

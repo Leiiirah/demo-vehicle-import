@@ -35,20 +35,21 @@ function checkPage(doc: jsPDF, y: number, needed = 20): number {
   return y;
 }
 
-export function exportSupplierDossiers(supplierName: string, dossiers: DossierWithConteneurs[], vehicles: Vehicle[]) {
-  const doc = new jsPDF();
-  let y = addHeader(doc, 'Rapport Dossiers', supplierName);
+function addDossiersSection(doc: jsPDF, y: number, dossiers: DossierWithConteneurs[], vehicles: Vehicle[]): number {
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Dossiers', 14, y);
+  y += 8;
 
   if (dossiers.length === 0) {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
     doc.text('Aucun dossier pour ce fournisseur.', 14, y);
-    doc.save(`${supplierName}_dossiers.pdf`);
-    return;
+    return y + 10;
   }
 
   for (const dossier of dossiers) {
     y = checkPage(doc, y, 30);
-
-    // Dossier header
     doc.setFillColor(240, 240, 245);
     doc.rect(14, y - 5, 182, 10, 'F');
     doc.setFontSize(11);
@@ -86,7 +87,6 @@ export function exportSupplierDossiers(supplierName: string, dossiers: DossierWi
         continue;
       }
 
-      // Table header
       doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
       doc.setFillColor(230, 230, 235);
@@ -113,14 +113,18 @@ export function exportSupplierDossiers(supplierName: string, dossiers: DossierWi
     y += 4;
   }
 
-  doc.save(`${supplierName}_dossiers.pdf`);
+  return y;
 }
 
-export function exportSupplierTransactions(supplierName: string, payments: Payment[], supplier: { totalPaid?: number; remainingDebt?: number; creditBalance?: number }) {
-  const doc = new jsPDF();
-  let y = addHeader(doc, 'Rapport Transactions', supplierName);
+function addTransactionsSection(doc: jsPDF, y: number, payments: Payment[], supplier: { totalPaid?: number; remainingDebt?: number; creditBalance?: number }): number {
+  doc.addPage();
+  y = 20;
 
-  // Summary box
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Transactions', 14, y);
+  y += 10;
+
   doc.setFillColor(245, 245, 250);
   doc.roundedRect(14, y, 182, 28, 3, 3, 'F');
   doc.setFontSize(10);
@@ -136,11 +140,9 @@ export function exportSupplierTransactions(supplierName: string, payments: Payme
 
   if (payments.length === 0) {
     doc.text('Aucune transaction pour ce fournisseur.', 14, y);
-    doc.save(`${supplierName}_transactions.pdf`);
-    return;
+    return y + 10;
   }
 
-  // Table header
   const cols = [14, 40, 75, 110, 135, 155, 175];
   const headers = ['Date', 'Référence', 'Type', 'Montant', 'Devise', 'Taux', 'Statut'];
   doc.setFontSize(8);
@@ -154,7 +156,6 @@ export function exportSupplierTransactions(supplierName: string, payments: Payme
   for (const p of payments) {
     y = checkPage(doc, y, 8);
     if (y === 20) {
-      // Re-draw header on new page
       doc.setFont('helvetica', 'bold');
       doc.setFillColor(230, 230, 235);
       doc.rect(14, y - 3.5, 182, 6, 'F');
@@ -172,5 +173,21 @@ export function exportSupplierTransactions(supplierName: string, payments: Payme
     y += 5;
   }
 
-  doc.save(`${supplierName}_transactions.pdf`);
+  return y;
+}
+
+export function exportSupplierFullReport(
+  supplierName: string,
+  dossiers: DossierWithConteneurs[],
+  vehicles: Vehicle[],
+  payments: Payment[],
+  supplier: { totalPaid?: number; remainingDebt?: number; creditBalance?: number }
+) {
+  const doc = new jsPDF();
+  let y = addHeader(doc, 'Rapport Complet', supplierName);
+
+  y = addDossiersSection(doc, y, dossiers, vehicles);
+  addTransactionsSection(doc, y, payments, supplier);
+
+  doc.save(`${supplierName}_rapport.pdf`);
 }
