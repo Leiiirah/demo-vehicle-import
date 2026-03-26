@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useCaisseEntries, useCaisseSummary, useDeleteCaisseEntry, useCaisseBalance, usePurgeCaisse } from '@/hooks/useCaisse';
 import { AddCaisseEntryDialog } from '@/components/caisse/AddCaisseEntryDialog';
+import { api } from '@/services/api';
 import { CaisseBalanceCard } from '@/components/caisse/CaisseBalanceCard';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
