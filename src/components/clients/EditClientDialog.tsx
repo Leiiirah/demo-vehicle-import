@@ -172,11 +172,10 @@ export function EditClientDialog({ open, onOpenChange, client }: EditClientDialo
               </div>
               <div className="space-y-2">
                 <Label htmlFor="coutRevient">Coût revient (DZD)</Label>
-                <Input
+                <FormattedNumberInput
                   id="coutRevient"
-                  type="number"
                   value={formData.coutRevient}
-                  onChange={(e) => setFormData({ ...formData, coutRevient: parseFloat(e.target.value) || 0 })}
+                  onValueChange={(v) => setFormData({ ...formData, coutRevient: v })}
                 />
               </div>
             </div>
