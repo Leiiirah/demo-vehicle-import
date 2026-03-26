@@ -153,12 +153,12 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="amount">Montant *</Label>
-                <Input
+                <FormattedNumberInput
                   id="amount"
-                  type="number"
-                  step="0.01"
-                  placeholder="10000"
-                  {...register('amount', { valueAsNumber: true })}
+                  allowDecimals
+                  placeholder="10 000"
+                  value={watch('amount') || ''}
+                  onValueChange={(v) => setValue('amount', v)}
                 />
                 {errors.amount && (
                   <p className="text-sm text-destructive">{errors.amount.message}</p>
