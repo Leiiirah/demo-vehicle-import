@@ -25,6 +25,7 @@ import { Car, DollarSign, Truck, FileText, Plus, Trash2, CreditCard, Loader2, Up
 import { api, type CreateVehicleData } from '@/services/api';
 import { toast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
+import { BrandCombobox } from '@/components/vehicles/BrandCombobox';
 
 interface AddVehicleDialogProps {
   children?: React.ReactNode;
@@ -279,7 +280,7 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="brand">Marque *</Label>
-                  <Input id="brand" placeholder="Ex: Toyota" value={brand} onChange={(e) => setBrand(e.target.value)} />
+                  <BrandCombobox value={brand} onChange={setBrand} id="brand" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="model">Modèle *</Label>
