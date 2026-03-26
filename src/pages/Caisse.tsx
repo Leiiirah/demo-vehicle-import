@@ -126,6 +126,60 @@ const CaissePage = () => {
     });
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const deletableOnPage = paginatedItems.filter((e: any) => e._source !== 'vehicle_sale');
+  const allPageSelected = deletableOnPage.length > 0 && deletableOnPage.every((e: any) => selectedIds.has(e.id));
+
+  const toggleSelectAll = () => {
+    if (allPageSelected) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        deletableOnPage.forEach((e: any) => next.delete(e.id));
+        return next;
+      });
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        deletableOnPage.forEach((e: any) => next.add(e.id));
+        return next;
+      });
+    }
+  };
+
+  const handleBulkDelete = useCallback(async () => {
+    setBulkDeleting(true);
+    const allEntries = entries as any[];
+    let deleted = 0;
+    let errors = 0;
+    for (const id of selectedIds) {
+      const entry = allEntries.find((e: any) => e.id === id);
+      if (!entry || entry._source === 'vehicle_sale') continue;
+      try {
+        if (entry._source === 'manual') {
+          await api.deleteCaisseEntry(id);
+        } else if (entry._source === 'vehicle_charge') {
+          await api.deleteVehicleCharge(id.replace('vc-', ''));
+        } else if (entry._source === 'payment') {
+          await api.deletePayment(id.replace('pay-', ''));
+        }
+        deleted++;
+      } catch {
+        errors++;
+      }
+    }
+    setSelectedIds(new Set());
+    setBulkDeleting(false);
+    queryClient.invalidateQueries({ queryKey: ['caisse'] });
+    toast({ title: `${deleted} mouvement(s) supprimé(s)${errors ? `, ${errors} erreur(s)` : ''}` });
+  }, [selectedIds, entries, queryClient, toast]);
+
   if (isLoading) {
     return (
       <DashboardLayout>
