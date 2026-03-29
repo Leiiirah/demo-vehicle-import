@@ -31,9 +31,7 @@ const paymentSchema = z.object({
   amount: z.number().min(0.01, 'Le montant doit être supérieur à 0'),
   currency: z.enum(['USD', 'DZD']),
   exchangeRate: z.number().min(0.01, 'Le taux de change est requis'),
-  type: z.enum(['supplier_payment', 'client_payment', 'transport', 'fees']),
   reference: z.string().min(1, 'La référence est requise'),
-  status: z.enum(['completed', 'pending']),
 });
 
 type PaymentFormData = z.infer<typeof paymentSchema>;
@@ -63,17 +61,13 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
       date: new Date().toISOString().split('T')[0],
       currency: 'USD',
       exchangeRate: 134.5,
-      type: 'supplier_payment',
-      status: 'pending',
     },
   });
 
   const currency = watch('currency');
-  const type = watch('type');
-  const status = watch('status');
 
   const createPaymentMutation = useMutation({
-    mutationFn: (data: { date: string; amount: number; currency: 'USD' | 'DZD'; exchangeRate: number; type: 'supplier_payment' | 'client_payment' | 'transport' | 'fees'; reference: string; status: 'completed' | 'pending'; supplierId?: string; dossierId?: string }) => api.createPayment(data),
+    mutationFn: (data: { date: string; amount: number; currency: 'USD' | 'DZD'; exchangeRate: number; type: 'supplier_payment'; reference: string; status: 'completed'; supplierId?: string; dossierId?: string }) => api.createPayment(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.invalidateQueries({ queryKey: ['dossiers'] });
@@ -101,9 +95,9 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
         amount: data.amount,
         currency: data.currency,
         exchangeRate: data.exchangeRate,
-        type: data.type,
+        type: 'supplier_payment',
         reference: data.reference,
-        status: data.status,
+        status: 'completed',
         supplierId: preSelectedSupplierId,
         dossierId: preSelectedDossierId,
       });
@@ -194,32 +188,9 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
-                <Select value={type} onValueChange={(val) => setValue('type', val as PaymentFormData['type'])}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="supplier_payment">Paiement fournisseur</SelectItem>
-                    <SelectItem value="client_payment">Paiement client</SelectItem>
-                    <SelectItem value="transport">Transport</SelectItem>
-                    <SelectItem value="fees">Frais</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Type</Label>
+                <Input value="Paiement fournisseur" disabled className="bg-muted" />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Statut</Label>
-              <Select value={status} onValueChange={(val) => setValue('status', val as 'completed' | 'pending')}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">En attente</SelectItem>
-                  <SelectItem value="completed">Complété</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </form>
         </ScrollableDialogBody>
