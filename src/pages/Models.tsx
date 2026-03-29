@@ -86,12 +86,14 @@ export default function ModelsPage() {
   function openAdd() {
     setEditingModel(null);
     setForm({ brand: '', model: '', imageUrl: '' });
+    setImagePreview(null);
     setDialogOpen(true);
   }
 
   function openEdit(m: CarModel) {
     setEditingModel(m);
     setForm({ brand: m.brand, model: m.model, imageUrl: m.imageUrl || '' });
+    setImagePreview(m.imageUrl || null);
     setDialogOpen(true);
   }
 
@@ -99,6 +101,28 @@ export default function ModelsPage() {
     setDialogOpen(false);
     setEditingModel(null);
     setForm({ brand: '', model: '', imageUrl: '' });
+    setImagePreview(null);
+  }
+
+  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image trop grande (max 5 MB)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      setForm((prev) => ({ ...prev, imageUrl: base64 }));
+      setImagePreview(base64);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeImage() {
+    setForm((prev) => ({ ...prev, imageUrl: '' }));
+    setImagePreview(null);
   }
 
   function handleSubmit(e: React.FormEvent) {
