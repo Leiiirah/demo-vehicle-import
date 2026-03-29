@@ -124,7 +124,9 @@ export const AffecterVehiculeDialog = ({
       purchasePrice: number;
       supplierId: string;
       conteneurId: string;
+      status?: 'ordered' | 'in_transit' | 'arrived' | 'sold';
       orderDate: string;
+      photoUrl?: string;
       passeportId?: string;
     }) => api.createVehicle(data),
     onSuccess: () => {
@@ -162,7 +164,9 @@ export const AffecterVehiculeDialog = ({
           purchasePrice: parseFloat(prixVehicule),
           supplierId,
           conteneurId,
+          status: 'in_transit',
           orderDate: new Date().toISOString(),
+          photoUrl: photoPreview || undefined,
           passeportId: passeportId && passeportId !== 'none' ? passeportId : undefined,
         });
       }
