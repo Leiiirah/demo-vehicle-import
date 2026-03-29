@@ -61,8 +61,6 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
       date: new Date().toISOString().split('T')[0],
       currency: 'USD',
       exchangeRate: 134.5,
-      type: 'supplier_payment',
-      status: 'pending',
     },
   });
 
