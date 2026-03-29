@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/table';
 import { ArrowLeft, Container, FolderOpen, Car, Edit, Plus, Ship, Anchor, AlertCircle, Trash2 } from 'lucide-react';
 
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/services/api';
 import { AffecterVehiculeDialog } from '@/components/conteneurs/AffecterVehiculeDialog';
 import { VehicleStatusSelect } from '@/components/vehicles/VehicleStatusSelect';
 import { EditConteneurDialog } from '@/components/conteneurs/EditConteneurDialog';
