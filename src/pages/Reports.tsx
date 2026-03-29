@@ -218,7 +218,7 @@ const ReportsPage = () => {
           </div>
 
           {/* Récap fournisseurs */}
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm lg:col-span-2">
+          <div id="section-supplier" className="bg-card rounded-xl border border-border p-6 shadow-sm lg:col-span-2">
             <h3 className="text-lg font-semibold text-foreground mb-4">
               Récapitulatif financier fournisseurs
             </h3>
