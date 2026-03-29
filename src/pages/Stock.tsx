@@ -9,7 +9,10 @@ import { Input } from '@/components/ui/input';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { Search, AlertCircle, Car, DollarSign, Warehouse } from 'lucide-react';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import { Search, AlertCircle, Car, DollarSign } from 'lucide-react';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
@@ -17,6 +20,7 @@ import { formatCurrency } from '@/lib/utils';
 export default function StockPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [monthFilter, setMonthFilter] = useState<string>('all');
   const { data: vehicles, isLoading, error } = useVehicles();
 
   // Only vehicles that are "En stock" (ordered), in a déchargée container, and not sold
@@ -24,13 +28,18 @@ export default function StockPage() {
     (v: any) => v.status === 'ordered'
   );
 
-  const filteredVehicles = stockVehicles.filter(
-    (v: any) =>
+  const filteredVehicles = stockVehicles.filter((v: any) => {
+    const matchesSearch =
       v.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.vin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.supplier?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      v.supplier?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    if (monthFilter === 'all') return matchesSearch;
+    const date = v.arrivalDate ? new Date(v.arrivalDate) : v.createdAt ? new Date(v.createdAt) : null;
+    if (!date) return false;
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    return matchesSearch && key === monthFilter;
+  });
 
   const { paginatedItems, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } =
     usePagination(filteredVehicles);
@@ -100,8 +109,8 @@ export default function StockPage() {
             <CardDescription>Liste des véhicules disponibles en stock</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <div className="relative">
+            <div className="mb-4 flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Rechercher par marque, modèle, VIN ou fournisseur..."
@@ -110,6 +119,26 @@ export default function StockPage() {
                   className="pl-9"
                 />
               </div>
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Filtrer par mois" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les mois</SelectItem>
+                  {(() => {
+                    const months = new Set<string>();
+                    stockVehicles.forEach((v: any) => {
+                      const date = v.arrivalDate ? new Date(v.arrivalDate) : v.createdAt ? new Date(v.createdAt) : null;
+                      if (date) months.add(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`);
+                    });
+                    return Array.from(months).sort().reverse().map((m) => {
+                      const [y, mo] = m.split('-');
+                      const label = new Date(Number(y), Number(mo) - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                      return <SelectItem key={m} value={m}>{label}</SelectItem>;
+                    });
+                  })()}
+                </SelectContent>
+              </Select>
             </div>
 
             {isLoading ? (

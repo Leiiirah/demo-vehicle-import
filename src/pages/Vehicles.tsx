@@ -29,6 +29,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import AddVehicleDialog from '@/components/vehicles/AddVehicleDialog';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -45,6 +48,7 @@ const VehiclesPage = () => {
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilters, setStatusFilters] = useState<string[]>(['ordered', 'in_transit', 'arrived', 'sold']);
+  const [monthFilter, setMonthFilter] = useState<string>('all');
   const { data: vehicles, isLoading, error } = useVehicles();
   const deleteVehicle = useDeleteVehicle();
   const { toast } = useToast();
@@ -112,7 +116,17 @@ const VehiclesPage = () => {
       (vehicle.client?.nom?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
       (vehicle.conteneur?.numero?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
     const matchesStatus = statusFilters.includes(vehicle.status);
-    return matchesSearch && matchesStatus;
+    let matchesMonth = true;
+    if (monthFilter !== 'all') {
+      const date = vehicle.orderDate ? new Date(vehicle.orderDate) : null;
+      if (!date) {
+        matchesMonth = false;
+      } else {
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        matchesMonth = key === monthFilter;
+      }
+    }
+    return matchesSearch && matchesStatus && matchesMonth;
   });
 
   const { paginatedItems: paginatedVehicles, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredVehicles);
@@ -200,6 +214,26 @@ const VehiclesPage = () => {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+          <Select value={monthFilter} onValueChange={setMonthFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filtrer par mois" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les mois</SelectItem>
+              {(() => {
+                const months = new Set<string>();
+                (vehicles || []).forEach((v: any) => {
+                  const date = v.orderDate ? new Date(v.orderDate) : null;
+                  if (date) months.add(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`);
+                });
+                return Array.from(months).sort().reverse().map((m) => {
+                  const [y, mo] = m.split('-');
+                  const label = new Date(Number(y), Number(mo) - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                  return <SelectItem key={m} value={m}>{label}</SelectItem>;
+                });
+              })()}
+            </SelectContent>
+          </Select>
           <div className="flex items-center border border-border rounded-lg p-1">
             <Button
               variant="ghost"
