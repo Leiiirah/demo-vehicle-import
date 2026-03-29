@@ -216,60 +216,78 @@ const SupplierDetailPage = () => {
           </div>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Car className="h-5 w-5 text-primary" />
+        {/* Date Filter + KPIs */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Car className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Véhicules fournis</p>
+                    <p className="text-2xl font-bold">{filteredStats.vehiclesCount}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Véhicules fournis</p>
-                  <p className="text-2xl font-bold">{supplier.vehiclesSupplied || supplierVehicles.length}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
+                    <TrendingUp className="h-5 w-5 text-success" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total payé</p>
+                    <p className="text-2xl font-bold text-success">{formatCurrency(filteredStats.totalPaid, 'USD')}</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-success" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Investissement</p>
+                    <p className="text-2xl font-bold text-primary">{formatCurrency(filteredStats.totalInvestment, 'USD')}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total payé</p>
-                  <p className="text-2xl font-bold text-success">{formatCurrency(supplier.totalPaid || 0, 'USD')}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-danger/10 flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-danger" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Dette restante</p>
+                    <p className="text-2xl font-bold text-danger">{formatCurrency(filteredStats.remainingDebt, 'USD')}</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <CreditCard className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Solde crédit</p>
-                  <p className="text-2xl font-bold text-primary">{formatCurrency(supplier.creditBalance || 0, 'USD')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-danger/10 flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-danger" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Dette restante</p>
-                  <p className="text-2xl font-bold text-danger">{formatCurrency(supplier.remainingDebt || 0, 'USD')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Dossiers Table */}
