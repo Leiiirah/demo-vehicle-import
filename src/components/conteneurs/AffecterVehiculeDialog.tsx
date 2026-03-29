@@ -24,6 +24,7 @@ import { Car, Plus, Link2, DollarSign, Loader2, Upload, X } from 'lucide-react';
 import { api, Vehicle, Conteneur } from '@/services/api';
 import { toast } from 'sonner';
 import { BrandCombobox } from '@/components/vehicles/BrandCombobox';
+import { ModelCombobox } from '@/components/vehicles/ModelCombobox';
 import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 
 interface AffecterVehiculeDialogProps {
@@ -240,12 +241,7 @@ export const AffecterVehiculeDialog = ({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="model">Modèle *</Label>
-                    <Input 
-                      id="model" 
-                      placeholder="Ex: Land Cruiser"
-                      value={model}
-                      onChange={(e) => setModel(e.target.value)}
-                    />
+                    <ModelCombobox value={model} onChange={setModel} brand={brand} id="model" />
                   </div>
                 </div>
 
