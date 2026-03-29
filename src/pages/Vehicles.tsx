@@ -48,6 +48,7 @@ const VehiclesPage = () => {
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilters, setStatusFilters] = useState<string[]>(['ordered', 'in_transit', 'arrived', 'sold']);
+  const [monthFilter, setMonthFilter] = useState<string>('all');
   const { data: vehicles, isLoading, error } = useVehicles();
   const deleteVehicle = useDeleteVehicle();
   const { toast } = useToast();
