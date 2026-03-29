@@ -169,11 +169,8 @@ const Index = () => {
           )}
         </div>
 
-        {/* Graphiques */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ProfitChart filterParams={filterParams} />
-          <StatusDonutChart filterParams={filterParams} />
-        </div>
+        {/* Graphique */}
+        <ProfitChart filterParams={filterParams} />
 
         {/* Tableaux */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
