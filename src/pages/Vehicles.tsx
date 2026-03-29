@@ -299,7 +299,10 @@ const VehiclesPage = () => {
                           {formatCurrency(Number(vehicle.purchasePrice || 0), 'USD')}
                         </td>
                         <td className="text-foreground">
-                          {formatCurrency(Number(vehicle.transportCost || 0))}
+                          {formatCurrency(Number(vehicle.transportCost || 0), 'USD')}
+                        </td>
+                        <td className="text-foreground">
+                          {formatCurrency(Number(vehicle.localFees || 0))}
                         </td>
                         <td><VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} /></td>
                         <td>
