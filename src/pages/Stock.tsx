@@ -35,11 +35,6 @@ export default function StockPage() {
   const { paginatedItems, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } =
     usePagination(filteredVehicles);
 
-  const totalStockValue = stockVehicles.reduce(
-    (acc: number, v: any) => acc + Number(v.totalCost || 0),
-    0
-  );
-
   const totalPurchaseValue = stockVehicles.reduce(
     (acc: number, v: any) => acc + Number(v.purchasePrice || 0),
     0
