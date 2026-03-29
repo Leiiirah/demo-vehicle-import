@@ -289,20 +289,33 @@ export default function ModelsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="imageUrl">URL de l'image</Label>
-              <Input
-                id="imageUrl"
-                placeholder="https://..."
-                value={form.imageUrl}
-                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-              />
-              {form.imageUrl && (
-                <img
-                  src={form.imageUrl}
-                  alt="Aperçu"
-                  className="h-20 w-28 object-cover rounded border border-border mt-2"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
+              <Label>Image du véhicule</Label>
+              {imagePreview ? (
+                <div className="relative inline-block">
+                  <img
+                    src={imagePreview}
+                    alt="Aperçu"
+                    className="h-24 w-32 object-cover rounded border border-border"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center hover:bg-destructive/90"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center h-24 w-full rounded-lg border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors bg-muted/30">
+                  <Upload className="h-6 w-6 text-muted-foreground mb-1" />
+                  <span className="text-xs text-muted-foreground">Cliquer pour uploader</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                </label>
               )}
             </div>
             <DialogFooter>
