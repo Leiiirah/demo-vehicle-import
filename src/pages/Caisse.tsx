@@ -28,10 +28,9 @@ import {
   Wallet, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle,
   Search, Loader2, Trash2, Car, CreditCard, AlertTriangle, CalendarIcon, X,
 } from 'lucide-react';
-import { useCaisseEntries, useCaisseSummary, useDeleteCaisseEntry, useCaisseBalance, usePurgeCaisse } from '@/hooks/useCaisse';
+import { useCaisseEntries, useCaisseSummary, useDeleteCaisseEntry, usePurgeCaisse } from '@/hooks/useCaisse';
 import { AddCaisseEntryDialog } from '@/components/caisse/AddCaisseEntryDialog';
 import { api } from '@/services/api';
-import { CaisseBalanceCard } from '@/components/caisse/CaisseBalanceCard';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -40,8 +39,7 @@ const CaissePage = () => {
   const navigate = useNavigate();
   const { data: entries = [], isLoading } = useCaisseEntries();
   const { data: summary } = useCaisseSummary();
-  const { data: balanceData } = useCaisseBalance();
-  const soldeTotal = (summary?.totalEntrees || 0) - (summary?.totalCharges || 0) + (balanceData?.balance || 0);
+  const soldeTotal = (summary?.totalEntrees || 0) - (summary?.totalCharges || 0);
   const deleteMutation = useDeleteCaisseEntry();
   const purgeMutation = usePurgeCaisse();
   const { toast } = useToast();
@@ -228,7 +226,7 @@ const CaissePage = () => {
         </div>
 
         {/* KPI Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Entrées</CardTitle>
@@ -271,10 +269,9 @@ const CaissePage = () => {
               <div className={`text-2xl font-bold ${soldeTotal >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                 {formatCurrency(soldeTotal)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Entrées - Charges + Caisse Disponible</p>
+              <p className="text-xs text-muted-foreground mt-1">Entrées - Charges</p>
             </CardContent>
           </Card>
-          <CaisseBalanceCard />
         </div>
 
         {/* Filters */}
