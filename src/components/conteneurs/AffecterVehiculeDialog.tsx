@@ -162,7 +162,9 @@ export const AffecterVehiculeDialog = ({
           purchasePrice: parseFloat(prixVehicule),
           supplierId,
           conteneurId,
+          status: 'in_transit',
           orderDate: new Date().toISOString(),
+          photoUrl: photoPreview || undefined,
           passeportId: passeportId && passeportId !== 'none' ? passeportId : undefined,
         });
       }
