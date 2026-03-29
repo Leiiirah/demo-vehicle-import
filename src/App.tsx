@@ -9,7 +9,7 @@ import LoginPage from "./pages/Login";
 import Index from "./pages/Index";
 import VehiclesPage from "./pages/Vehicles";
 import VehicleDetailPage from "./pages/VehicleDetail";
-import CostCalculatorPage from "./pages/Calculator";
+
 import SuppliersPage from "./pages/Suppliers";
 import SupplierDetailPage from "./pages/SupplierDetail";
 import PasseportsPage from "./pages/Passeports";
