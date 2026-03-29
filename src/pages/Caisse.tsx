@@ -39,8 +39,7 @@ const CaissePage = () => {
   const navigate = useNavigate();
   const { data: entries = [], isLoading } = useCaisseEntries();
   const { data: summary } = useCaisseSummary();
-  const { data: balanceData } = useCaisseBalance();
-  const soldeTotal = (summary?.totalEntrees || 0) - (summary?.totalCharges || 0) + (balanceData?.balance || 0);
+  const soldeTotal = (summary?.totalEntrees || 0) - (summary?.totalCharges || 0);
   const deleteMutation = useDeleteCaisseEntry();
   const purgeMutation = usePurgeCaisse();
   const { toast } = useToast();
