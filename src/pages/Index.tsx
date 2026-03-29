@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { ProfitChart } from '@/components/dashboard/ProfitChart';
-import { StatusDonutChart } from '@/components/dashboard/StatusDonutChart';
 import { TopVehiclesTable } from '@/components/dashboard/TopVehiclesTable';
 import { TopVehiclesByCount } from '@/components/dashboard/RecentVehicles';
 import { useDashboardStats } from '@/hooks/useApi';
@@ -169,11 +168,8 @@ const Index = () => {
           )}
         </div>
 
-        {/* Graphiques */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ProfitChart filterParams={filterParams} />
-          <StatusDonutChart filterParams={filterParams} />
-        </div>
+        {/* Graphique */}
+        <ProfitChart filterParams={filterParams} />
 
         {/* Tableaux */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
