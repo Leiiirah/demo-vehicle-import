@@ -27,6 +27,10 @@ const ReportsPage = () => {
   const { data: suppliers = [], isLoading: loadingSuppliers } = useSuppliers();
   const { data: clients = [], isLoading: loadingClients } = useClients();
 
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const isLoading = loadingProfit || loadingSuppliers || loadingClients;
 
 
