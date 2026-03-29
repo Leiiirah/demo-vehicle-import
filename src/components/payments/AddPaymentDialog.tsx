@@ -188,32 +188,9 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
-                <Select value={type} onValueChange={(val) => setValue('type', val as PaymentFormData['type'])}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="supplier_payment">Paiement fournisseur</SelectItem>
-                    <SelectItem value="client_payment">Paiement client</SelectItem>
-                    <SelectItem value="transport">Transport</SelectItem>
-                    <SelectItem value="fees">Frais</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Type</Label>
+                <Input value="Paiement fournisseur" disabled className="bg-muted" />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Statut</Label>
-              <Select value={status} onValueChange={(val) => setValue('status', val as 'completed' | 'pending')}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">En attente</SelectItem>
-                  <SelectItem value="completed">Complété</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </form>
         </ScrollableDialogBody>
