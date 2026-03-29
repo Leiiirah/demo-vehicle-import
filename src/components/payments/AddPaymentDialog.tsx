@@ -95,9 +95,9 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
         amount: data.amount,
         currency: data.currency,
         exchangeRate: data.exchangeRate,
-        type: data.type,
+        type: 'supplier_payment',
         reference: data.reference,
-        status: data.status,
+        status: 'completed',
         supplierId: preSelectedSupplierId,
         dossierId: preSelectedDossierId,
       });
