@@ -124,7 +124,7 @@ export const AffecterVehiculeDialog = ({
       purchasePrice: number;
       supplierId: string;
       conteneurId: string;
-      status?: string;
+      status?: 'ordered' | 'in_transit' | 'arrived' | 'sold';
       orderDate: string;
       photoUrl?: string;
       passeportId?: string;
