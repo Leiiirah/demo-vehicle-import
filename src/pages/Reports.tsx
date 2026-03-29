@@ -121,7 +121,7 @@ const ReportsPage = () => {
         {/* Grille graphiques */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Tendance profit */}
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+          <div id="section-profit" className="bg-card rounded-xl border border-border p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-foreground mb-4">
               Tendance des profits
             </h3>
