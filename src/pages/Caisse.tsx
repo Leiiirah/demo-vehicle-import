@@ -269,10 +269,9 @@ const CaissePage = () => {
               <div className={`text-2xl font-bold ${soldeTotal >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                 {formatCurrency(soldeTotal)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Entrées - Charges + Caisse Disponible</p>
+              <p className="text-xs text-muted-foreground mt-1">Entrées - Charges</p>
             </CardContent>
           </Card>
-          <CaisseBalanceCard />
         </div>
 
         {/* Filters */}
