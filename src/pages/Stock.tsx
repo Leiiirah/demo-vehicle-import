@@ -140,7 +140,7 @@ export default function StockPage() {
                     <TableBody>
                       {paginatedItems.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                             {searchTerm
                               ? `Aucun véhicule trouvé pour "${searchTerm}"`
                               : 'Aucun véhicule en stock'}
