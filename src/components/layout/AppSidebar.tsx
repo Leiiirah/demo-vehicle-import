@@ -171,13 +171,6 @@ export function AppSidebar() {
           )}
         </div>
 
-        {/* Calculateur - Solo at bottom */}
-        <div className="mt-4">
-          <ul className="space-y-1">
-            <NavItem item={{ name: 'Calculateur', href: '/calculator', icon: Calculator }} />
-          </ul>
-        </div>
-
         {/* Divider */}
         <div className="my-4 border-t border-sidebar-border" />
 
