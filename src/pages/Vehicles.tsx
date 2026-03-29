@@ -29,6 +29,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import AddVehicleDialog from '@/components/vehicles/AddVehicleDialog';
 import { Skeleton } from '@/components/ui/skeleton';
