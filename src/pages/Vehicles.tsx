@@ -143,9 +143,9 @@ const VehiclesPage = () => {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">Montant total estimé</p>
+              <p className="text-xs text-muted-foreground">Total prix d'achat</p>
               <p className="text-lg font-semibold text-foreground">
-                {formatCurrency(filteredVehicles.reduce((sum, v) => sum + Number(v.totalCost || 0), 0))}
+                {formatCurrency(filteredVehicles.reduce((sum, v) => sum + Number(v.purchasePrice || 0), 0), 'USD')}
               </p>
             </div>
             <AddVehicleDialog>
