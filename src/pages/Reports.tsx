@@ -166,7 +166,7 @@ const ReportsPage = () => {
           </div>
 
           {/* Profit par client */}
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+          <div id="section-client" className="bg-card rounded-xl border border-border p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-foreground mb-4">
               Profit par client
             </h3>
