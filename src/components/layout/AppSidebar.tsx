@@ -5,7 +5,7 @@ import {
   Car,
   Users,
   Building2,
-  Calculator,
+  
   TrendingUp,
   FileText,
   Settings,
