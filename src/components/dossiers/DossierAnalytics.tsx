@@ -58,11 +58,18 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
       .filter((v) => v.status === 'sold' && v.sellingPrice)
       .reduce((sum, v) => sum + Number(v.sellingPrice || 0), 0);
 
-    const soldVehiclesTotalCost = allVehicles
-      .filter((v) => v.status === 'sold')
-      .reduce((sum, v) => sum + Number(v.totalCost), 0);
+    // Only compute profit using vehicles that have a manually entered rate (theoreticalRate > 0)
+    const soldVehiclesWithRate = allVehicles.filter(
+      (v) => v.status === 'sold' && Number((v as any).theoreticalRate || 0) > 0
+    );
+    const soldVehiclesTotalCost = soldVehiclesWithRate.reduce((sum, v) => {
+      const totalUSD = Number(v.purchasePrice || 0) + Number(v.transportCost || 0);
+      return sum + (totalUSD * Number((v as any).theoreticalRate)) + Number(v.localFees || 0);
+    }, 0);
 
-    const profit = recoveredFundsDZD - soldVehiclesTotalCost;
+    const profit = soldVehiclesWithRate.length > 0
+      ? recoveredFundsDZD - soldVehiclesTotalCost
+      : 0;
 
 
     return {
