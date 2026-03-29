@@ -22,6 +22,8 @@ const SalesPage = () => {
   const { data: vehicles = [], isLoading } = useVehicles();
   const [searchTerm, setSearchTerm] = useState('');
   const [clientFilter, setClientFilter] = useState('all');
+  const [monthFilter, setMonthFilter] = useState('all');
+  const [yearFilter, setYearFilter] = useState('all');
 
   const soldVehicles = useMemo(() => (vehicles as any[]).filter((v) => v.clientId), [vehicles]);
 
@@ -35,6 +37,23 @@ const SalesPage = () => {
     return Array.from(map.values());
   }, [soldVehicles]);
 
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    soldVehicles.forEach((v: any) => {
+      if (v.soldDate) years.add(new Date(v.soldDate).getFullYear().toString());
+    });
+    return Array.from(years).sort((a, b) => b.localeCompare(a));
+  }, [soldVehicles]);
+
+  const months = [
+    { value: '0', label: 'Janvier' }, { value: '1', label: 'Février' },
+    { value: '2', label: 'Mars' }, { value: '3', label: 'Avril' },
+    { value: '4', label: 'Mai' }, { value: '5', label: 'Juin' },
+    { value: '6', label: 'Juillet' }, { value: '7', label: 'Août' },
+    { value: '8', label: 'Septembre' }, { value: '9', label: 'Octobre' },
+    { value: '10', label: 'Novembre' }, { value: '11', label: 'Décembre' },
+  ];
+
   const filteredVehicles = useMemo(() => {
     return soldVehicles.filter((v: any) => {
       const term = searchTerm.toLowerCase();
@@ -42,9 +61,12 @@ const SalesPage = () => {
         `${v.brand} ${v.model} ${v.vin}`.toLowerCase().includes(term) ||
         (v.client && `${v.client.nom} ${v.client.prenom}`.toLowerCase().includes(term));
       const clientMatch = clientFilter === 'all' || v.clientId === clientFilter;
-      return searchMatch && clientMatch;
+      const soldDate = v.soldDate ? new Date(v.soldDate) : null;
+      const monthMatch = monthFilter === 'all' || (soldDate && soldDate.getMonth().toString() === monthFilter);
+      const yearMatch = yearFilter === 'all' || (soldDate && soldDate.getFullYear().toString() === yearFilter);
+      return searchMatch && clientMatch && monthMatch && yearMatch;
     });
-  }, [soldVehicles, searchTerm, clientFilter]);
+  }, [soldVehicles, searchTerm, clientFilter, monthFilter, yearFilter]);
 
   const { paginatedItems: paginatedVehicles, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredVehicles);
 
