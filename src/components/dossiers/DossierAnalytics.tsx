@@ -126,37 +126,41 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
           </CardContent>
         </Card>
 
-        {/* Recovered Funds */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Fonds Récupérés</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">
-              {formatCurrency(stats.recoveredFundsDZD)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Montant total des ventes réalisées
-            </p>
-          </CardContent>
-        </Card>
+        {/* Recovered Funds - only when fully paid */}
+        {isDossierSolde && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Fonds Récupérés</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">
+                {formatCurrency(stats.recoveredFundsDZD)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Montant total des ventes réalisées
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Profit */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bénéfice Net</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${stats.profit >= 0 ? 'text-success' : 'text-destructive'}`}>
-              {formatCurrency(stats.profit)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Ventes - Coûts de revient
-            </p>
-          </CardContent>
-        </Card>
+        {/* Profit - only when fully paid */}
+        {isDossierSolde && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Bénéfice Net</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${stats.profit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                {formatCurrency(stats.profit)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Ventes - Coûts de revient
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
     </div>
