@@ -214,6 +214,26 @@ const VehiclesPage = () => {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+          <Select value={monthFilter} onValueChange={setMonthFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filtrer par mois" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les mois</SelectItem>
+              {(() => {
+                const months = new Set<string>();
+                (vehicles || []).forEach((v: any) => {
+                  const date = v.createdAt ? new Date(v.createdAt) : null;
+                  if (date) months.add(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`);
+                });
+                return Array.from(months).sort().reverse().map((m) => {
+                  const [y, mo] = m.split('-');
+                  const label = new Date(Number(y), Number(mo) - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                  return <SelectItem key={m} value={m}>{label}</SelectItem>;
+                });
+              })()}
+            </SelectContent>
+          </Select>
           <div className="flex items-center border border-border rounded-lg p-1">
             <Button
               variant="ghost"
