@@ -162,6 +162,7 @@ export default function StockPage() {
                             <TableCell>{vehicle.year}</TableCell>
                             <TableCell className="font-mono text-xs">{vehicle.vin}</TableCell>
                             <TableCell>{vehicle.supplier?.name || '-'}</TableCell>
+                            <TableCell>{vehicle.passeport ? `${vehicle.passeport.nom} ${vehicle.passeport.prenom}` : '-'}</TableCell>
                             <TableCell>{formatCurrency(Number(vehicle.purchasePrice || 0), 'USD')}</TableCell>
                             <TableCell>{formatCurrency(Number(vehicle.transportCost || 0), 'USD')}</TableCell>
                             <TableCell>{formatCurrency(Number(vehicle.passeportCost || 0))}</TableCell>
