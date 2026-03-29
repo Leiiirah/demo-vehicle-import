@@ -98,9 +98,11 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalVehicles}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Total des véhicules dans ce dossier
-            </p>
+            <div className="flex flex-wrap gap-2 mt-2 text-xs">
+              <span className="text-success">{stats.soldCount} vendu(s)</span>
+              <span className="text-warning">{stats.chargeCount} chargée(s)</span>
+              <span className="text-primary">{stats.stockCount} en stock</span>
+            </div>
           </CardContent>
         </Card>
 
