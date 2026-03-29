@@ -77,9 +77,7 @@ function ClientVehicleRow({ vehicle, dossierStats }: { vehicle: Vehicle; dossier
   const totalUSD = Number(vehicle.purchasePrice) + Number(vehicle.transportCost);
   const prixRevientFinal = isDossierSolde && tauxChangeFinal > 0
     ? (totalUSD * tauxChangeFinal) + Number(vehicle.localFees || 0)
-    : (Number(vehicle.theoreticalRate || 0) > 0
-      ? (totalUSD * Number(vehicle.theoreticalRate)) + Number(vehicle.localFees || 0)
-      : null);
+    : null;
 
   const handleUnassign = (e: React.MouseEvent) => {
     e.stopPropagation();
