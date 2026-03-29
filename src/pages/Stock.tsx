@@ -131,8 +131,8 @@ export default function StockPage() {
                         <TableHead>Fournisseur</TableHead>
                         <TableHead>Prix d'Achat (USD)</TableHead>
                         <TableHead>Transport (USD)</TableHead>
+                        <TableHead>Passeport (DZD)</TableHead>
                         <TableHead>Transit (DZD)</TableHead>
-                        <TableHead>Divers (DZD)</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
