@@ -96,16 +96,9 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
             <Car className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-success">{stats.soldCount}</span>
-              <span className="text-muted-foreground">vendus</span>
-              <span className="text-muted-foreground">/</span>
-              <span className="text-lg font-semibold">{stats.stockCount}</span>
-              <span className="text-muted-foreground">en stock</span>
-            </div>
-            <Progress value={stats.soldPercentage} className="mt-2 h-2" />
+            <div className="text-2xl font-bold">{stats.totalVehicles}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {stats.soldPercentage.toFixed(0)}% vendus sur {stats.totalVehicles} total
+              Total des véhicules dans ce dossier
             </p>
           </CardContent>
         </Card>
