@@ -492,30 +492,30 @@ export function useDeletePayment() {
 }
 
 // Dashboard hooks
-export function useDashboardStats() {
+export function useDashboardStats(params?: { month?: number; year?: number }) {
   return useQuery({
-    queryKey: ['dashboard', 'stats'],
-    queryFn: () => api.getDashboardStats(),
+    queryKey: ['dashboard', 'stats', params],
+    queryFn: () => api.getDashboardStats(params),
   });
 }
 
-export function useProfitHistory() {
+export function useProfitHistory(params?: { year?: number }) {
   return useQuery({
-    queryKey: ['dashboard', 'profitHistory'],
-    queryFn: () => api.getProfitHistory(),
+    queryKey: ['dashboard', 'profitHistory', params],
+    queryFn: () => api.getProfitHistory(params),
   });
 }
 
-export function useVehiclesByStatus() {
+export function useVehiclesByStatus(params?: { month?: number; year?: number }) {
   return useQuery({
-    queryKey: ['dashboard', 'vehiclesByStatus'],
-    queryFn: () => api.getVehiclesByStatus(),
+    queryKey: ['dashboard', 'vehiclesByStatus', params],
+    queryFn: () => api.getVehiclesByStatus(params),
   });
 }
 
-export function useTopVehicles() {
+export function useTopVehicles(params?: { month?: number; year?: number }) {
   return useQuery({
-    queryKey: ['dashboard', 'topVehicles'],
-    queryFn: () => api.getTopVehicles(),
+    queryKey: ['dashboard', 'topVehicles', params],
+    queryFn: () => api.getTopVehicles(params),
   });
 }

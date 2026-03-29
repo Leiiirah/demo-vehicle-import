@@ -3,8 +3,12 @@ import { TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function TopVehiclesTable() {
-  const { data: topVehicles, isLoading, error } = useTopVehicles();
+interface TopVehiclesTableProps {
+  filterParams?: { month?: number; year?: number };
+}
+
+export function TopVehiclesTable({ filterParams }: TopVehiclesTableProps) {
+  const { data: topVehicles, isLoading, error } = useTopVehicles(filterParams);
 
 
   if (isLoading) {

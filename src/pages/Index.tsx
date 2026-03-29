@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { ProfitChart } from '@/components/dashboard/ProfitChart';
@@ -6,19 +7,53 @@ import { TopVehiclesTable } from '@/components/dashboard/TopVehiclesTable';
 import { TopVehiclesByCount } from '@/components/dashboard/RecentVehicles';
 import { useDashboardStats } from '@/hooks/useApi';
 import {
-  DollarSign,
-  TrendingUp,
-  AlertCircle,
+  Package,
   Ship,
-  CheckCircle2,
-  ShoppingCart,
+  HandCoins,
+  AlertCircle,
+  Banknote,
+  Wallet,
+  Calendar,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const Index = () => {
-  const { data: stats, isLoading, error } = useDashboardStats();
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [selectedYear, setSelectedYear] = useState<string>('all');
 
+  const filterParams = useMemo(() => {
+    const params: { month?: number; year?: number } = {};
+    if (selectedMonth !== 'all') params.month = parseInt(selectedMonth);
+    if (selectedYear !== 'all') params.year = parseInt(selectedYear);
+    return Object.keys(params).length > 0 ? params : undefined;
+  }, [selectedMonth, selectedYear]);
+
+  const { data: stats, isLoading, error } = useDashboardStats(filterParams);
+
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+  const months = [
+    { value: '1', label: 'Janvier' },
+    { value: '2', label: 'Février' },
+    { value: '3', label: 'Mars' },
+    { value: '4', label: 'Avril' },
+    { value: '5', label: 'Mai' },
+    { value: '6', label: 'Juin' },
+    { value: '7', label: 'Juillet' },
+    { value: '8', label: 'Août' },
+    { value: '9', label: 'Septembre' },
+    { value: '10', label: 'Octobre' },
+    { value: '11', label: 'Novembre' },
+    { value: '12', label: 'Décembre' },
+  ];
 
   if (error) {
     return (
@@ -39,12 +74,43 @@ const Index = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* En-tête de page */}
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Tableau de bord</h1>
-          <p className="text-muted-foreground">
-            Bienvenue. Voici l'aperçu de votre activité d'importation.
-          </p>
+        {/* En-tête de page avec filtres */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">Tableau de bord</h1>
+            <p className="text-muted-foreground">
+              Bienvenue. Voici l'aperçu de votre activité d'importation.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Mois" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les mois</SelectItem>
+                {months.map((m) => (
+                  <SelectItem key={m.value} value={m.value}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-[110px]">
+                <SelectValue placeholder="Année" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes</SelectItem>
+                {years.map((y) => (
+                  <SelectItem key={y} value={y.toString()}>
+                    {y}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Cartes KPI */}
@@ -58,46 +124,46 @@ const Index = () => {
           ) : (
             <>
               <KPICard
-                title="Total investi"
-                value={formatCurrency(stats?.totalInvested || 0)}
-                icon={<DollarSign className="h-5 w-5" />}
+                title="Valeur du stock"
+                value={formatCurrency(stats?.valeurStock || 0)}
+                icon={<Package className="h-5 w-5" />}
                 variant="info"
-                trend={{ value: 12.5, isPositive: true }}
+                subtitle="véhicules en stock"
               />
               <KPICard
-                title="Profit total"
-                value={formatCurrency(stats?.totalProfit || 0)}
-                icon={<TrendingUp className="h-5 w-5" />}
-                variant="success"
-                trend={{ value: 8.2, isPositive: true }}
-              />
-              <KPICard
-                title="Dettes en cours"
-                value={formatCurrency(stats?.outstandingDebts || 0, 'USD')}
-                icon={<AlertCircle className="h-5 w-5" />}
-                variant="danger"
-                trend={{ value: 3.1, isPositive: false }}
-              />
-              <KPICard
-                title="Chargée"
-                value={stats?.vehiclesInTransit || 0}
+                title="Véhicules chargées"
+                value={formatCurrency(stats?.valeurChargees || 0, 'USD')}
                 icon={<Ship className="h-5 w-5" />}
                 variant="warning"
-                subtitle="véhicules"
+                subtitle="en transit"
               />
               <KPICard
-                title="Arrivés"
-                value={stats?.vehiclesArrived || 0}
-                icon={<CheckCircle2 className="h-5 w-5" />}
+                title="Créance total"
+                value={formatCurrency(stats?.creanceTotal || 0)}
+                icon={<HandCoins className="h-5 w-5" />}
                 variant="success"
-                subtitle="véhicules"
+                subtitle="clients"
               />
               <KPICard
-                title="Vendus"
-                value={stats?.vehiclesSold || 0}
-                icon={<ShoppingCart className="h-5 w-5" />}
+                title="Dettes total"
+                value={formatCurrency(stats?.dettesTotal || 0)}
+                icon={<AlertCircle className="h-5 w-5" />}
+                variant="danger"
+                subtitle="fournisseurs"
+              />
+              <KPICard
+                title="Total général"
+                value={formatCurrency(stats?.totalEverything || 0)}
+                icon={<Banknote className="h-5 w-5" />}
                 variant="default"
-                subtitle="véhicules"
+                subtitle="investissement"
+              />
+              <KPICard
+                title="Total caisse"
+                value={formatCurrency(stats?.totalCaisse || 0)}
+                icon={<Wallet className="h-5 w-5" />}
+                variant="success"
+                subtitle="solde caisse"
               />
             </>
           )}
@@ -105,13 +171,13 @@ const Index = () => {
 
         {/* Graphiques */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ProfitChart />
-          <StatusDonutChart />
+          <ProfitChart filterParams={filterParams} />
+          <StatusDonutChart filterParams={filterParams} />
         </div>
 
         {/* Tableaux */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TopVehiclesTable />
+          <TopVehiclesTable filterParams={filterParams} />
           <TopVehiclesByCount />
         </div>
       </div>

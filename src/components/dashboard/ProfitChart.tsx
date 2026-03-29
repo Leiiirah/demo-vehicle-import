@@ -11,8 +11,12 @@ import { useProfitHistory } from '@/hooks/useApi';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
 
-export function ProfitChart() {
-  const { data: profitHistory, isLoading, error } = useProfitHistory();
+interface ProfitChartProps {
+  filterParams?: { month?: number; year?: number };
+}
+
+export function ProfitChart({ filterParams }: ProfitChartProps) {
+  const { data: profitHistory, isLoading, error } = useProfitHistory(filterParams ? { year: filterParams.year } : undefined);
 
   const formatValue = (value: number) => {
     return new Intl.NumberFormat('fr-FR', {

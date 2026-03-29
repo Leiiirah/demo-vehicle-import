@@ -332,20 +332,32 @@ class ApiClient {
   }
 
   // Dashboard
-  async getDashboardStats() {
-    return this.request<DashboardStats>('/api/dashboard/stats');
+  async getDashboardStats(params?: { month?: number; year?: number }) {
+    const query = this.buildDateQuery(params);
+    return this.request<DashboardStats>(`/api/dashboard/stats${query}`);
   }
 
-  async getProfitHistory() {
-    return this.request<ProfitHistory[]>('/api/dashboard/profit-history');
+  async getProfitHistory(params?: { year?: number }) {
+    const query = params?.year ? `?year=${params.year}` : '';
+    return this.request<ProfitHistory[]>(`/api/dashboard/profit-history${query}`);
   }
 
-  async getVehiclesByStatus() {
-    return this.request<VehiclesByStatus[]>('/api/dashboard/vehicles-by-status');
+  async getVehiclesByStatus(params?: { month?: number; year?: number }) {
+    const query = this.buildDateQuery(params);
+    return this.request<VehiclesByStatus[]>(`/api/dashboard/vehicles-by-status${query}`);
   }
 
-  async getTopVehicles() {
-    return this.request<TopVehicle[]>('/api/dashboard/top-vehicles');
+  async getTopVehicles(params?: { month?: number; year?: number }) {
+    const query = this.buildDateQuery(params);
+    return this.request<TopVehicle[]>(`/api/dashboard/top-vehicles${query}`);
+  }
+
+  private buildDateQuery(params?: { month?: number; year?: number }): string {
+    if (!params) return '';
+    const parts: string[] = [];
+    if (params.month) parts.push(`month=${params.month}`);
+    if (params.year) parts.push(`year=${params.year}`);
+    return parts.length > 0 ? `?${parts.join('&')}` : '';
   }
 }
 
@@ -572,6 +584,12 @@ export interface CreatePaymentData {
 }
 
 export interface DashboardStats {
+  valeurStock: number;
+  valeurChargees: number;
+  creanceTotal: number;
+  dettesTotal: number;
+  totalEverything: number;
+  totalCaisse: number;
   totalInvested: number;
   totalProfit: number;
   outstandingDebts: number;
@@ -580,6 +598,11 @@ export interface DashboardStats {
   vehiclesSold: number;
   vehiclesOrdered: number;
   totalVehicles: number;
+}
+
+export interface DashboardFilterParams {
+  month?: number;
+  year?: number;
 }
 
 export interface ProfitHistory {
