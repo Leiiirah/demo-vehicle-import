@@ -104,7 +104,7 @@ function ClientVehicleRow({ vehicle, dossierStats }: { vehicle: Vehicle; dossier
         {vehicle.vin?.slice(-8)}
       </TableCell>
       <TableCell className="text-right">
-        {formatCurrency(prixRevientApprox)}
+        {formatCurrency(Number(vehicle.purchasePrice || 0), 'USD')}
       </TableCell>
       <TableCell className="text-right">
         {prixRevientFinal !== null ? (
