@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useDossier, useDeleteConteneur, useUpdateConteneur } from '@/hooks/useApi';
+import { api } from '@/services/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +56,12 @@ export default function DossierDetailPage() {
   const [selectedConteneur, setSelectedConteneur] = useState<any>(null);
 
   const { data: dossier, isLoading, error } = useDossier(id || '');
+  const { data: dossierPaymentStats } = useQuery<{ progress: number }>({
+    queryKey: ['payments', 'dossier', id, 'stats'],
+    queryFn: () => api.request(`/api/payments/dossier/${id}/stats`),
+    enabled: !!id,
+  });
+  const isDossierFullyPaid = (dossierPaymentStats?.progress ?? 0) >= 100;
   const deleteConteneur = useDeleteConteneur();
   const updateConteneur = useUpdateConteneur();
   const { toast } = useToast();
@@ -204,7 +212,7 @@ export default function DossierDetailPage() {
                     <TableHead>Numéro</TableHead>
                     <TableHead>Départ</TableHead>
                     <TableHead>Arrivée</TableHead>
-                    <TableHead>Prix Total</TableHead>
+                    {isDossierFullyPaid && <TableHead>Prix Total</TableHead>}
                     <TableHead className="text-center">Véhicules</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead className="w-20"></TableHead>
@@ -242,7 +250,7 @@ export default function DossierDetailPage() {
                               ? new Date(conteneur.dateArrivee).toLocaleDateString('fr-FR')
                               : '-'}
                           </TableCell>
-                          <TableCell>{formatCurrency((conteneur.vehicles || []).reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0))}</TableCell>
+                          {isDossierFullyPaid && <TableCell>{formatCurrency((conteneur.vehicles || []).reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0))}</TableCell>}
                           <TableCell className="text-center">{conteneur.vehicles?.length || 0}</TableCell>
                           <TableCell>
                             <Select
