@@ -713,4 +713,19 @@ export interface CaisseBalanceData {
   updatedAt: string;
 }
 
+export interface CarModel {
+  id: string;
+  brand: string;
+  model: string;
+  imageUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateCarModelData {
+  brand: string;
+  model: string;
+  imageUrl?: string;
+}
+
 export const api = new ApiClient(API_URL);
