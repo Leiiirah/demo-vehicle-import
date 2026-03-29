@@ -50,6 +50,13 @@ export default function ConteneurDetailPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data: conteneur, isLoading, error } = useConteneur(id || '');
+  const dossierId = conteneur?.dossierId;
+  const { data: dossierPaymentStats } = useQuery<{ progress: number }>({
+    queryKey: ['payments', 'dossier', dossierId, 'stats'],
+    queryFn: () => api.request(`/api/payments/dossier/${dossierId}/stats`),
+    enabled: !!dossierId,
+  });
+  const isDossierFullyPaid = (dossierPaymentStats?.progress ?? 0) >= 100;
   const deleteConteneur = useDeleteConteneur();
   const deleteVehicle = useDeleteVehicle();
 
