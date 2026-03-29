@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -8,22 +8,33 @@ export class DashboardController {
   constructor(private dashboardService: DashboardService) {}
 
   @Get('stats')
-  getStats() {
-    return this.dashboardService.getStats();
+  getStats(
+    @Query('month') month?: string,
+    @Query('year') year?: string,
+  ) {
+    return this.dashboardService.getStats(month ? parseInt(month) : undefined, year ? parseInt(year) : undefined);
   }
 
   @Get('profit-history')
-  getProfitHistory() {
-    return this.dashboardService.getProfitHistory();
+  getProfitHistory(
+    @Query('year') year?: string,
+  ) {
+    return this.dashboardService.getProfitHistory(year ? parseInt(year) : undefined);
   }
 
   @Get('vehicles-by-status')
-  getVehiclesByStatus() {
-    return this.dashboardService.getVehiclesByStatus();
+  getVehiclesByStatus(
+    @Query('month') month?: string,
+    @Query('year') year?: string,
+  ) {
+    return this.dashboardService.getVehiclesByStatus(month ? parseInt(month) : undefined, year ? parseInt(year) : undefined);
   }
 
   @Get('top-vehicles')
-  getTopVehicles() {
-    return this.dashboardService.getTopVehicles();
+  getTopVehicles(
+    @Query('month') month?: string,
+    @Query('year') year?: string,
+  ) {
+    return this.dashboardService.getTopVehicles(month ? parseInt(month) : undefined, year ? parseInt(year) : undefined);
   }
 }
