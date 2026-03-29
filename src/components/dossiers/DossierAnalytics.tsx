@@ -40,7 +40,8 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
     const allVehicles: Vehicle[] = conteneurs.flatMap((c) => c.vehicles || []);
 
     const soldCount = allVehicles.filter((v) => v.status === 'sold').length;
-    const stockCount = allVehicles.length - soldCount;
+    const chargeCount = allVehicles.filter((v) => v.status === 'in_transit').length;
+    const stockCount = allVehicles.filter((v) => v.status === 'ordered').length;
 
     const totalPurchaseUSD = allVehicles.reduce(
       (sum, v) => sum + Number(v.purchasePrice || 0),
@@ -75,8 +76,8 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
     return {
       totalVehicles: allVehicles.length,
       soldCount,
+      chargeCount,
       stockCount,
-      soldPercentage: allVehicles.length > 0 ? (soldCount / allVehicles.length) * 100 : 0,
       totalInvestmentUSD,
       totalPurchaseUSD,
       totalTransportUSD,
@@ -97,9 +98,11 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalVehicles}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Total des véhicules dans ce dossier
-            </p>
+            <div className="flex flex-wrap gap-2 mt-2 text-xs">
+              <span className="text-success">{stats.soldCount} vendu(s)</span>
+              <span className="text-warning">{stats.chargeCount} chargée(s)</span>
+              <span className="text-primary">{stats.stockCount} en stock</span>
+            </div>
           </CardContent>
         </Card>
 
