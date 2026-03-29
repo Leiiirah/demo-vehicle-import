@@ -547,7 +547,19 @@ const VehicleDetailPage = () => {
                 {/* Charges Transit DZD */}
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Charges Transit (DZD)</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">Charges Transit (DZD)</CardTitle>
+                      {hasChanges && (
+                        <Button variant="outline" size="sm" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+                          {saveMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          ) : (
+                            <Save className="h-4 w-4 mr-1" />
+                          )}
+                          Enregistrer
+                        </Button>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground mb-3">
