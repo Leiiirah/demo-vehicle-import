@@ -286,7 +286,7 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
                   )}
                   <div>
                     <div className="font-medium text-sm">{selectedVehicle.brand} {selectedVehicle.model} ({selectedVehicle.year})</div>
-                    <div className="text-xs text-muted-foreground">Coût de revient : {formatCurrency(selectedVehicle.totalCost || 0)}</div>
+                    <div className="text-xs text-muted-foreground">VIN: {selectedVehicle.vin}</div>
                   </div>
                 </div>
               )}
