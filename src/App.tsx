@@ -28,6 +28,7 @@ import SettingsPage from "./pages/Settings";
 import SearchPage from "./pages/Search";
 import CaissePage from "./pages/Caisse";
 import StockPage from "./pages/Stock";
+import ModelsPage from "./pages/Models";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
