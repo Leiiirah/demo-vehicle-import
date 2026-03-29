@@ -65,8 +65,6 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
   });
 
   const currency = watch('currency');
-  const type = watch('type');
-  const status = watch('status');
 
   const createPaymentMutation = useMutation({
     mutationFn: (data: { date: string; amount: number; currency: 'USD' | 'DZD'; exchangeRate: number; type: 'supplier_payment' | 'client_payment' | 'transport' | 'fees'; reference: string; status: 'completed' | 'pending'; supplierId?: string; dossierId?: string }) => api.createPayment(data),
