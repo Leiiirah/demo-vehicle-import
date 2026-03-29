@@ -21,6 +21,7 @@ import {
   Receipt,
   Wallet,
   Warehouse,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +32,7 @@ const importItems = [
   { name: 'Dossiers', href: '/dossiers', icon: FolderOpen },
   { name: 'Conteneurs', href: '/conteneurs', icon: Container },
   { name: 'Véhicules', href: '/vehicles', icon: Car },
+  { name: 'Modèles', href: '/models', icon: BookOpen },
   { name: 'Stock', href: '/stock', icon: Warehouse },
   { name: 'Clients', href: '/clients', icon: Users },
 ];

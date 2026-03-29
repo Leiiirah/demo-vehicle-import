@@ -17,35 +17,37 @@ export function BrandCombobox({ value, onChange, id, placeholder = 'Ex: Toyota' 
   const [inputValue, setInputValue] = useState(value);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  // Fetch from car models catalog
+  const { data: carModels = [] } = useQuery({
+    queryKey: ['car-models'],
+    queryFn: () => api.getCarModels(),
+  });
+
+  // Fallback: also get brands from existing vehicles
   const { data: vehicles = [] } = useQuery({
     queryKey: ['vehicles'],
     queryFn: () => api.getVehicles(),
   });
 
-  const existingBrands = useMemo(() => {
+  const allBrands = useMemo(() => {
     const brands = new Set<string>();
-    vehicles.forEach((v: any) => {
-      if (v.brand) brands.add(v.brand);
-    });
+    carModels.forEach((m) => { if (m.brand) brands.add(m.brand); });
+    vehicles.forEach((v: any) => { if (v.brand) brands.add(v.brand); });
     return Array.from(brands).sort();
-  }, [vehicles]);
+  }, [carModels, vehicles]);
 
   const filtered = useMemo(() => {
-    if (!inputValue) return existingBrands;
-    return existingBrands.filter((b) =>
+    if (!inputValue) return allBrands;
+    return allBrands.filter((b) =>
       b.toLowerCase().includes(inputValue.toLowerCase())
     );
-  }, [existingBrands, inputValue]);
+  }, [allBrands, inputValue]);
 
-  useEffect(() => {
-    setInputValue(value);
-  }, [value]);
+  useEffect(() => { setInputValue(value); }, [value]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);

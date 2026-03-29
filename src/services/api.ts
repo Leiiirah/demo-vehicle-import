@@ -331,6 +331,28 @@ class ApiClient {
     return this.request<{ deleted: number }>('/api/caisse/purge/all', { method: 'DELETE' });
   }
 
+  // Car Models
+  async getCarModels(brand?: string) {
+    const query = brand ? `?brand=${encodeURIComponent(brand)}` : '';
+    return this.request<CarModel[]>(`/api/car-models${query}`);
+  }
+
+  async getCarModel(id: string) {
+    return this.request<CarModel>(`/api/car-models/${id}`);
+  }
+
+  async createCarModel(data: CreateCarModelData) {
+    return this.request<CarModel>('/api/car-models', { method: 'POST', body: data });
+  }
+
+  async updateCarModel(id: string, data: Partial<CreateCarModelData>) {
+    return this.request<CarModel>(`/api/car-models/${id}`, { method: 'PATCH', body: data });
+  }
+
+  async deleteCarModel(id: string) {
+    return this.request(`/api/car-models/${id}`, { method: 'DELETE' });
+  }
+
   // Dashboard
   async getDashboardStats(params?: { month?: number; year?: number }) {
     const query = this.buildDateQuery(params);
@@ -689,6 +711,21 @@ export interface CaisseSummary {
 export interface CaisseBalanceData {
   balance: number;
   updatedAt: string;
+}
+
+export interface CarModel {
+  id: string;
+  brand: string;
+  model: string;
+  imageUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateCarModelData {
+  brand: string;
+  model: string;
+  imageUrl?: string;
 }
 
 export const api = new ApiClient(API_URL);
