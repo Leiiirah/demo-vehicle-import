@@ -134,6 +134,7 @@ export default function StockPage() {
                         <TableHead>Transport (USD)</TableHead>
                         <TableHead>Passeport (DZD)</TableHead>
                         <TableHead>Transit (DZD)</TableHead>
+                        <TableHead>Date d'arrivée</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
