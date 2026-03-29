@@ -22,6 +22,7 @@ export default function ModelsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingModel, setEditingModel] = useState<CarModel | null>(null);
   const [form, setForm] = useState({ brand: '', model: '', imageUrl: '' });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const { data: carModels = [], isLoading } = useQuery({
     queryKey: ['car-models'],
