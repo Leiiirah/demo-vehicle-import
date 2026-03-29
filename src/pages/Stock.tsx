@@ -20,6 +20,7 @@ import { formatCurrency } from '@/lib/utils';
 export default function StockPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [monthFilter, setMonthFilter] = useState<string>('all');
   const { data: vehicles, isLoading, error } = useVehicles();
 
   // Only vehicles that are "En stock" (ordered), in a déchargée container, and not sold
@@ -27,13 +28,18 @@ export default function StockPage() {
     (v: any) => v.status === 'ordered'
   );
 
-  const filteredVehicles = stockVehicles.filter(
-    (v: any) =>
+  const filteredVehicles = stockVehicles.filter((v: any) => {
+    const matchesSearch =
       v.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.vin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.supplier?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      v.supplier?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    if (monthFilter === 'all') return matchesSearch;
+    const date = v.arrivalDate ? new Date(v.arrivalDate) : v.createdAt ? new Date(v.createdAt) : null;
+    if (!date) return false;
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    return matchesSearch && key === monthFilter;
+  });
 
   const { paginatedItems, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } =
     usePagination(filteredVehicles);
