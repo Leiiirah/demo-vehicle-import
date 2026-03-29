@@ -31,9 +31,7 @@ const paymentSchema = z.object({
   amount: z.number().min(0.01, 'Le montant doit être supérieur à 0'),
   currency: z.enum(['USD', 'DZD']),
   exchangeRate: z.number().min(0.01, 'Le taux de change est requis'),
-  type: z.enum(['supplier_payment', 'client_payment', 'transport', 'fees']),
   reference: z.string().min(1, 'La référence est requise'),
-  status: z.enum(['completed', 'pending']),
 });
 
 type PaymentFormData = z.infer<typeof paymentSchema>;
