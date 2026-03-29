@@ -297,13 +297,7 @@ const VehiclesPage = () => {
                         <td className="text-foreground">
                           {formatCurrency(Number(vehicle.purchasePrice || 0), 'USD')}
                         </td>
-                        <td className="text-foreground">
-                          {formatCurrency(Number(vehicle.transportCost || 0))}
-                        </td>
-                        <td className={`font-medium ${isVehiclePaid(vehicle) ? 'text-success' : 'text-foreground'}`}>
-                          {formatCurrency(vehicle.totalCost)}
-                          {isVehiclePaid(vehicle) && <span className="ml-1 text-xs">✓</span>}
-                        </td>
+                        <td><VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} /></td>
                         <td><VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} /></td>
                         <td>
                           <DropdownMenu>
