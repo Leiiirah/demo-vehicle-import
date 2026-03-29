@@ -116,7 +116,17 @@ const VehiclesPage = () => {
       (vehicle.client?.nom?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
       (vehicle.conteneur?.numero?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
     const matchesStatus = statusFilters.includes(vehicle.status);
-    return matchesSearch && matchesStatus;
+    let matchesMonth = true;
+    if (monthFilter !== 'all') {
+      const date = vehicle.createdAt ? new Date(vehicle.createdAt) : null;
+      if (!date) {
+        matchesMonth = false;
+      } else {
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        matchesMonth = key === monthFilter;
+      }
+    }
+    return matchesSearch && matchesStatus && matchesMonth;
   });
 
   const { paginatedItems: paginatedVehicles, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredVehicles);
