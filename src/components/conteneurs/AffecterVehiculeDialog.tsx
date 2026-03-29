@@ -241,12 +241,7 @@ export const AffecterVehiculeDialog = ({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="model">Modèle *</Label>
-                    <Input 
-                      id="model" 
-                      placeholder="Ex: Land Cruiser"
-                      value={model}
-                      onChange={(e) => setModel(e.target.value)}
-                    />
+                    <ModelCombobox value={model} onChange={setModel} brand={brand} id="model" />
                   </div>
                 </div>
 
