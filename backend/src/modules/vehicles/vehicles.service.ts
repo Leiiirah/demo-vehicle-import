@@ -126,6 +126,11 @@ export class VehiclesService {
       }
     }
 
+    // Auto-set arrivalDate when status changes to 'ordered' (En stock)
+    if (updateVehicleDto.status === 'ordered' as any && !vehicle.arrivalDate) {
+      updateVehicleDto.arrivalDate = new Date().toISOString().split('T')[0];
+    }
+
     // If updating passport, recalculate passport cost
     if (updateVehicleDto.passeportId) {
       const passeport = await this.passeportRepository.findOne({
