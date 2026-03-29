@@ -56,6 +56,12 @@ export default function DossierDetailPage() {
   const [selectedConteneur, setSelectedConteneur] = useState<any>(null);
 
   const { data: dossier, isLoading, error } = useDossier(id || '');
+  const { data: dossierPaymentStats } = useQuery<{ progress: number }>({
+    queryKey: ['payments', 'dossier', id, 'stats'],
+    queryFn: () => api.request(`/api/payments/dossier/${id}/stats`),
+    enabled: !!id,
+  });
+  const isDossierFullyPaid = (dossierPaymentStats?.progress ?? 0) >= 100;
   const deleteConteneur = useDeleteConteneur();
   const updateConteneur = useUpdateConteneur();
   const { toast } = useToast();
