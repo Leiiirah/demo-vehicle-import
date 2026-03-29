@@ -129,6 +129,7 @@ export default function StockPage() {
                         <TableHead>Année</TableHead>
                         <TableHead>VIN</TableHead>
                         <TableHead>Fournisseur</TableHead>
+                        <TableHead>Passeport</TableHead>
                         <TableHead>Prix d'Achat (USD)</TableHead>
                         <TableHead>Transport (USD)</TableHead>
                         <TableHead>Passeport (DZD)</TableHead>
