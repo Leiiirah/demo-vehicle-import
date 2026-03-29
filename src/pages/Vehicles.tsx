@@ -243,7 +243,6 @@ const VehiclesPage = () => {
                     <th>Passeport</th>
                     <th>Prix d'achat</th>
                     <th>Transit</th>
-                    <th>Coût total</th>
                     <th>Statut</th>
                     <th></th>
                   </tr>
