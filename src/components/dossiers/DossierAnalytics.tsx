@@ -40,7 +40,8 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
     const allVehicles: Vehicle[] = conteneurs.flatMap((c) => c.vehicles || []);
 
     const soldCount = allVehicles.filter((v) => v.status === 'sold').length;
-    const stockCount = allVehicles.length - soldCount;
+    const chargeCount = allVehicles.filter((v) => v.status === 'in_transit').length;
+    const stockCount = allVehicles.filter((v) => v.status === 'ordered').length;
 
     const totalPurchaseUSD = allVehicles.reduce(
       (sum, v) => sum + Number(v.purchasePrice || 0),
