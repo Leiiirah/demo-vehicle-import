@@ -403,10 +403,9 @@ const VehiclesPage = () => {
                         </code>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Coût total</span>
-                        <span className={`font-medium ${isVehiclePaid(vehicle) ? 'text-success' : 'text-foreground'}`}>
-                          {formatCurrency(vehicle.totalCost)}
-                          {isVehiclePaid(vehicle) && <span className="ml-1 text-xs">✓</span>}
+                        <span className="text-muted-foreground">Prix d'achat</span>
+                        <span className="font-medium text-foreground">
+                          {formatCurrency(Number(vehicle.purchasePrice || 0), 'USD')}
                         </span>
                       </div>
                     </div>

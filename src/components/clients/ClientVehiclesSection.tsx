@@ -247,8 +247,8 @@ export function ClientVehiclesSection({ vehicles }: ClientVehiclesSectionProps) 
                   <TableRow>
                     <TableHead>Désignation</TableHead>
                     <TableHead>VIN</TableHead>
-                    <TableHead className="text-right">P. Revient Approx.</TableHead>
-                    <TableHead className="text-right">P. Revient Final</TableHead>
+                    <TableHead className="text-right">Prix d'achat (USD)</TableHead>
+                    <TableHead className="text-right">Prix de Revient</TableHead>
                     <TableHead className="text-right">Taux</TableHead>
                     <TableHead>Date vente</TableHead>
                     <TableHead>Statut</TableHead>

@@ -304,11 +304,6 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
                     min={0}
                   />
                 </div>
-                {sellingPrice && selectedVehicle?.totalCost ? (
-                  <p className={`text-sm font-medium ${Number(sellingPrice) - Number(selectedVehicle.totalCost) >= 0 ? 'text-success' : 'text-destructive'}`}>
-                    Bénéfice estimé : {formatCurrency(Number(sellingPrice) - Number(selectedVehicle.totalCost))}
-                  </p>
-                ) : null}
               </div>
             </div>
             <DialogFooter>
