@@ -18,37 +18,47 @@ export function ModelCombobox({ value, onChange, brand, id, placeholder = 'Ex: L
   const [inputValue, setInputValue] = useState(value);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  // Fetch from car models catalog
+  const { data: carModels = [] } = useQuery({
+    queryKey: ['car-models'],
+    queryFn: () => api.getCarModels(),
+  });
+
+  // Fallback: also get models from existing vehicles
   const { data: vehicles = [] } = useQuery({
     queryKey: ['vehicles'],
     queryFn: () => api.getVehicles(),
   });
 
-  const existingModels = useMemo(() => {
+  const allModels = useMemo(() => {
     const models = new Set<string>();
+    // Car models catalog (filtered by brand)
+    carModels.forEach((m) => {
+      if (m.model && (!brand || m.brand?.toLowerCase() === brand?.toLowerCase())) {
+        models.add(m.model);
+      }
+    });
+    // Existing vehicles (filtered by brand)
     vehicles.forEach((v: any) => {
-      if (v.model && (!brand || v.brand?.toLowerCase() === brand.toLowerCase())) {
+      if (v.model && (!brand || v.brand?.toLowerCase() === brand?.toLowerCase())) {
         models.add(v.model);
       }
     });
     return Array.from(models).sort();
-  }, [vehicles, brand]);
+  }, [carModels, vehicles, brand]);
 
   const filtered = useMemo(() => {
-    if (!inputValue) return existingModels;
-    return existingModels.filter((m) =>
+    if (!inputValue) return allModels;
+    return allModels.filter((m) =>
       m.toLowerCase().includes(inputValue.toLowerCase())
     );
-  }, [existingModels, inputValue]);
+  }, [allModels, inputValue]);
 
-  useEffect(() => {
-    setInputValue(value);
-  }, [value]);
+  useEffect(() => { setInputValue(value); }, [value]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
