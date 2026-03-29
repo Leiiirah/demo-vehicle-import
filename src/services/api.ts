@@ -572,6 +572,12 @@ export interface CreatePaymentData {
 }
 
 export interface DashboardStats {
+  valeurStock: number;
+  valeurChargees: number;
+  creanceTotal: number;
+  dettesTotal: number;
+  totalEverything: number;
+  totalCaisse: number;
   totalInvested: number;
   totalProfit: number;
   outstandingDebts: number;
@@ -580,6 +586,11 @@ export interface DashboardStats {
   vehiclesSold: number;
   vehiclesOrdered: number;
   totalVehicles: number;
+}
+
+export interface DashboardFilterParams {
+  month?: number;
+  year?: number;
 }
 
 export interface ProfitHistory {
