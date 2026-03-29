@@ -223,7 +223,7 @@ const VehiclesPage = () => {
               {(() => {
                 const months = new Set<string>();
                 (vehicles || []).forEach((v: any) => {
-                  const date = v.createdAt ? new Date(v.createdAt) : null;
+                  const date = v.orderDate ? new Date(v.orderDate) : null;
                   if (date) months.add(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`);
                 });
                 return Array.from(months).sort().reverse().map((m) => {
