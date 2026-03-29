@@ -241,8 +241,9 @@ const VehiclesPage = () => {
                     <th>Véhicule</th>
                     <th>VIN</th>
                     <th>Passeport</th>
-                    <th>Prix d'achat</th>
-                    <th>Transit</th>
+                    <th>Prix d'achat (USD)</th>
+                    <th>Transport (USD)</th>
+                    <th>Transit (DZD)</th>
                     <th>Statut</th>
                     <th></th>
                   </tr>
