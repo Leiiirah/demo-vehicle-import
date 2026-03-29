@@ -107,7 +107,7 @@ const SupplierDetailPage = () => {
     const start = startOfMonth(new Date(year, month - 1));
     const end = endOfMonth(new Date(year, month - 1));
     return supplierVehicles.filter(v => {
-      const d = new Date(v.createdAt);
+      const d = new Date((v as any).createdAt);
       return d >= start && d <= end;
     });
   }, [supplierVehicles, dateFilter]);
