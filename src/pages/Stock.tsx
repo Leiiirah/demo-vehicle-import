@@ -62,7 +62,7 @@ export default function StockPage() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           {isLoading ? (
             <>
               {[...Array(3)].map((_, i) => (
