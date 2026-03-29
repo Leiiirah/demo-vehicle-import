@@ -49,6 +49,7 @@ import { CarModelsModule } from './modules/car-models/car-models.module';
     DashboardModule,
     SearchModule,
     CaisseModule,
+    CarModelsModule,
   ],
 })
 export class AppModule {}
