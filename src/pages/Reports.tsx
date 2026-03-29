@@ -30,18 +30,24 @@ const ReportsPage = () => {
   const isLoading = loadingProfit || loadingSuppliers || loadingClients;
 
 
-  const clientProfitData = clients.map((client: any) => ({
-    name: client.name?.split(' ')[0] || 'N/A',
-    profit: client.totalProfit || 0,
-    vehicles: client.vehiclesImported || 0,
-  }));
+  const clientProfitData = clients.map((client: any) => {
+    const soldVehicles = (client.vehicles || []).filter((v: any) => v.status === 'sold');
+    const profit = soldVehicles.reduce((sum: number, v: any) => {
+      return sum + (Number(v.sellingPrice || 0) - Number(v.totalCost || 0));
+    }, 0);
+    return {
+      name: `${client.nom || ''} ${client.prenom || ''}`.trim().split(' ')[0] || 'N/A',
+      profit,
+      vehicles: (client.vehicles || []).length,
+    };
+  }).filter((c: any) => c.vehicles > 0);
 
   const supplierData = suppliers.map((supplier: any) => ({
     name: supplier.name?.split(' ')[0] || 'N/A',
-    paid: supplier.totalPaid || 0,
-    debt: supplier.remainingDebt || 0,
-    vehicles: supplier.vehiclesSupplied || 0,
-  }));
+    paid: Number(supplier.totalPaid) || 0,
+    debt: Number(supplier.remainingDebt) || 0,
+    vehicles: Number(supplier.vehiclesSupplied) || 0,
+  })).filter((s: any) => s.paid > 0 || s.debt > 0);
 
   if (isLoading) {
     return (
@@ -228,10 +234,8 @@ const ReportsPage = () => {
                       tickLine={false}
                       tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
                       tickFormatter={(value) =>
-                        new Intl.NumberFormat('en-US', {
+                        new Intl.NumberFormat('fr-DZ', {
                           notation: 'compact',
-                          style: 'currency',
-                          currency: 'USD',
                         }).format(value)
                       }
                     />
