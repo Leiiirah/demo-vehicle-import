@@ -124,7 +124,9 @@ export const AffecterVehiculeDialog = ({
       purchasePrice: number;
       supplierId: string;
       conteneurId: string;
+      status?: string;
       orderDate: string;
+      photoUrl?: string;
       passeportId?: string;
     }) => api.createVehicle(data),
     onSuccess: () => {
