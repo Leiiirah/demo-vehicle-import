@@ -76,8 +76,8 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
     return {
       totalVehicles: allVehicles.length,
       soldCount,
+      chargeCount,
       stockCount,
-      soldPercentage: allVehicles.length > 0 ? (soldCount / allVehicles.length) * 100 : 0,
       totalInvestmentUSD,
       totalPurchaseUSD,
       totalTransportUSD,
