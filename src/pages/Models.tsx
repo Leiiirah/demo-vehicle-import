@@ -12,7 +12,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Search, Pencil, Trash2, Car, Image } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Car, Image, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 
@@ -22,6 +22,7 @@ export default function ModelsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingModel, setEditingModel] = useState<CarModel | null>(null);
   const [form, setForm] = useState({ brand: '', model: '', imageUrl: '' });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const { data: carModels = [], isLoading } = useQuery({
     queryKey: ['car-models'],
@@ -85,12 +86,14 @@ export default function ModelsPage() {
   function openAdd() {
     setEditingModel(null);
     setForm({ brand: '', model: '', imageUrl: '' });
+    setImagePreview(null);
     setDialogOpen(true);
   }
 
   function openEdit(m: CarModel) {
     setEditingModel(m);
     setForm({ brand: m.brand, model: m.model, imageUrl: m.imageUrl || '' });
+    setImagePreview(m.imageUrl || null);
     setDialogOpen(true);
   }
 
@@ -98,6 +101,28 @@ export default function ModelsPage() {
     setDialogOpen(false);
     setEditingModel(null);
     setForm({ brand: '', model: '', imageUrl: '' });
+    setImagePreview(null);
+  }
+
+  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image trop grande (max 5 MB)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      setForm((prev) => ({ ...prev, imageUrl: base64 }));
+      setImagePreview(base64);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeImage() {
+    setForm((prev) => ({ ...prev, imageUrl: '' }));
+    setImagePreview(null);
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -264,20 +289,33 @@ export default function ModelsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="imageUrl">URL de l'image</Label>
-              <Input
-                id="imageUrl"
-                placeholder="https://..."
-                value={form.imageUrl}
-                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-              />
-              {form.imageUrl && (
-                <img
-                  src={form.imageUrl}
-                  alt="Aperçu"
-                  className="h-20 w-28 object-cover rounded border border-border mt-2"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
+              <Label>Image du véhicule</Label>
+              {imagePreview ? (
+                <div className="relative inline-block">
+                  <img
+                    src={imagePreview}
+                    alt="Aperçu"
+                    className="h-24 w-32 object-cover rounded border border-border"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center hover:bg-destructive/90"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center h-24 w-full rounded-lg border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors bg-muted/30">
+                  <Upload className="h-6 w-6 text-muted-foreground mb-1" />
+                  <span className="text-xs text-muted-foreground">Cliquer pour uploader</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                </label>
               )}
             </div>
             <DialogFooter>
