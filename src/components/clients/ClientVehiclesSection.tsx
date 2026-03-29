@@ -114,7 +114,7 @@ function ClientVehicleRow({ vehicle, dossierStats }: { vehicle: Vehicle; dossier
       <TableCell className="text-right">
         {isDossierSolde && tauxChangeFinal > 0
           ? tauxChangeFinal.toFixed(2)
-          : Number(vehicle.theoreticalRate || 0).toFixed(2)}
+          : '—'}
       </TableCell>
       <TableCell>
         {vehicle.soldDate
