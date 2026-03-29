@@ -286,7 +286,7 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
                   )}
                   <div>
                     <div className="font-medium text-sm">{selectedVehicle.brand} {selectedVehicle.model} ({selectedVehicle.year})</div>
-                    <div className="text-xs text-muted-foreground">Coût de revient : {formatCurrency(selectedVehicle.totalCost || 0)}</div>
+                    <div className="text-xs text-muted-foreground">VIN: {selectedVehicle.vin}</div>
                   </div>
                 </div>
               )}
@@ -304,11 +304,6 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
                     min={0}
                   />
                 </div>
-                {sellingPrice && selectedVehicle?.totalCost ? (
-                  <p className={`text-sm font-medium ${Number(sellingPrice) - Number(selectedVehicle.totalCost) >= 0 ? 'text-success' : 'text-destructive'}`}>
-                    Bénéfice estimé : {formatCurrency(Number(sellingPrice) - Number(selectedVehicle.totalCost))}
-                  </p>
-                ) : null}
               </div>
             </div>
             <DialogFooter>

@@ -75,10 +75,11 @@ function ClientVehicleRow({ vehicle, dossierStats }: { vehicle: Vehicle; dossier
   }, [dossierStats]);
 
   const totalUSD = Number(vehicle.purchasePrice) + Number(vehicle.transportCost);
-  const prixRevientApprox = Number(vehicle.totalCost);
-  const prixRevientFinal = isDossierSolde
+  const prixRevientFinal = isDossierSolde && tauxChangeFinal > 0
     ? (totalUSD * tauxChangeFinal) + Number(vehicle.localFees || 0)
-    : null;
+    : (Number(vehicle.theoreticalRate || 0) > 0
+      ? (totalUSD * Number(vehicle.theoreticalRate)) + Number(vehicle.localFees || 0)
+      : null);
 
   const handleUnassign = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -103,7 +104,7 @@ function ClientVehicleRow({ vehicle, dossierStats }: { vehicle: Vehicle; dossier
         {vehicle.vin?.slice(-8)}
       </TableCell>
       <TableCell className="text-right">
-        {formatCurrency(prixRevientApprox)}
+        {formatCurrency(Number(vehicle.purchasePrice || 0), 'USD')}
       </TableCell>
       <TableCell className="text-right">
         {prixRevientFinal !== null ? (
@@ -246,8 +247,8 @@ export function ClientVehiclesSection({ vehicles }: ClientVehiclesSectionProps) 
                   <TableRow>
                     <TableHead>Désignation</TableHead>
                     <TableHead>VIN</TableHead>
-                    <TableHead className="text-right">P. Revient Approx.</TableHead>
-                    <TableHead className="text-right">P. Revient Final</TableHead>
+                    <TableHead className="text-right">Prix d'achat (USD)</TableHead>
+                    <TableHead className="text-right">Prix de Revient</TableHead>
                     <TableHead className="text-right">Taux</TableHead>
                     <TableHead>Date vente</TableHead>
                     <TableHead>Statut</TableHead>

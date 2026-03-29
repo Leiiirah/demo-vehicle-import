@@ -35,11 +35,6 @@ export default function StockPage() {
   const { paginatedItems, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } =
     usePagination(filteredVehicles);
 
-  const totalStockValue = stockVehicles.reduce(
-    (acc: number, v: any) => acc + Number(v.totalCost || 0),
-    0
-  );
-
   const totalPurchaseValue = stockVehicles.reduce(
     (acc: number, v: any) => acc + Number(v.purchasePrice || 0),
     0
@@ -67,7 +62,7 @@ export default function StockPage() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           {isLoading ? (
             <>
               {[...Array(3)].map((_, i) => (
@@ -92,15 +87,6 @@ export default function StockPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{formatCurrency(totalPurchaseValue, 'USD')}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Coût Total du Stock</CardTitle>
-                  <Warehouse className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-primary">{formatCurrency(totalStockValue)}</div>
                 </CardContent>
               </Card>
             </>
@@ -147,7 +133,6 @@ export default function StockPage() {
                         <TableHead>Transport (USD)</TableHead>
                         <TableHead>Transit (DZD)</TableHead>
                         <TableHead>Divers (DZD)</TableHead>
-                        <TableHead>Coût Total (DZD)</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -180,7 +165,6 @@ export default function StockPage() {
                             <TableCell>{formatCurrency(Number(vehicle.transportCost || 0), 'USD')}</TableCell>
                             <TableCell>{formatCurrency(Number(vehicle.passeportCost || 0))}</TableCell>
                             <TableCell>{formatCurrency(Number(vehicle.localFees || 0))}</TableCell>
-                            <TableCell className="font-medium">{formatCurrency(Number(vehicle.totalCost || 0))}</TableCell>
                           </TableRow>
                         ))
                       )}

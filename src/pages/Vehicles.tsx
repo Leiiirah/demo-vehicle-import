@@ -143,9 +143,9 @@ const VehiclesPage = () => {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">Montant total estimé</p>
+              <p className="text-xs text-muted-foreground">Total prix d'achat</p>
               <p className="text-lg font-semibold text-foreground">
-                {formatCurrency(filteredVehicles.reduce((sum, v) => sum + Number(v.totalCost || 0), 0))}
+                {formatCurrency(filteredVehicles.reduce((sum, v) => sum + Number(v.purchasePrice || 0), 0), 'USD')}
               </p>
             </div>
             <AddVehicleDialog>
@@ -243,7 +243,6 @@ const VehiclesPage = () => {
                     <th>Passeport</th>
                     <th>Prix d'achat</th>
                     <th>Transit</th>
-                    <th>Coût total</th>
                     <th>Statut</th>
                     <th></th>
                   </tr>
@@ -300,10 +299,6 @@ const VehiclesPage = () => {
                         </td>
                         <td className="text-foreground">
                           {formatCurrency(Number(vehicle.transportCost || 0))}
-                        </td>
-                        <td className={`font-medium ${isVehiclePaid(vehicle) ? 'text-success' : 'text-foreground'}`}>
-                          {formatCurrency(vehicle.totalCost)}
-                          {isVehiclePaid(vehicle) && <span className="ml-1 text-xs">✓</span>}
                         </td>
                         <td><VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} /></td>
                         <td>
@@ -410,10 +405,9 @@ const VehiclesPage = () => {
                         </code>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Coût total</span>
-                        <span className={`font-medium ${isVehiclePaid(vehicle) ? 'text-success' : 'text-foreground'}`}>
-                          {formatCurrency(vehicle.totalCost)}
-                          {isVehiclePaid(vehicle) && <span className="ml-1 text-xs">✓</span>}
+                        <span className="text-muted-foreground">Prix d'achat</span>
+                        <span className="font-medium text-foreground">
+                          {formatCurrency(Number(vehicle.purchasePrice || 0), 'USD')}
                         </span>
                       </div>
                     </div>
