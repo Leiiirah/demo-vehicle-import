@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
@@ -6,6 +6,8 @@ import { formatCurrency } from '@/lib/utils';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useSupplier, useDossiers, useVehicles, usePayments } from '@/hooks/useApi';
 import { exportSupplierFullReport } from '@/lib/exportSupplierData';
+import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { 
   Building2, 
   ArrowLeft, 
@@ -20,6 +22,7 @@ import {
   FolderOpen,
   Plus,
   Download,
+  CalendarIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -45,7 +48,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
+
+const getMonthOptions = () => {
+  const options = [{ value: 'all', label: 'Toutes les périodes' }];
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const d = subMonths(now, i);
+    options.push({
+      value: format(d, 'yyyy-MM'),
+      label: format(d, 'MMMM yyyy', { locale: fr }),
+    });
+  }
+  return options;
+};
 
 const SupplierDetailPage = () => {
   const { id } = useParams();
@@ -53,6 +76,7 @@ const SupplierDetailPage = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addDossierOpen, setAddDossierOpen] = useState(false);
+  const [dateFilter, setDateFilter] = useState('all');
   const queryClient = useQueryClient();
 
   const { data: supplier, isLoading, error } = useSupplier(id || '');
@@ -63,6 +87,40 @@ const SupplierDetailPage = () => {
   const supplierDossiers = (allDossiers || []).filter(d => d.supplierId === id);
   const supplierVehicles = (allVehicles || []).filter(v => v.supplierId === id);
   const supplierPayments = (allPayments || []).filter(p => p.supplierId === id);
+
+  const monthOptions = useMemo(() => getMonthOptions(), []);
+
+  const filteredPayments = useMemo(() => {
+    if (dateFilter === 'all') return supplierPayments;
+    const [year, month] = dateFilter.split('-').map(Number);
+    const start = startOfMonth(new Date(year, month - 1));
+    const end = endOfMonth(new Date(year, month - 1));
+    return supplierPayments.filter(p => {
+      const d = new Date((p as any).date || (p as any).createdAt);
+      return d >= start && d <= end;
+    });
+  }, [supplierPayments, dateFilter]);
+
+  const filteredVehicles = useMemo(() => {
+    if (dateFilter === 'all') return supplierVehicles;
+    const [year, month] = dateFilter.split('-').map(Number);
+    const start = startOfMonth(new Date(year, month - 1));
+    const end = endOfMonth(new Date(year, month - 1));
+    return supplierVehicles.filter(v => {
+      const d = new Date((v as any).createdAt);
+      return d >= start && d <= end;
+    });
+  }, [supplierVehicles, dateFilter]);
+
+  const filteredStats = useMemo(() => {
+    const totalPaid = filteredPayments.reduce((sum, p) => sum + (parseFloat(String(p.amount)) || 0), 0);
+    const vehiclesCount = filteredVehicles.length;
+    const totalInvestment = filteredVehicles.reduce(
+      (sum, v) => sum + (parseFloat(String(v.purchasePrice)) || 0) + (parseFloat(String(v.transportCost)) || 0), 0
+    );
+    const remainingDebt = Math.max(totalInvestment - totalPaid, 0);
+    return { totalPaid, vehiclesCount, totalInvestment, remainingDebt };
+  }, [filteredPayments, filteredVehicles]);
 
   const deleteMutation = useMutation({
     mutationFn: () => api.deleteSupplier(id!),
@@ -158,60 +216,78 @@ const SupplierDetailPage = () => {
           </div>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Car className="h-5 w-5 text-primary" />
+        {/* Date Filter + KPIs */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Car className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Véhicules fournis</p>
+                    <p className="text-2xl font-bold">{filteredStats.vehiclesCount}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Véhicules fournis</p>
-                  <p className="text-2xl font-bold">{supplier.vehiclesSupplied || supplierVehicles.length}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
+                    <TrendingUp className="h-5 w-5 text-success" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total payé</p>
+                    <p className="text-2xl font-bold text-success">{formatCurrency(filteredStats.totalPaid, 'USD')}</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-success" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Investissement</p>
+                    <p className="text-2xl font-bold text-primary">{formatCurrency(filteredStats.totalInvestment, 'USD')}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total payé</p>
-                  <p className="text-2xl font-bold text-success">{formatCurrency(supplier.totalPaid || 0, 'USD')}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-danger/10 flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-danger" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Dette restante</p>
+                    <p className="text-2xl font-bold text-danger">{formatCurrency(filteredStats.remainingDebt, 'USD')}</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <CreditCard className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Solde crédit</p>
-                  <p className="text-2xl font-bold text-primary">{formatCurrency(supplier.creditBalance || 0, 'USD')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-danger/10 flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-danger" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Dette restante</p>
-                  <p className="text-2xl font-bold text-danger">{formatCurrency(supplier.remainingDebt || 0, 'USD')}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Dossiers Table */}
