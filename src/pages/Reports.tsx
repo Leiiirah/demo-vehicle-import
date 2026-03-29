@@ -234,10 +234,8 @@ const ReportsPage = () => {
                       tickLine={false}
                       tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
                       tickFormatter={(value) =>
-                        new Intl.NumberFormat('en-US', {
+                        new Intl.NumberFormat('fr-DZ', {
                           notation: 'compact',
-                          style: 'currency',
-                          currency: 'USD',
                         }).format(value)
                       }
                     />
