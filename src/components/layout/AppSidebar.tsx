@@ -5,7 +5,7 @@ import {
   Car,
   Users,
   Building2,
-  Calculator,
+  
   TrendingUp,
   FileText,
   Settings,
@@ -169,13 +169,6 @@ export function AppSidebar() {
               ))}
             </ul>
           )}
-        </div>
-
-        {/* Calculateur - Solo at bottom */}
-        <div className="mt-4">
-          <ul className="space-y-1">
-            <NavItem item={{ name: 'Calculateur', href: '/calculator', icon: Calculator }} />
-          </ul>
         </div>
 
         {/* Divider */}

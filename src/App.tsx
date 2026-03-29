@@ -9,7 +9,7 @@ import LoginPage from "./pages/Login";
 import Index from "./pages/Index";
 import VehiclesPage from "./pages/Vehicles";
 import VehicleDetailPage from "./pages/VehicleDetail";
-import CostCalculatorPage from "./pages/Calculator";
+
 import SuppliersPage from "./pages/Suppliers";
 import SupplierDetailPage from "./pages/SupplierDetail";
 import PasseportsPage from "./pages/Passeports";
@@ -44,7 +44,7 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/vehicles" element={<ProtectedRoute><VehiclesPage /></ProtectedRoute>} />
             <Route path="/vehicles/:id" element={<ProtectedRoute><VehicleDetailPage /></ProtectedRoute>} />
-            <Route path="/calculator" element={<ProtectedRoute><CostCalculatorPage /></ProtectedRoute>} />
+            
             <Route path="/suppliers" element={<ProtectedRoute><SuppliersPage /></ProtectedRoute>} />
             <Route path="/suppliers/:id" element={<ProtectedRoute><SupplierDetailPage /></ProtectedRoute>} />
             <Route path="/passeports" element={<ProtectedRoute><PasseportsPage /></ProtectedRoute>} />
