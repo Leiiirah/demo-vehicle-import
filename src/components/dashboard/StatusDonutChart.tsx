@@ -2,8 +2,12 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { useVehiclesByStatus } from '@/hooks/useApi';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function StatusDonutChart() {
-  const { data: vehiclesByStatus, isLoading, error } = useVehiclesByStatus();
+interface StatusDonutChartProps {
+  filterParams?: { month?: number; year?: number };
+}
+
+export function StatusDonutChart({ filterParams }: StatusDonutChartProps) {
+  const { data: vehiclesByStatus, isLoading, error } = useVehiclesByStatus(filterParams);
 
   if (isLoading) {
     return (
