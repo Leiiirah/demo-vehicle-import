@@ -27,6 +27,10 @@ const ReportsPage = () => {
   const { data: suppliers = [], isLoading: loadingSuppliers } = useSuppliers();
   const { data: clients = [], isLoading: loadingClients } = useClients();
 
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const isLoading = loadingProfit || loadingSuppliers || loadingClients;
 
 
@@ -92,22 +96,22 @@ const ReportsPage = () => {
 
         {/* Types de rapports */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <button className="kpi-card hover:border-primary transition-colors text-left">
+          <button onClick={() => scrollToSection('section-client')} className="kpi-card hover:border-primary transition-colors text-left cursor-pointer">
             <FileText className="h-5 w-5 text-primary mb-2" />
             <p className="font-medium text-foreground">Par client</p>
             <p className="text-sm text-muted-foreground">Profit par client</p>
           </button>
-          <button className="kpi-card hover:border-primary transition-colors text-left">
+          <button onClick={() => scrollToSection('section-supplier')} className="kpi-card hover:border-primary transition-colors text-left cursor-pointer">
             <FileText className="h-5 w-5 text-success mb-2" />
             <p className="font-medium text-foreground">Par fournisseur</p>
             <p className="text-sm text-muted-foreground">Récap paiements</p>
           </button>
-          <button className="kpi-card hover:border-primary transition-colors text-left">
+          <button onClick={() => scrollToSection('section-vehicle')} className="kpi-card hover:border-primary transition-colors text-left cursor-pointer">
             <FileText className="h-5 w-5 text-warning mb-2" />
             <p className="font-medium text-foreground">Par véhicule</p>
             <p className="text-sm text-muted-foreground">Marges individuelles</p>
           </button>
-          <button className="kpi-card hover:border-primary transition-colors text-left">
+          <button onClick={() => scrollToSection('section-profit')} className="kpi-card hover:border-primary transition-colors text-left cursor-pointer">
             <FileText className="h-5 w-5 text-danger mb-2" />
             <p className="font-medium text-foreground">Historique profit</p>
             <p className="text-sm text-muted-foreground">Tendances mensuelles</p>
@@ -117,7 +121,7 @@ const ReportsPage = () => {
         {/* Grille graphiques */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Tendance profit */}
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+          <div id="section-profit" className="bg-card rounded-xl border border-border p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-foreground mb-4">
               Tendance des profits
             </h3>
@@ -162,7 +166,7 @@ const ReportsPage = () => {
           </div>
 
           {/* Profit par client */}
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+          <div id="section-client" className="bg-card rounded-xl border border-border p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-foreground mb-4">
               Profit par client
             </h3>
@@ -214,7 +218,7 @@ const ReportsPage = () => {
           </div>
 
           {/* Récap fournisseurs */}
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm lg:col-span-2">
+          <div id="section-supplier" className="bg-card rounded-xl border border-border p-6 shadow-sm lg:col-span-2">
             <h3 className="text-lg font-semibold text-foreground mb-4">
               Récapitulatif financier fournisseurs
             </h3>
@@ -269,8 +273,8 @@ const ReportsPage = () => {
           </div>
         </div>
 
-        {/* Tableau récap */}
-        <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+        {/* Tableau récap véhicules */}
+        <div id="section-vehicle" className="bg-card rounded-xl border border-border p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-foreground mb-4">
             Résumé performance mensuelle
           </h3>
