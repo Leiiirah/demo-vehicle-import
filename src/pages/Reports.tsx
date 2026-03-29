@@ -273,8 +273,8 @@ const ReportsPage = () => {
           </div>
         </div>
 
-        {/* Tableau récap */}
-        <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+        {/* Tableau récap véhicules */}
+        <div id="section-vehicle" className="bg-card rounded-xl border border-border p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-foreground mb-4">
             Résumé performance mensuelle
           </h3>
