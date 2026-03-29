@@ -118,7 +118,7 @@ const VehiclesPage = () => {
     const matchesStatus = statusFilters.includes(vehicle.status);
     let matchesMonth = true;
     if (monthFilter !== 'all') {
-      const date = vehicle.createdAt ? new Date(vehicle.createdAt) : null;
+      const date = vehicle.orderDate ? new Date(vehicle.orderDate) : null;
       if (!date) {
         matchesMonth = false;
       } else {
