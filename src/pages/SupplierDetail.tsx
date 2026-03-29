@@ -96,7 +96,7 @@ const SupplierDetailPage = () => {
     const start = startOfMonth(new Date(year, month - 1));
     const end = endOfMonth(new Date(year, month - 1));
     return supplierPayments.filter(p => {
-      const d = new Date(p.date || p.createdAt);
+      const d = new Date((p as any).date || (p as any).createdAt);
       return d >= start && d <= end;
     });
   }, [supplierPayments, dateFilter]);
