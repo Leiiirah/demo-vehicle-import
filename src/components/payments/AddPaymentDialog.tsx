@@ -67,7 +67,7 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
   const currency = watch('currency');
 
   const createPaymentMutation = useMutation({
-    mutationFn: (data: { date: string; amount: number; currency: 'USD' | 'DZD'; exchangeRate: number; type: string; reference: string; status: string; supplierId?: string; dossierId?: string }) => api.createPayment(data),
+    mutationFn: (data: { date: string; amount: number; currency: 'USD' | 'DZD'; exchangeRate: number; type: 'supplier_payment'; reference: string; status: 'completed'; supplierId?: string; dossierId?: string }) => api.createPayment(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.invalidateQueries({ queryKey: ['dossiers'] });
