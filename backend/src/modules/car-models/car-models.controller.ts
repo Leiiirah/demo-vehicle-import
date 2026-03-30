@@ -14,7 +14,7 @@ import { CreateCarModelDto } from './dto/create-car-model.dto';
 import { UpdateCarModelDto } from './dto/update-car-model.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@Controller('api/car-models')
+@Controller('car-models')
 @UseGuards(JwtAuthGuard)
 export class CarModelsController {
   constructor(private readonly carModelsService: CarModelsService) {}
