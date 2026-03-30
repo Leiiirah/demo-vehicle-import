@@ -56,6 +56,14 @@ export function ModelCombobox({ value, onChange, brand, id, placeholder = 'Ex: L
 
   useEffect(() => { setInputValue(value); }, [value]);
 
+  // Auto-select if only one model exists for the selected brand
+  useEffect(() => {
+    if (brand && allModels.length === 1 && !value) {
+      setInputValue(allModels[0]);
+      onChange(allModels[0]);
+    }
+  }, [brand, allModels]);
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) setOpen(false);
