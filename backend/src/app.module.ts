@@ -51,6 +51,7 @@ import { ZakatModule } from './modules/zakat/zakat.module';
     SearchModule,
     CaisseModule,
     CarModelsModule,
+    ZakatModule,
   ],
 })
 export class AppModule {}
