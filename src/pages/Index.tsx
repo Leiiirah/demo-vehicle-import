@@ -205,12 +205,29 @@ const Index = () => {
         {!isLoading && stats && (
           <Card className="border-l-4 border-l-success">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-success-muted text-success">
-                  <Heart className="h-5 w-5" />
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-success-muted text-success">
+                    <Heart className="h-5 w-5" />
+                  </div>
+                  Zakat (زكاة)
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => saveZakatMutation.mutate()}
+                    disabled={saveZakatMutation.isPending || (stats.zakatAmount || 0) === 0}
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    Enregistrer {new Date().getFullYear()}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => navigate('/zakat')}>
+                    <History className="h-4 w-4 mr-1" />
+                    Historique
+                  </Button>
                 </div>
-                Zakat (زكاة)
-              </CardTitle>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
