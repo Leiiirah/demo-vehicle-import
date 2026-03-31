@@ -620,6 +620,8 @@ export interface DashboardStats {
   vehiclesSold: number;
   vehiclesOrdered: number;
   totalVehicles: number;
+  zakatBase: number;
+  zakatAmount: number;
 }
 
 export interface DashboardFilterParams {
