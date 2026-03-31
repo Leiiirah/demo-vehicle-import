@@ -16,6 +16,8 @@ import {
   Wallet,
   Calendar,
   Heart,
+  Save,
+  History,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
