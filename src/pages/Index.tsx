@@ -36,6 +36,9 @@ import {
 const Index = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
   const [selectedYear, setSelectedYear] = useState<string>('all');
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const filterParams = useMemo(() => {
     const params: { month?: number; year?: number } = {};
@@ -45,6 +48,27 @@ const Index = () => {
   }, [selectedMonth, selectedYear]);
 
   const { data: stats, isLoading, error } = useDashboardStats(filterParams);
+
+  const saveZakatMutation = useMutation({
+    mutationFn: () => {
+      if (!stats) throw new Error('No stats');
+      const year = new Date().getFullYear();
+      return api.createZakatRecord({
+        year,
+        assetsTotal: (stats.valeurStock || 0) + (stats.valeurChargees || 0) + (stats.creanceTotal || 0) + (stats.totalCaisse || 0),
+        debtsTotal: stats.dettesTotal || 0,
+        zakatBase: stats.zakatBase || 0,
+        zakatAmount: stats.zakatAmount || 0,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['zakat-records'] });
+      toast({ title: 'Zakat enregistrée', description: `Zakat ${new Date().getFullYear()} sauvegardée avec succès` });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    },
+  });
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
