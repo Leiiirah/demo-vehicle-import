@@ -22,6 +22,7 @@ import {
   Wallet,
   Warehouse,
   BookOpen,
+  Heart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
