@@ -381,6 +381,23 @@ class ApiClient {
     if (params.year) parts.push(`year=${params.year}`);
     return parts.length > 0 ? `?${parts.join('&')}` : '';
   }
+
+  // Zakat
+  async getZakatRecords() {
+    return this.request<ZakatRecord[]>('/api/zakat');
+  }
+
+  async createZakatRecord(data: CreateZakatRecordData) {
+    return this.request<ZakatRecord>('/api/zakat', { method: 'POST', body: data });
+  }
+
+  async updateZakatRecord(id: string, data: UpdateZakatRecordData) {
+    return this.request<ZakatRecord>(`/api/zakat/${id}`, { method: 'PATCH', body: data });
+  }
+
+  async deleteZakatRecord(id: string) {
+    return this.request<void>(`/api/zakat/${id}`, { method: 'DELETE' });
+  }
 }
 
 // Types
@@ -713,6 +730,33 @@ export interface CaisseSummary {
 export interface CaisseBalanceData {
   balance: number;
   updatedAt: string;
+}
+
+export interface ZakatRecord {
+  id: string;
+  year: number;
+  assetsTotal: number;
+  debtsTotal: number;
+  zakatBase: number;
+  zakatAmount: number;
+  amountPaid: number;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface CreateZakatRecordData {
+  year: number;
+  assetsTotal: number;
+  debtsTotal: number;
+  zakatBase: number;
+  zakatAmount: number;
+  amountPaid?: number;
+  notes?: string;
+}
+
+export interface UpdateZakatRecordData {
+  amountPaid?: number;
+  notes?: string;
 }
 
 export interface CarModel {

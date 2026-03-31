@@ -22,6 +22,7 @@ import {
   Wallet,
   Warehouse,
   BookOpen,
+  Heart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,6 +42,7 @@ const comptabiliteItems = [
   { name: 'Caisse', href: '/caisse', icon: Wallet },
   { name: 'Ventes Clients', href: '/client-sales', icon: ShoppingCart },
   { name: 'Ventes & Marges', href: '/sales', icon: TrendingUp },
+  { name: 'Zakat', href: '/zakat', icon: Heart },
   { name: 'Rapports', href: '/reports', icon: FileText },
 ];
 

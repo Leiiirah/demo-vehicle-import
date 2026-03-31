@@ -16,6 +16,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { SearchModule } from './modules/search/search.module';
 import { CaisseModule } from './modules/caisse/caisse.module';
 import { CarModelsModule } from './modules/car-models/car-models.module';
+import { ZakatModule } from './modules/zakat/zakat.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { CarModelsModule } from './modules/car-models/car-models.module';
     SearchModule,
     CaisseModule,
     CarModelsModule,
+    ZakatModule,
   ],
 })
 export class AppModule {}

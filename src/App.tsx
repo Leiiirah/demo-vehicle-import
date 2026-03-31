@@ -29,6 +29,7 @@ import SearchPage from "./pages/Search";
 import CaissePage from "./pages/Caisse";
 import StockPage from "./pages/Stock";
 import ModelsPage from "./pages/Models";
+import ZakatPage from "./pages/Zakat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/caisse" element={<ProtectedRoute><CaissePage /></ProtectedRoute>} />
             <Route path="/stock" element={<ProtectedRoute><StockPage /></ProtectedRoute>} />
             <Route path="/models" element={<ProtectedRoute><ModelsPage /></ProtectedRoute>} />
+            <Route path="/zakat" element={<ProtectedRoute><ZakatPage /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

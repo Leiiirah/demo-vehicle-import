@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { ProfitChart } from '@/components/dashboard/ProfitChart';
@@ -14,10 +16,15 @@ import {
   Wallet,
   Calendar,
   Heart,
+  Save,
+  History,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
+import { api } from '@/services/api';
+import { useToast } from '@/hooks/use-toast';
 import {
   Select,
   SelectContent,
@@ -29,6 +36,9 @@ import {
 const Index = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
   const [selectedYear, setSelectedYear] = useState<string>('all');
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const filterParams = useMemo(() => {
     const params: { month?: number; year?: number } = {};
@@ -38,6 +48,27 @@ const Index = () => {
   }, [selectedMonth, selectedYear]);
 
   const { data: stats, isLoading, error } = useDashboardStats(filterParams);
+
+  const saveZakatMutation = useMutation({
+    mutationFn: () => {
+      if (!stats) throw new Error('No stats');
+      const year = new Date().getFullYear();
+      return api.createZakatRecord({
+        year,
+        assetsTotal: (stats.valeurStock || 0) + (stats.valeurChargees || 0) + (stats.creanceTotal || 0) + (stats.totalCaisse || 0),
+        debtsTotal: stats.dettesTotal || 0,
+        zakatBase: stats.zakatBase || 0,
+        zakatAmount: stats.zakatAmount || 0,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['zakat-records'] });
+      toast({ title: 'Zakat enregistrée', description: `Zakat ${new Date().getFullYear()} sauvegardée avec succès` });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    },
+  });
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
@@ -174,12 +205,29 @@ const Index = () => {
         {!isLoading && stats && (
           <Card className="border-l-4 border-l-success">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-success-muted text-success">
-                  <Heart className="h-5 w-5" />
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-success-muted text-success">
+                    <Heart className="h-5 w-5" />
+                  </div>
+                  Zakat (زكاة)
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => saveZakatMutation.mutate()}
+                    disabled={saveZakatMutation.isPending || (stats.zakatAmount || 0) === 0}
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    Enregistrer {new Date().getFullYear()}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => navigate('/zakat')}>
+                    <History className="h-4 w-4 mr-1" />
+                    Historique
+                  </Button>
                 </div>
-                Zakat (زكاة)
-              </CardTitle>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
