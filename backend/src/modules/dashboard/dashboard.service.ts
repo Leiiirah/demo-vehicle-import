@@ -109,6 +109,18 @@ export class DashboardService {
       return sum + profit;
     }, 0);
 
+    // Zakat calculation
+    // Average theoretical rate from all vehicles for USD→DZD conversion
+    const vehiclesWithRate = vehicles.filter((v) => Number(v.theoreticalRate) > 0);
+    const avgRate = vehiclesWithRate.length > 0
+      ? vehiclesWithRate.reduce((sum, v) => sum + Number(v.theoreticalRate), 0) / vehiclesWithRate.length
+      : 134.5;
+    const valeurChargeesDZD = valeurChargees * avgRate;
+    const assetsZakatable = valeurStock + valeurChargeesDZD + creanceTotal + totalCaisse;
+    const zakatBase = Math.max(0, assetsZakatable - dettesTotal);
+    const NISSAB = 2500000; // ~85g d'or en DZD
+    const zakatAmount = zakatBase >= NISSAB ? zakatBase * 0.025 : 0;
+
     return {
       valeurStock,
       valeurChargees,
@@ -124,6 +136,8 @@ export class DashboardService {
       vehiclesSold: soldVehicles.length,
       vehiclesOrdered: stockVehicles.length,
       totalVehicles: vehicles.length,
+      zakatBase,
+      zakatAmount,
     };
   }
 
