@@ -732,6 +732,33 @@ export interface CaisseBalanceData {
   updatedAt: string;
 }
 
+export interface ZakatRecord {
+  id: string;
+  year: number;
+  assetsTotal: number;
+  debtsTotal: number;
+  zakatBase: number;
+  zakatAmount: number;
+  amountPaid: number;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface CreateZakatRecordData {
+  year: number;
+  assetsTotal: number;
+  debtsTotal: number;
+  zakatBase: number;
+  zakatAmount: number;
+  amountPaid?: number;
+  notes?: string;
+}
+
+export interface UpdateZakatRecordData {
+  amountPaid?: number;
+  notes?: string;
+}
+
 export interface CarModel {
   id: string;
   brand: string;
