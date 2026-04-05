@@ -351,7 +351,7 @@ const SupplierDetailPage = () => {
                           size="icon"
                           onClick={(e) => {
                             e.stopPropagation();
-                            exportSupplierDossierReport(supplier.name, dossier, supplierVehicles);
+                            exportSupplierDossierReport(supplier.name, dossier, supplierVehicles, supplierPayments);
                             toast.success(`PDF exporté pour ${dossier.reference}`);
                           }}
                         >
