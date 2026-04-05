@@ -150,7 +150,7 @@ export class VehiclesService {
 
     if (shouldRecalculate) {
       const purchasePrice = updateVehicleDto.purchasePrice ?? Number(vehicle.purchasePrice);
-      const theoreticalRate = updateVehicleDto.theoreticalRate ?? Number(vehicle.theoreticalRate) || 0;
+      const theoreticalRate = updateVehicleDto.theoreticalRate ?? (Number(vehicle.theoreticalRate) || 0);
       const localFees = updateVehicleDto.localFees ?? Number(vehicle.localFees);
       const passeportCost = updateVehicleDto.passeportCost ?? Number(vehicle.passeportCost);
       const transportCost = Number(vehicle.transportCost);
