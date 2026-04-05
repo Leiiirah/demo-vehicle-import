@@ -560,7 +560,7 @@ const VehicleDetailPage = () => {
                     </p>
                     <Input
                       type="number"
-                      value={chargesTransit}
+                      value={chargesTransit || ''}
                       onChange={(e) => handleChargesTransitChange(Number(e.target.value))}
                     />
                   </CardContent>
