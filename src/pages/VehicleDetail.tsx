@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
@@ -558,10 +559,9 @@ const VehicleDetailPage = () => {
                     <p className="text-sm text-muted-foreground mb-3">
                       Total incluant : Douane, Transit, Quittance, Port
                     </p>
-                    <Input
-                      type="number"
+                    <FormattedNumberInput
                       value={chargesTransit || ''}
-                      onChange={(e) => handleChargesTransitChange(Number(e.target.value))}
+                      onValueChange={(v) => handleChargesTransitChange(v)}
                     />
                   </CardContent>
                 </Card>
