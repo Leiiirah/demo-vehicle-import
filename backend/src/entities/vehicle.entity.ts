@@ -83,8 +83,8 @@ export class Vehicle {
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   transportCost: number; // USD - calculated from container
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, default: 134.5 })
-  theoreticalRate: number; // Manual DZD rate for cost calculation
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, default: null })
+  theoreticalRate: number | null; // Manual DZD rate for cost calculation - only set via payment
 
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   passeportCost: number; // DZD - from linked passport montantDu

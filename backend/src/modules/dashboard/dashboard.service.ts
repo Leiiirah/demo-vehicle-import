@@ -114,7 +114,7 @@ export class DashboardService {
     const vehiclesWithRate = vehicles.filter((v) => Number(v.theoreticalRate) > 0);
     const avgRate = vehiclesWithRate.length > 0
       ? vehiclesWithRate.reduce((sum, v) => sum + Number(v.theoreticalRate), 0) / vehiclesWithRate.length
-      : 134.5;
+      : 0;
     const valeurChargeesDZD = valeurChargees * avgRate;
     const assetsZakatable = valeurStock + valeurChargeesDZD + creanceTotal + totalCaisse;
     const zakatBase = Math.max(0, assetsZakatable - dettesTotal);

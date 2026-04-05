@@ -233,7 +233,10 @@ export default function ConteneursPage() {
                                   ? new Date(conteneur.dateArrivee).toLocaleDateString('fr-FR')
                                   : '-'}
                               </TableCell>
-                              <TableCell>{formatCurrency((conteneur.vehicles || []).reduce((sum: number, v: any) => sum + (parseFloat(String(v.totalCost)) || 0), 0))}</TableCell>
+                              <TableCell>{(() => {
+                                const total = (conteneur.vehicles || []).reduce((sum: number, v: any) => sum + (parseFloat(String(v.totalCost)) || 0), 0);
+                                return total > 0 ? formatCurrency(total) : '-';
+                              })()}</TableCell>
                               <TableCell className="text-center">{conteneur.vehicles?.length || 0}</TableCell>
                               <TableCell onClick={(e) => e.stopPropagation()}>
                                 <Select
