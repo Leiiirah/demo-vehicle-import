@@ -118,7 +118,7 @@ const SupplierDetailPage = () => {
     const totalInvestment = filteredVehicles.reduce(
       (sum, v) => sum + (parseFloat(String(v.purchasePrice)) || 0) + (parseFloat(String(v.transportCost)) || 0), 0
     );
-    const remainingDebt = Math.max(totalInvestment - totalPaid, 0);
+    const remainingDebt = totalInvestment - totalPaid;
     return { totalPaid, vehiclesCount, totalInvestment, remainingDebt };
   }, [filteredPayments, filteredVehicles]);
 
@@ -274,15 +274,19 @@ const SupplierDetailPage = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className={`border-l-4 ${filteredStats.remainingDebt > 0 ? 'border-l-danger' : filteredStats.remainingDebt < 0 ? 'border-l-success' : 'border-l-muted'}`}>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-danger/10 flex items-center justify-center">
-                    <FileText className="h-5 w-5 text-danger" />
+                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${filteredStats.remainingDebt > 0 ? 'bg-danger/10' : filteredStats.remainingDebt < 0 ? 'bg-success/10' : 'bg-muted/10'}`}>
+                    <FileText className={`h-5 w-5 ${filteredStats.remainingDebt > 0 ? 'text-danger' : filteredStats.remainingDebt < 0 ? 'text-success' : 'text-muted-foreground'}`} />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Dette restante</p>
-                    <p className="text-2xl font-bold text-danger">{formatCurrency(filteredStats.remainingDebt, 'USD')}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {filteredStats.remainingDebt > 0 ? 'Vous devez' : filteredStats.remainingDebt < 0 ? 'Crédit fournisseur' : 'Solde'}
+                    </p>
+                    <p className={`text-2xl font-bold ${filteredStats.remainingDebt > 0 ? 'text-danger' : filteredStats.remainingDebt < 0 ? 'text-success' : 'text-muted-foreground'}`}>
+                      {filteredStats.remainingDebt > 0 ? '-' : filteredStats.remainingDebt < 0 ? '+' : ''}{formatCurrency(Math.abs(filteredStats.remainingDebt), 'USD')}
+                    </p>
                   </div>
                 </div>
               </CardContent>
