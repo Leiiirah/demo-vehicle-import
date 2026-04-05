@@ -42,7 +42,7 @@ function getDossierTotal(dossier: DossierWithConteneurs, vehicles: Vehicle[]): n
       ? cont.vehicles!
       : vehicles.filter(v => v.conteneurId === cont.id);
     for (const v of contVehicles) {
-      total += Number(v.totalCost || 0);
+      total += Number(v.purchasePrice || 0) + Number(v.transportCost || 0);
     }
   }
   return total;
@@ -94,8 +94,9 @@ function addDossierVehiclesTable(doc: jsPDF, y: number, dossier: DossierWithCont
       doc.text(v.vin?.slice(-8) || '', cols[1], y);
       doc.text(String(v.purchasePrice || 0), cols[2], y);
       doc.text(String(v.transportCost || 0), cols[3], y);
-      doc.text(String(v.totalCost || 0), cols[4], y);
-      dossierTotal += Number(v.totalCost || 0);
+      const coutTotalUSD = Number(v.purchasePrice || 0) + Number(v.transportCost || 0);
+      doc.text(String(coutTotalUSD), cols[4], y);
+      dossierTotal += coutTotalUSD;
       y += 5;
     }
     y += 4;
