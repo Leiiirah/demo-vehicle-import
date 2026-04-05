@@ -138,12 +138,12 @@ const SupplierDetailPage = () => {
   const getDossierStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
       en_cours: 'bg-primary/10 text-primary border-primary/20',
-      termine: 'bg-success/10 text-success border-success/20',
+      solde: 'bg-success/10 text-success border-success/20',
       annule: 'bg-destructive/10 text-destructive border-destructive/20',
     };
     const labels: Record<string, string> = {
       en_cours: 'En cours',
-      termine: 'Terminé',
+      solde: 'Soldé',
       annule: 'Annulé',
     };
     return <Badge variant="outline" className={styles[status]}>{labels[status]}</Badge>;

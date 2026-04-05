@@ -37,7 +37,7 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
   const [sellingPrice, setSellingPrice] = useState('');
 
   const filteredDossiers = dossiers.filter((d: any) => {
-    if (d.status === 'termine') return false;
+    if (d.status === 'solde') return false;
     const term = dossierSearch.toLowerCase();
     return (
       d.reference?.toLowerCase().includes(term) ||
@@ -166,7 +166,7 @@ export function AssignVehicleDialog({ open, onOpenChange, clientId, clientName }
                         </div>
                       </div>
                       <Badge variant="outline" className="text-xs shrink-0">
-                        {dossier.status === 'en_cours' ? 'En cours' : dossier.status === 'termine' ? 'Terminé' : dossier.status}
+                        {dossier.status === 'en_cours' ? 'En cours' : dossier.status === 'solde' ? 'Soldé' : dossier.status}
                       </Badge>
                       {selectedDossier?.id === dossier.id && (
                         <Check className="h-4 w-4 text-primary shrink-0" />

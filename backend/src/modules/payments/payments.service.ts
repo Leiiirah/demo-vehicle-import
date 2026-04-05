@@ -135,19 +135,18 @@ export class PaymentsService {
 
   /**
    * Auto-update dossier status based on payment progress:
-   * - progress >= 100 → "termine" (soldé)
-   * - progress < 100 → "en_cours" (only if currently termine, to revert on payment deletion)
+   * - progress >= 100 → "solde"
+   * - progress < 100 → "en_cours" (only if currently solde, to revert on payment deletion)
    */
   private async autoUpdateDossierStatus(dossierId: string) {
     const stats = await this.getDossierPaymentStats(dossierId);
     const dossier = await this.dossierRepository.findOne({ where: { id: dossierId } });
     if (!dossier) return;
 
-    if (stats.progress >= 100 && dossier.status !== DossierStatus.TERMINE) {
-      dossier.status = DossierStatus.TERMINE;
+    if (stats.progress >= 100 && dossier.status !== DossierStatus.SOLDE) {
+      dossier.status = DossierStatus.SOLDE;
       await this.dossierRepository.save(dossier);
-    } else if (stats.progress < 100 && dossier.status === DossierStatus.TERMINE) {
-      // Revert to en_cours if a payment was deleted and no longer fully paid
+    } else if (stats.progress < 100 && dossier.status === DossierStatus.SOLDE) {
       dossier.status = DossierStatus.EN_COURS;
       await this.dossierRepository.save(dossier);
     }

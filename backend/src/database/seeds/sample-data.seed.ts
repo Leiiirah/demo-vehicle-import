@@ -76,7 +76,7 @@ export async function seedSampleData(dataSource: DataSource) {
       reference: 'DOS-2025-015',
       supplierId: suppliers[0].id,
       dateCreation: new Date('2025-12-20'),
-      status: DossierStatus.TERMINE,
+      status: DossierStatus.SOLDE,
     },
   ]);
 

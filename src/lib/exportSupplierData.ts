@@ -10,7 +10,7 @@ interface DossierWithConteneurs {
   conteneurs?: { id: string; numero: string; vehicles?: Vehicle[] }[];
 }
 
-const statusLabels: Record<string, string> = { en_cours: 'En cours', termine: 'Terminé', annule: 'Annulé' };
+const statusLabels: Record<string, string> = { en_cours: 'En cours', solde: 'Soldé', annule: 'Annulé' };
 const vStatusLabels: Record<string, string> = { ordered: 'En stock', in_transit: 'Chargée', arrived: 'Arrivé', sold: 'Vendu' };
 const typeLabels: Record<string, string> = { supplier_payment: 'Paiement fournisseur', client_payment: 'Paiement client', transport: 'Transport', fees: 'Frais' };
 
