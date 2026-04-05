@@ -1,46 +1,33 @@
-## Section Zakat sur le Tableau de Bord
 
-### Comment la Zakat sera calculée
 
-La Zakat islamique (زكاة) pour une activité commerciale en Algérie se calcule à **2.5% sur les actifs zakatable nets** détenus pendant un an (hawl). Voici la formule adaptée à votre plateforme :
+## Enhanced Debt Display for Suppliers
 
-```text
-Zakat = 2.5% × (Actifs zakatable - Dettes)
+### Current behavior
+- `remainingDebt = Math.max(totalInvestment - totalPaid, 0)` -- always >= 0, clamped
+- Displayed in red regardless of actual balance
 
-Actifs zakatable :
-  + Valeur du stock (véhicules en stock, totalCost)     → déjà calculé
-  + Valeur véhicules chargées (en transit, purchasePrice × taux) → déjà calculé
-  + Créances clients (detteBenefice)                     → déjà calculé
-  + Solde caisse (totalCaisse)                           → déjà calculé
+### New behavior
+- Remove the `Math.max(0, ...)` clamp -- allow negative values
+- **Positive debt** (admin owes supplier): show as `-X USD` in **red** with "Vous devez" label
+- **Negative debt / overpayment** (admin has credit with supplier): show as `+X USD` in **green** with "Crédit" label
+- **Zero**: neutral display
 
-Dettes à déduire :
-  - Dettes fournisseurs (remainingDebt)                  → déjà calculé
+### Changes
 
-Montant Zakat = 2.5% × (valeurStock + valeurChargées×taux + créanceTotal + totalCaisse - dettesTotal)
-```
+**1. Backend: `suppliers.service.ts`** (line ~39)
+- Remove `Math.max` from `remainingDebt` calculation so it can be negative (negative = admin overpaid = has credit)
 
-Toutes ces valeurs existent déjà dans le endpoint `dashboard/stats`. Le calcul se fera côté backend et sera retourné dans la réponse stats.
+**2. Frontend: `SupplierDetail.tsx`**
+- Remove `Math.max(0, ...)` from `filteredStats.remainingDebt` (line 121)
+- Update the "Dette restante" KPI card (lines 277-289):
+  - If `remainingDebt > 0`: red text, minus sign, label "Vous devez"
+  - If `remainingDebt < 0`: green text, plus sign, label "Crédit fournisseur"
+  - If `0`: neutral
 
-### Plan d'implémentation
+**3. Frontend: `Suppliers.tsx`**
+- Update the "Dette totale en cours" summary card (lines 123-128): split into net debt vs net credit display
+- Update the table "Dette restante" column (lines 180-184):
+  - Positive: red with `-` prefix
+  - Negative: green with `+` prefix (show absolute value as credit)
+  - Zero: neutral/muted
 
-**1. Backend - Ajouter le calcul Zakat dans `dashboard.service.ts**`
-
-- Après le calcul des KPI existants, calculer :
-  - `assetsZakatable = valeurStock + (valeurChargees * theoreticalRate moyen) + creanceTotal + totalCaisse`
-  - `zakatBase = max(0, assetsZakatable - dettesTotal)`
-  - `zakatAmount = zakatBase * 0.025`
-- Retourner `zakatBase` et `zakatAmount` dans la réponse stats
-
-**2. Frontend - Ajouter une carte Zakat sur le dashboard (`Index.tsx`)**
-
-- Ajouter une nouvelle section sous les KPI existants avec une carte dédiée affichant :
-  - **Assiette Zakat** : le montant net zakatable
-  - **Montant Zakat dû** : 2.5% de l'assiette
-  - Icône appropriée (ex: Heart/HandHeart)
-  - Style visuel distinct avec une bordure verte
-
-### Notes
-
-- La valeur des véhicules chargées (en USD) sera convertie en DZD en utilisant le taux théorique moyen des véhicules pour homogénéiser le calcul for this one use le taux moyen for all year in for taux moyen dechanges
-- Le Nissab (seuil minimum) en Algérie est environ 85g d'or (~2,500,000 DZD) ; si l'assiette est en dessous, la Zakat affichera 0
-- Le filtre mois/année existant s'appliquera aussi à cette section
