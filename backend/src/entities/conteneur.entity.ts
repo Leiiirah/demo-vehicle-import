@@ -19,6 +19,7 @@ export enum ConteneurType {
 
 export enum ConteneurStatus {
   CHARGE = 'charge',
+  ARRIVEE = 'arrivee',
   DECHARGE = 'decharge',
 }
 
