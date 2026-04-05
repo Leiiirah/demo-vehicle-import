@@ -72,10 +72,10 @@ export class DossiersService {
     const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
     const progress = totalDue > 0 ? (totalPaid / totalDue) * 100 : 0;
 
-    if (progress >= 100 && dossier.status !== DossierStatus.TERMINE) {
-      dossier.status = DossierStatus.TERMINE;
+    if (progress >= 100 && dossier.status !== DossierStatus.SOLDE) {
+      dossier.status = DossierStatus.SOLDE;
       await this.dossierRepository.save(dossier);
-    } else if (progress < 100 && dossier.status === DossierStatus.TERMINE) {
+    } else if (progress < 100 && dossier.status === DossierStatus.SOLDE) {
       dossier.status = DossierStatus.EN_COURS;
       await this.dossierRepository.save(dossier);
     }
