@@ -63,9 +63,10 @@ export class PaymentsService {
     const payment = this.paymentRepository.create(createPaymentDto);
     const saved = await this.paymentRepository.save(payment);
 
-    // Auto-update dossier status if fully paid
+    // Auto-update dossier status and recalculate vehicle costs
     if (saved.dossierId) {
       await this.autoUpdateDossierStatus(saved.dossierId);
+      await this.recalculateVehicleCosts(saved.dossierId);
     }
 
     return saved;
@@ -79,9 +80,10 @@ export class PaymentsService {
     Object.assign(payment, updatePaymentDto);
     const saved = await this.paymentRepository.save(payment);
 
-    // Auto-update dossier status after payment edit
+    // Auto-update dossier status and recalculate vehicle costs
     if (saved.dossierId) {
       await this.autoUpdateDossierStatus(saved.dossierId);
+      await this.recalculateVehicleCosts(saved.dossierId);
     }
 
     return saved;
@@ -96,9 +98,10 @@ export class PaymentsService {
 
     await this.paymentRepository.remove(payment);
 
-    // Auto-update dossier status after payment deletion (may revert to en_cours)
+    // Auto-update dossier status and recalculate vehicle costs after deletion
     if (dossierId) {
       await this.autoUpdateDossierStatus(dossierId);
+      await this.recalculateVehicleCosts(dossierId);
     }
 
     return { message: 'Payment deleted successfully' };
@@ -149,6 +152,50 @@ export class PaymentsService {
     } else if (stats.progress < 100 && dossier.status === DossierStatus.SOLDE) {
       dossier.status = DossierStatus.EN_COURS;
       await this.dossierRepository.save(dossier);
+    }
+  }
+
+  /**
+   * Recalculate vehicle costs when dossier payments change.
+   * Uses weighted average exchange rate from all dossier payments.
+   */
+  private async recalculateVehicleCosts(dossierId: string) {
+    const payments = await this.paymentRepository.find({
+      where: { dossierId, type: 'supplier_payment' as any },
+    });
+
+    if (payments.length === 0) {
+      // No payments — reset vehicles to no rate
+      const vehicles = await this.vehicleRepository
+        .createQueryBuilder('vehicle')
+        .innerJoin('vehicle.conteneur', 'conteneur')
+        .where('conteneur.dossierId = :dossierId', { dossierId })
+        .getMany();
+
+      for (const v of vehicles) {
+        v.theoreticalRate = null;
+        v.totalCost = 0;
+        await this.vehicleRepository.save(v);
+      }
+      return;
+    }
+
+    const totalPaid = payments.reduce((s, p) => s + Number(p.amount), 0);
+    const weightedRate = totalPaid > 0
+      ? payments.reduce((s, p) => s + Number(p.amount) * Number(p.exchangeRate), 0) / totalPaid
+      : 0;
+
+    const vehicles = await this.vehicleRepository
+      .createQueryBuilder('vehicle')
+      .innerJoin('vehicle.conteneur', 'conteneur')
+      .where('conteneur.dossierId = :dossierId', { dossierId })
+      .getMany();
+
+    for (const v of vehicles) {
+      v.theoreticalRate = weightedRate;
+      v.totalCost = (Number(v.purchasePrice) + Number(v.transportCost || 0)) * weightedRate
+        + Number(v.localFees || 0) + Number(v.passeportCost || 0);
+      await this.vehicleRepository.save(v);
     }
   }
 
