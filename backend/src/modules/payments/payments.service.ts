@@ -5,7 +5,7 @@ import { Payment } from '../../entities/payment.entity';
 import { Vehicle } from '../../entities/vehicle.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
-import { CaisseBalanceService } from '../caisse/caisse-balance.service';
+import { CaisseService } from '../caisse/caisse.service';
 
 @Injectable()
 export class PaymentsService {
@@ -14,7 +14,7 @@ export class PaymentsService {
     private paymentRepository: Repository<Payment>,
     @InjectRepository(Vehicle)
     private vehicleRepository: Repository<Vehicle>,
-    private caisseBalanceService: CaisseBalanceService,
+    private caisseService: CaisseService,
   ) {}
 
   async findAll() {
