@@ -1,27 +1,32 @@
 
 
-## Fix: Payment Should Check Caisse Summary, Not Balance Table
+# Plan: Generate Project Documentation PDF
 
-### Problem
-Payments check `caisse_balance` table (manually set, stale at 3,720,000 DZD) instead of the dynamic summary (102,480,000 DZD computed from entries).
+## What
+Generate a comprehensive PDF document explaining the VHL Import (NGB) vehicle import management system -- its architecture, modules, data flow, and business logic -- suitable for a project manager.
 
-### Solution
-Change the payment service to use the **Solde Actuel** from the caisse summary (totalEntrees - totalCharges) as the source of truth for balance validation.
+## Technical Approach
 
-### Changes
+1. **Write a Python script** using `reportlab` to generate a multi-page PDF at `/mnt/documents/VHL_Import_Documentation.pdf`
 
-**1. `backend/src/modules/payments/payments.service.ts`**
-- Replace `caisseBalanceService.getBalance()` check with `caisseService.getSummary()` to get `soldeActuel`
-- Compare `deductAmount` against `soldeActuel` instead of the static balance
-- Remove `caisseBalanceService.deduct()` call after payment — instead, the payment already creates a caisse entry (charge) which automatically reduces `soldeActuel`
-- Inject `CaisseService` instead of (or alongside) `CaisseBalanceService`
+2. **Content outline:**
+   - **Cover page**: Project name, date, version
+   - **Overview**: What the system does (vehicle import management for Algeria)
+   - **Architecture**: Frontend (React/Vite/Tailwind) + Backend (NestJS/PostgreSQL) + deployment (VPS/PM2/Nginx)
+   - **Module descriptions** (13 modules):
+     - Suppliers, Dossiers, Conteneurs, Vehicles, Clients, Passeports, Payments, Caisse, Car Models, Zakat, Dashboard, Search, Users/Auth
+   - **Data flow diagram** (text-based): Supplier -> Dossier -> Conteneur -> Vehicle -> Client (sale)
+   - **Vehicle lifecycle**: ordered -> in_transit -> arrived -> sold/vendu_bare
+   - **Container lifecycle**: charge -> arrivee -> decharge (with cascade to vehicles)
+   - **Financial flow**: Purchase price (USD) + transport + passport cost + local fees = total cost (DZD); selling price - total cost = profit
+   - **Caisse system**: entries, charges, retraits, auto vente entries, balance
+   - **Zakat calculation**: assets - debts, nissab threshold
+   - **User roles**: admin, manager, user
+   - **Export features**: PDF exports for suppliers, passports, client transactions
+   - **API structure**: REST endpoints overview
 
-**2. `backend/src/modules/payments/payments.module.ts`**
-- Import `CaisseModule` or provide `CaisseService` so it can be injected
+3. **QA**: Convert PDF pages to images and inspect each one
 
-**3. Ensure payment creates a caisse entry**
-- After saving the payment, create a `CaisseEntry` of type `CHARGE` with the DZD amount so the summary automatically reflects the deduction
-- On payment deletion, create an `ENTREE` to reverse it
-
-This way the single source of truth is the caisse entries table, and the stale `caisse_balance` table is no longer involved in payment validation.
+## Files Created
+- `/mnt/documents/VHL_Import_Documentation.pdf`
 
