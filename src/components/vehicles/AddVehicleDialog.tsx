@@ -147,6 +147,8 @@ const AddVehicleDialog = ({ children, open: controlledOpen, onOpenChange: contro
       arrivalDate: estimatedArrival || undefined,
       photoUrl: photoPreview || undefined,
       passeportId: passeportId && passeportId !== 'none' ? passeportId : undefined,
+      color: color || undefined,
+      transmission,
     });
   };
 

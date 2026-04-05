@@ -43,7 +43,7 @@ interface EditVehicleDialogProps {
   vehicle: Vehicle | null;
 }
 
-type VehicleStatus = 'ordered' | 'in_transit' | 'arrived' | 'sold';
+type VehicleStatus = 'ordered' | 'in_transit' | 'arrived' | 'sold' | 'vendu_bare';
 
 export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDialogProps) {
   const queryClient = useQueryClient();
@@ -52,6 +52,8 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
     model: '',
     year: new Date().getFullYear(),
     vin: '',
+    color: '',
+    transmission: 'automatic',
     clientId: '',
     supplierId: '',
     conteneurId: '',
@@ -93,6 +95,8 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
         model: vehicle.model || '',
         year: vehicle.year || new Date().getFullYear(),
         vin: vehicle.vin || '',
+        color: (vehicle as any).color || '',
+        transmission: (vehicle as any).transmission || 'automatic',
         clientId: vehicle.clientId || '',
         supplierId: vehicle.supplierId || '',
         conteneurId: vehicle.conteneurId || '',
@@ -136,6 +140,8 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
       model: formData.model,
       year: Number(formData.year),
       vin: formData.vin,
+      color: formData.color || undefined,
+      transmission: formData.transmission || undefined,
       supplierId: formData.supplierId,
       conteneurId: formData.conteneurId,
       status: formData.status,
@@ -196,6 +202,29 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
                   value={formData.vin}
                   onChange={(e) => setFormData({ ...formData, vin: e.target.value })}
                 />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="color">Couleur</Label>
+                <Input
+                  id="color"
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  placeholder="Ex: Noir métallisé"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="transmission">Boîte de vitesse</Label>
+                <Select value={formData.transmission} onValueChange={(value) => setFormData({ ...formData, transmission: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="automatic">Automatique</SelectItem>
+                    <SelectItem value="manual">Manuelle</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -264,6 +293,7 @@ export function EditVehicleDialog({ open, onOpenChange, vehicle }: EditVehicleDi
                   <SelectItem value="in_transit">Chargée</SelectItem>
                   <SelectItem value="arrived">Arrivé</SelectItem>
                   <SelectItem value="sold">Vendu</SelectItem>
+                  <SelectItem value="vendu_bare">Vendu Bare</SelectItem>
                 </SelectContent>
               </Select>
             </div>

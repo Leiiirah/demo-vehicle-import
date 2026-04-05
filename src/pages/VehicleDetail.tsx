@@ -281,13 +281,14 @@ const VehicleDetailPage = () => {
   }
 
   const getStatusInfo = (status: string) => {
-    const statusMap = {
+    const statusMap: Record<string, { label: string; color: string; progress: number; icon: any }> = {
       ordered: { label: 'En stock', color: 'badge-info', progress: 25, icon: Package },
       in_transit: { label: 'Chargée', color: 'badge-pending', progress: 50, icon: Ship },
       arrived: { label: 'Arrivé', color: 'badge-profit', progress: 75, icon: Anchor },
       sold: { label: 'Vendu', color: 'bg-muted text-muted-foreground', progress: 100, icon: BadgeCheck },
+      vendu_bare: { label: 'Vendu Bare', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400', progress: 100, icon: BadgeCheck },
     };
-    return statusMap[status as keyof typeof statusMap] || statusMap.ordered;
+    return statusMap[status] || statusMap.ordered;
   };
 
   const statusInfo = getStatusInfo(vehicle.status);
