@@ -122,6 +122,8 @@ export const AffecterVehiculeDialog = ({
       model: string;
       year: number;
       vin: string;
+      color?: string;
+      transmission?: string;
       purchasePrice: number;
       supplierId: string;
       conteneurId: string;
