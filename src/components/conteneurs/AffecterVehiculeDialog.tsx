@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Car, Plus, Link2, DollarSign, Loader2, Upload, X } from 'lucide-react';
-import { api, Vehicle, Conteneur } from '@/services/api';
+import { api, type CreateVehicleData, type Vehicle, type Conteneur } from '@/services/api';
 import { toast } from 'sonner';
 import { BrandCombobox } from '@/components/vehicles/BrandCombobox';
 import { ModelCombobox } from '@/components/vehicles/ModelCombobox';
@@ -117,21 +117,7 @@ export const AffecterVehiculeDialog = ({
 
   // Mutation for creating a new vehicle
   const createVehicleMutation = useMutation({
-    mutationFn: (data: {
-      brand: string;
-      model: string;
-      year: number;
-      vin: string;
-      color?: string;
-      transmission?: string;
-      purchasePrice: number;
-      supplierId: string;
-      conteneurId: string;
-      status?: 'ordered' | 'in_transit' | 'arrived' | 'sold';
-      orderDate: string;
-      photoUrl?: string;
-      passeportId?: string;
-    }) => api.createVehicle(data),
+    mutationFn: (data: CreateVehicleData) => api.createVehicle(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conteneur', conteneurId] });
       queryClient.invalidateQueries({ queryKey: ['conteneurs'] });
@@ -155,25 +141,33 @@ export const AffecterVehiculeDialog = ({
         }
         await updateVehicleMutation.mutateAsync(selectedVehicleId);
       } else {
-        if (!brand || !model || !vin || !prixVehicule || !supplierId) {
+        const normalizedBrand = brand.trim();
+        const normalizedModel = model.trim();
+        const normalizedVin = vin.trim().toUpperCase();
+        const normalizedColor = color.trim();
+
+        if (!normalizedBrand || !normalizedModel || !normalizedVin || !prixVehicule || !supplierId) {
           toast.error('Veuillez remplir tous les champs obligatoires');
           return;
         }
-        await createVehicleMutation.mutateAsync({
-          brand,
-          model,
+
+        const payload: CreateVehicleData = {
+          brand: normalizedBrand,
+          model: normalizedModel,
           year: parseInt(year, 10),
-          vin,
-          color: color || undefined,
-          transmission: transmission || 'automatic',
+          vin: normalizedVin,
+          color: normalizedColor || undefined,
+          transmission,
           purchasePrice: parseFloat(prixVehicule),
           supplierId,
           conteneurId,
           status: 'in_transit',
-          orderDate: new Date().toISOString(),
+          orderDate: new Date().toISOString().split('T')[0],
           photoUrl: photoPreview || undefined,
           passeportId: passeportId && passeportId !== 'none' ? passeportId : undefined,
-        });
+        };
+
+        await createVehicleMutation.mutateAsync(payload);
       }
     } catch (error) {
       console.error('Error assigning vehicle:', error);
@@ -385,7 +379,7 @@ export const AffecterVehiculeDialog = ({
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={isLoading || !brand || !model || !vin || !prixVehicule || !supplierId}
+            disabled={isLoading || !brand.trim() || !model.trim() || !vin.trim() || !prixVehicule || !supplierId}
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Affecter au conteneur
