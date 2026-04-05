@@ -18,13 +18,6 @@ export class DossiersService {
     private vehicleRepository: Repository<Vehicle>,
   ) {}
 
-  async findAll() {
-    return this.dossierRepository.find({
-      order: { createdAt: 'DESC' },
-      relations: ['supplier', 'conteneurs'],
-    });
-  }
-
   async findOne(id: string) {
     const dossier = await this.dossierRepository.findOne({
       where: { id },
