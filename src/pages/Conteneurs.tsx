@@ -91,7 +91,7 @@ export default function ConteneursPage() {
         <AddConteneurDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
 
         {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-5">
           {isLoading ? (
             <>
               {[...Array(4)].map((_, i) => (

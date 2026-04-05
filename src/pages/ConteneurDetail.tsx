@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 
 const statusConfig = {
   charge: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
+  arrivee: { label: 'Arrivée', className: 'bg-primary/10 text-primary border-primary/30' },
   decharge: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
 };
 
