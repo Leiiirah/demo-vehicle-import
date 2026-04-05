@@ -5,7 +5,7 @@ import { api } from '@/services/api';
 import { formatCurrency } from '@/lib/utils';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useSupplier, useDossiers, useVehicles, usePayments } from '@/hooks/useApi';
-import { exportSupplierFullReport } from '@/lib/exportSupplierData';
+import { exportSupplierFullReport, exportSupplierDossierReport } from '@/lib/exportSupplierData';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { 
