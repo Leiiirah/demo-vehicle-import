@@ -14,6 +14,7 @@ import {
 import { Plus, Search, Container, FolderOpen, Ship, Anchor, AlertCircle, MoreVertical, Eye, Trash2, PackageCheck } from 'lucide-react';
 import { AddConteneurDialog } from '@/components/conteneurs/AddConteneurDialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -155,8 +156,8 @@ export default function ConteneursPage() {
             <CardDescription>Cliquez sur un conteneur pour voir ses détails</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <div className="relative">
+            <div className="mb-4 flex gap-4">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Rechercher par numéro ou dossier..."
@@ -165,6 +166,17 @@ export default function ConteneursPage() {
                   className="pl-9"
                 />
               </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrer par statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="charge">Chargée</SelectItem>
+                  <SelectItem value="arrivee">Arrivée</SelectItem>
+                  <SelectItem value="decharge">Déchargée</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {isLoading ? (
