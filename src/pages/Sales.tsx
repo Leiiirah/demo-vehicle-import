@@ -241,20 +241,24 @@ const SalesPage = () => {
                           </div>
                         </TableCell>
                         <TableCell>{vehicle.client ? `${vehicle.client.nom} ${vehicle.client.prenom}` : '-'}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(Number(vehicle.totalCost || 0))}</TableCell>
+                        <TableCell className="text-right">{Number(vehicle.totalCost || 0) > 0 ? formatCurrency(Number(vehicle.totalCost)) : '-'}</TableCell>
                         <TableCell className="text-right">{formatCurrency(Number(vehicle.sellingPrice || 0))}</TableCell>
                         <TableCell className="text-right">
-                          <span className={`font-medium ${profit >= 0 ? 'text-success' : 'text-destructive'}`}>
-                            {formatCurrency(profit)}
-                          </span>
+                          {Number(vehicle.totalCost || 0) > 0 ? (
+                            <span className={`font-medium ${profit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                              {formatCurrency(profit)}
+                            </span>
+                          ) : '-'}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Badge
-                            variant={Number(margin) >= 10 ? 'default' : 'secondary'}
-                            className={Number(margin) >= 10 ? 'bg-success' : ''}
-                          >
-                            {margin}%
-                          </Badge>
+                          {Number(vehicle.totalCost || 0) > 0 ? (
+                            <Badge
+                              variant={Number(margin) >= 10 ? 'default' : 'secondary'}
+                              className={Number(margin) >= 10 ? 'bg-success' : ''}
+                            >
+                              {margin}%
+                            </Badge>
+                          ) : '-'}
                         </TableCell>
                         <TableCell>
                           {vehicle.soldDate

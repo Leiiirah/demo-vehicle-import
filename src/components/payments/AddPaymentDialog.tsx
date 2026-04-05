@@ -60,7 +60,7 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
     defaultValues: {
       date: new Date().toISOString().split('T')[0],
       currency: 'USD',
-      exchangeRate: 134.5,
+      exchangeRate: undefined as unknown as number,
     },
   });
 

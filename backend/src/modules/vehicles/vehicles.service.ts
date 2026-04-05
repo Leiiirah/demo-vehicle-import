@@ -85,14 +85,14 @@ export class VehiclesService {
 
     // Calculate total cost using the formula:
     // (CarPrice + TransportCost) * TheoreticalRate + LocalFees + PassportCost
-    const theoreticalRate = createVehicleDto.theoreticalRate || 134.5;
+    const theoreticalRate = createVehicleDto.theoreticalRate || null;
     const localFees = createVehicleDto.localFees || 0;
     const purchasePrice = createVehicleDto.purchasePrice;
 
-    const totalCost =
-      (purchasePrice + transportCostPerVehicle) * theoreticalRate +
-      localFees +
-      passeportCost;
+    // Only calculate totalCost if a rate is provided
+    const totalCost = theoreticalRate && theoreticalRate > 0
+      ? (purchasePrice + transportCostPerVehicle) * theoreticalRate + localFees + passeportCost
+      : 0;
 
     const vehicle = this.vehicleRepository.create({
       ...createVehicleDto,
@@ -150,13 +150,14 @@ export class VehiclesService {
 
     if (shouldRecalculate) {
       const purchasePrice = updateVehicleDto.purchasePrice ?? Number(vehicle.purchasePrice);
-      const theoreticalRate = updateVehicleDto.theoreticalRate ?? Number(vehicle.theoreticalRate);
+      const theoreticalRate = updateVehicleDto.theoreticalRate ?? Number(vehicle.theoreticalRate) || 0;
       const localFees = updateVehicleDto.localFees ?? Number(vehicle.localFees);
       const passeportCost = updateVehicleDto.passeportCost ?? Number(vehicle.passeportCost);
       const transportCost = Number(vehicle.transportCost);
 
-      updateVehicleDto.totalCost =
-        (purchasePrice + transportCost) * theoreticalRate + localFees + passeportCost;
+      updateVehicleDto.totalCost = theoreticalRate > 0
+        ? (purchasePrice + transportCost) * theoreticalRate + localFees + passeportCost
+        : 0;
     }
 
     Object.assign(vehicle, updateVehicleDto);
@@ -196,12 +197,13 @@ export class VehiclesService {
 
         // Recalculate total cost
         const purchasePrice = Number(vehicle.purchasePrice);
-        const theoreticalRate = Number(vehicle.theoreticalRate) || 134.5;
+        const theoreticalRate = Number(vehicle.theoreticalRate) || 0;
         const localFees = Number(vehicle.localFees);
         const passeportCost = Number(vehicle.passeportCost);
 
-        vehicle.totalCost =
-          (purchasePrice + transportCostPerVehicle) * theoreticalRate + localFees + passeportCost;
+        vehicle.totalCost = theoreticalRate > 0
+          ? (purchasePrice + transportCostPerVehicle) * theoreticalRate + localFees + passeportCost
+          : 0;
 
         await this.vehicleRepository.save(vehicle);
       }
