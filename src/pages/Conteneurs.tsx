@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useConteneurs, useDeleteConteneur } from '@/hooks/useApi';
+import { useConteneurs, useDeleteConteneur, useUpdateConteneur } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,6 +43,7 @@ export default function ConteneursPage() {
 
   const { data: conteneurs, isLoading, error } = useConteneurs();
   const deleteConteneur = useDeleteConteneur();
+  const updateConteneur = useUpdateConteneur();
   const { toast } = useToast();
 
   const filteredConteneurs = (conteneurs || []).filter((conteneur) => {
@@ -234,10 +235,28 @@ export default function ConteneursPage() {
                               </TableCell>
                               <TableCell>{formatCurrency((conteneur.vehicles || []).reduce((sum: number, v: any) => sum + (parseFloat(String(v.totalCost)) || 0), 0))}</TableCell>
                               <TableCell className="text-center">{conteneur.vehicles?.length || 0}</TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className={status.className}>
-                                  {status.label}
-                                </Badge>
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <Select
+                                  value={conteneur.status}
+                                  onValueChange={(value) => {
+                                    updateConteneur.mutate(
+                                      { id: conteneur.id, data: { status: value as 'charge' | 'arrivee' | 'decharge' } },
+                                      {
+                                        onSuccess: () => toast({ title: 'Statut mis à jour' }),
+                                        onError: () => toast({ title: 'Erreur', variant: 'destructive' }),
+                                      }
+                                    );
+                                  }}
+                                >
+                                  <SelectTrigger className="w-[130px] h-8">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="charge">Chargée</SelectItem>
+                                    <SelectItem value="arrivee">Arrivée</SelectItem>
+                                    <SelectItem value="decharge">Déchargée</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </TableCell>
                               <TableCell>
                                 <DropdownMenu>
