@@ -122,6 +122,8 @@ export const AffecterVehiculeDialog = ({
       model: string;
       year: number;
       vin: string;
+      color?: string;
+      transmission?: string;
       purchasePrice: number;
       supplierId: string;
       conteneurId: string;
@@ -162,6 +164,8 @@ export const AffecterVehiculeDialog = ({
           model,
           year: parseInt(year, 10),
           vin,
+          color: color || undefined,
+          transmission: transmission || 'automatic',
           purchasePrice: parseFloat(prixVehicule),
           supplierId,
           conteneurId,
