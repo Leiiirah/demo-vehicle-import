@@ -609,6 +609,7 @@ export interface Payment {
   supplier?: Supplier;
   clientId?: string;
   client?: Client;
+  dossierId?: string;
 }
 
 export interface CreatePaymentData {
