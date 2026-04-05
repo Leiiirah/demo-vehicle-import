@@ -5,7 +5,7 @@ import { Payment } from '../../entities/payment.entity';
 import { Vehicle } from '../../entities/vehicle.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
-import { CaisseBalanceService } from '../caisse/caisse-balance.service';
+import { CaisseService } from '../caisse/caisse.service';
 
 @Injectable()
 export class PaymentsService {
@@ -14,7 +14,7 @@ export class PaymentsService {
     private paymentRepository: Repository<Payment>,
     @InjectRepository(Vehicle)
     private vehicleRepository: Repository<Vehicle>,
-    private caisseBalanceService: CaisseBalanceService,
+    private caisseService: CaisseService,
   ) {}
 
   async findAll() {
@@ -49,19 +49,20 @@ export class PaymentsService {
     // Calculate DZD amount to deduct
     const deductAmount = Number(createPaymentDto.amount) * Number(createPaymentDto.exchangeRate || 1);
 
-    // Check caisse balance before allowing payment
-    const { balance } = await this.caisseBalanceService.getBalance();
-    if (deductAmount > balance) {
+    // Check caisse balance using dynamic summary (soldeActuel)
+    const summary = await this.caisseService.getSummary();
+    if (deductAmount > summary.soldeActuel) {
       throw new BadRequestException(
-        `Solde caisse insuffisant. Solde actuel: ${balance.toLocaleString('fr-FR')} DZD, Montant requis: ${deductAmount.toLocaleString('fr-FR')} DZD`,
+        `Solde caisse insuffisant. Solde actuel: ${summary.soldeActuel.toLocaleString('fr-FR')} DZD, Montant requis: ${deductAmount.toLocaleString('fr-FR')} DZD`,
       );
     }
 
     const payment = this.paymentRepository.create(createPaymentDto);
     const saved = await this.paymentRepository.save(payment);
 
-    // Deduct from caisse balance
-    await this.caisseBalanceService.deduct(deductAmount);
+    // Payment is already reflected in caisse via the consolidated ledger
+    // (CaisseService.findAll() includes payments automatically)
+    // No need to create a separate caisse entry or deduct from balance
 
     return saved;
   }
@@ -80,9 +81,8 @@ export class PaymentsService {
     if (!payment) {
       throw new NotFoundException('Payment not found');
     }
-    // Refund the amount back to caisse balance before deleting
-    const refundAmount = Number(payment.amount) * Number(payment.exchangeRate || 1);
-    await this.caisseBalanceService.add(refundAmount);
+    // No need to refund caisse_balance — payment removal automatically
+    // removes it from the consolidated ledger (CaisseService.findAll())
 
     await this.paymentRepository.remove(payment);
     return { message: 'Payment deleted successfully' };
