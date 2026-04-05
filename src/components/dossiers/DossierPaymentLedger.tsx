@@ -75,6 +75,8 @@ export function DossierPaymentLedger({ dossierId }: DossierPaymentLedgerProps) {
   }
 
   const isPaidInFull = stats.progress >= 100;
+  const hasOverpayment = stats.remaining < 0;
+  const creditAmount = Math.abs(stats.remaining);
 
   return (
     <div className="space-y-4">
@@ -85,7 +87,12 @@ export function DossierPaymentLedger({ dossierId }: DossierPaymentLedgerProps) {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">État des paiements fournisseur</span>
           </div>
-          {isPaidInFull ? (
+          {hasOverpayment ? (
+            <Badge className="bg-success/10 text-success border-success/30">
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              Crédit fournisseur
+            </Badge>
+          ) : isPaidInFull ? (
             <Badge className="bg-success/10 text-success border-success/30">
               <CheckCircle2 className="h-3 w-3 mr-1" />
               Soldé
@@ -99,7 +106,7 @@ export function DossierPaymentLedger({ dossierId }: DossierPaymentLedgerProps) {
 
         <Progress value={Math.min(stats.progress, 100)} className="h-3 mb-3" />
 
-        <div className="grid grid-cols-3 gap-4 text-sm">
+        <div className="grid grid-cols-4 gap-4 text-sm">
           <div>
             <p className="text-muted-foreground">Total dû</p>
             <p className="font-semibold">{formatCurrency(stats.totalDue, 'USD')}</p>
@@ -109,10 +116,24 @@ export function DossierPaymentLedger({ dossierId }: DossierPaymentLedgerProps) {
             <p className="font-semibold text-primary">{formatCurrency(stats.totalPaid, 'USD')}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Reste</p>
-            <p className={`font-semibold ${stats.remaining > 0 ? 'text-warning' : 'text-success'}`}>
-              {formatCurrency(stats.remaining, 'USD')}
-            </p>
+            <p className="text-muted-foreground">{hasOverpayment ? 'Crédit' : 'Reste à payer'}</p>
+            {hasOverpayment ? (
+              <p className="font-semibold text-success">+{formatCurrency(creditAmount, 'USD')}</p>
+            ) : stats.remaining > 0 ? (
+              <p className="font-semibold text-destructive">-{formatCurrency(stats.remaining, 'USD')}</p>
+            ) : (
+              <p className="font-semibold text-success">{formatCurrency(0, 'USD')}</p>
+            )}
+          </div>
+          <div>
+            <p className="text-muted-foreground">Dette</p>
+            {hasOverpayment ? (
+              <p className="font-semibold text-success">+{formatCurrency(creditAmount, 'USD')}</p>
+            ) : stats.remaining > 0 ? (
+              <p className="font-semibold text-destructive">-{formatCurrency(stats.remaining, 'USD')}</p>
+            ) : (
+              <p className="font-semibold text-muted-foreground">0 USD</p>
+            )}
           </div>
         </div>
 
