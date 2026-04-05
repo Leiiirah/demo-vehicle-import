@@ -47,7 +47,7 @@ const VehiclesPage = () => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilters, setStatusFilters] = useState<string[]>(['ordered', 'in_transit', 'arrived', 'sold']);
+  const [statusFilters, setStatusFilters] = useState<string[]>(['ordered', 'in_transit', 'arrived', 'sold', 'vendu_bare']);
   const [monthFilter, setMonthFilter] = useState<string>('all');
   const { data: vehicles, isLoading, error } = useVehicles();
   const deleteVehicle = useDeleteVehicle();
@@ -89,17 +89,19 @@ const VehiclesPage = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const styles = {
+    const styles: Record<string, string> = {
       ordered: 'badge-info',
       in_transit: 'badge-pending',
       arrived: 'badge-profit',
       sold: 'bg-muted text-muted-foreground',
+      vendu_bare: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
     };
-    const labels = {
+    const labels: Record<string, string> = {
       ordered: 'En stock',
       in_transit: 'Chargée',
       arrived: 'Arrivé',
       sold: 'Vendu',
+      vendu_bare: 'Vendu Bare',
     };
     return (
       <span className={cn('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', styles[status as keyof typeof styles])}>
@@ -186,7 +188,7 @@ const VehiclesPage = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="w-[200px] justify-start">
                 <Filter className="h-4 w-4 mr-2" />
-                {statusFilters.length === 4 ? 'Tous les statuts' : `${statusFilters.length} statut(s)`}
+                {statusFilters.length === 5 ? 'Tous les statuts' : `${statusFilters.length} statut(s)`}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-[200px]">
@@ -195,6 +197,7 @@ const VehiclesPage = () => {
                 { value: 'in_transit', label: 'Chargée' },
                 { value: 'arrived', label: 'Arrivé' },
                 { value: 'sold', label: 'Vendu' },
+                { value: 'vendu_bare', label: 'Vendu Bare' },
               ].map((status) => (
                 <DropdownMenuItem
                   key={status.value}
@@ -270,10 +273,12 @@ const VehiclesPage = () => {
           <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="data-table">
-                <thead>
+                 <thead>
                   <tr>
                     <th>Véhicule</th>
                     <th>VIN</th>
+                    <th>Couleur</th>
+                    <th>Boîte</th>
                     <th>Passeport</th>
                     <th>Prix d'achat (USD)</th>
                     <th>Transport (USD)</th>
@@ -313,6 +318,12 @@ const VehiclesPage = () => {
                           <code className="text-xs bg-muted px-2 py-1 rounded">
                             {vehicle.vin}
                           </code>
+                        </td>
+                        <td className="text-foreground text-sm">
+                          {vehicle.color || '-'}
+                        </td>
+                        <td className="text-foreground text-sm">
+                          {vehicle.transmission === 'manual' ? 'Manuelle' : 'Automatique'}
                         </td>
                         <td>
                           {vehicle.passeport ? (

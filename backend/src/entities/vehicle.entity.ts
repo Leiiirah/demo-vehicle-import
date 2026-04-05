@@ -17,6 +17,7 @@ export enum VehicleStatus {
   IN_TRANSIT = 'in_transit',
   ARRIVED = 'arrived',
   SOLD = 'sold',
+  VENDU_BARE = 'vendu_bare',
 }
 
 export enum VehiclePaymentStatus {
@@ -96,6 +97,12 @@ export class Vehicle {
 
   @Column({ type: 'decimal', precision: 14, scale: 2, nullable: true })
   sellingPrice: number | null; // DZD
+
+  @Column({ nullable: true })
+  color: string;
+
+  @Column({ nullable: true, default: 'automatic' })
+  transmission: string;
 
   @Column({ nullable: true })
   photoUrl: string;

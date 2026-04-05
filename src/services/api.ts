@@ -522,13 +522,15 @@ export interface CreateVehicleData {
   supplierId: string;
   conteneurId: string;
   passeportId?: string;
-  status?: 'ordered' | 'in_transit' | 'arrived' | 'sold';
+  status?: 'ordered' | 'in_transit' | 'arrived' | 'sold' | 'vendu_bare';
   purchasePrice: number;
   theoreticalRate?: number;
   passeportCost?: number;
   localFees?: number;
   totalCost?: number;
   sellingPrice?: number;
+  color?: string;
+  transmission?: string;
   photoUrl?: string;
   paymentStatus?: 'versement' | 'solde' | null;
   amountPaid?: number;
