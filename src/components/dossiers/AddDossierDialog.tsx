@@ -52,6 +52,13 @@ export const AddDossierDialog = ({ open, onOpenChange, preSelectedSupplierId }: 
     enabled: open,
   });
 
+  // Fetch existing dossiers to calculate next reference number per supplier
+  const { data: dossiers = [] } = useQuery({
+    queryKey: ['dossiers'],
+    queryFn: () => api.getDossiers(),
+    enabled: open,
+  });
+
   const createMutation = useMutation({
     mutationFn: (data: CreateDossierData) => api.createDossier(data),
     onSuccess: () => {
@@ -72,11 +79,23 @@ export const AddDossierDialog = ({ open, onOpenChange, preSelectedSupplierId }: 
     },
   });
 
-  // Générer une référence automatique
+  // Générer une référence automatique basée sur le nom du fournisseur
   const generateReference = () => {
-    const year = new Date().getFullYear();
-    const random = Math.floor(Math.random() * 900) + 100;
-    return `DOS-${year}-${random}`;
+    const supplier = suppliers.find(s => s.id === supplierId);
+    if (!supplier) {
+      const year = new Date().getFullYear();
+      const random = Math.floor(Math.random() * 900) + 100;
+      return `DOS-${year}-${random}`;
+    }
+    
+    const supplierName = supplier.name.toUpperCase().replace(/\s+/g, '-');
+    
+    // Count existing dossiers for this supplier to determine the next number
+    const supplierDossiers = dossiers.filter(d => d.supplierId === supplierId || d.supplier?.id === supplierId);
+    const nextNumber = supplierDossiers.length + 1;
+    const paddedNumber = String(nextNumber).padStart(3, '0');
+    
+    return `${supplierName}-${paddedNumber}`;
   };
 
   const handleSubmit = () => {
