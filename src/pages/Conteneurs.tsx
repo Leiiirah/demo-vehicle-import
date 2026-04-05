@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { Plus, Search, Container, FolderOpen, Ship, Anchor, AlertCircle, MoreVertical, Eye, Trash2 } from 'lucide-react';
+import { Plus, Search, Container, FolderOpen, Ship, Anchor, AlertCircle, MoreVertical, Eye, Trash2, PackageCheck } from 'lucide-react';
 import { AddConteneurDialog } from '@/components/conteneurs/AddConteneurDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
