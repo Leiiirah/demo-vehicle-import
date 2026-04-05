@@ -205,11 +205,6 @@ const VehicleDetailPage = () => {
   const clientShare = (benefice * clientImport.profitPercentage) / 100;
   const companyShare = benefice - clientShare;
 
-  // Handle taux réel change
-  const handleTauxReelChange = (value: number) => {
-    setTauxChangeReel(value);
-    setHasChanges(true);
-  };
 
   // Gestion des charges diverses via API
   const addChargeDivers = () => {
@@ -433,7 +428,7 @@ const VehicleDetailPage = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">Prix de revient</p>
-                  <p className="text-sm sm:text-base font-semibold truncate">{tauxChangeReel > 0 && prixRevient > 0 ? formatCurrency(prixRevient) : 'N/A'}</p>
+                  <p className="text-sm sm:text-base font-semibold truncate">{tauxChangeFinal > 0 && prixRevient > 0 ? formatCurrency(prixRevient) : 'N/A'}</p>
                 </div>
               </div>
             </CardContent>
@@ -663,61 +658,50 @@ const VehicleDetailPage = () => {
 
               {/* Colonne droite : Taux + Prix de revient */}
               <div className="space-y-4">
-                {/* Taux de change réel - always visible for manual input */}
+                {/* Taux de change from payments - read-only display */}
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
                       <TrendingUp className="h-4 w-4" />
-                      Taux de change réel
+                      Taux de change (moyen pondéré)
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
-                      <Label>Taux DZD / USD</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={tauxChangeReel || ''}
-                        onChange={(e) => handleTauxReelChange(Number(e.target.value))}
-                        placeholder="Ex: 134.50"
-                      />
-                    </div>
+                    {tauxChangeFinal > 0 ? (
+                      <p className="text-2xl font-bold text-foreground">{tauxChangeFinal.toFixed(2)} <span className="text-sm text-muted-foreground">DZD/$</span></p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Aucun paiement enregistré sur le dossier</p>
+                    )}
                   </CardContent>
                 </Card>
 
-                {/* Récap prix de revient - visible whenever tauxChangeReel > 0 */}
-                {tauxChangeReel > 0 && (
+                {/* Récap prix de revient - visible when payments provide a rate */}
+                {tauxChangeFinal > 0 && (
                   <Card className="border-primary/30 bg-primary/5">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base">Prix de revient</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {tauxChangeReel > 0 ? (
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">
-                              Total USD ({formatCurrency(totalUSD, 'USD')} × {tauxChangeReel.toFixed(2)})
-                            </span>
-                            <span>{formatCurrency(totalUSDenDZD)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Charges Transit</span>
-                            <span>{formatCurrency(chargesTransit)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Charges Divers</span>
-                            <span>{formatCurrency(totalChargesDivers)}</span>
-                          </div>
-                          <div className="flex justify-between pt-3 border-t border-primary/20">
-                            <span className="font-semibold">Prix de revient</span>
-                            <span className="text-xl font-bold text-success">{formatCurrency(prixRevient)}</span>
-                          </div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Total USD ({formatCurrency(totalUSD, 'USD')} × {tauxChangeFinal.toFixed(2)})
+                          </span>
+                          <span>{formatCurrency(totalUSDenDZD)}</span>
                         </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          Saisissez le taux de change réel pour calculer le prix de revient
-                        </p>
-                      )}
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Charges Transit</span>
+                          <span>{formatCurrency(chargesTransit)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Charges Divers</span>
+                          <span>{formatCurrency(totalChargesDivers)}</span>
+                        </div>
+                        <div className="flex justify-between pt-3 border-t border-primary/20">
+                          <span className="font-semibold">Prix de revient</span>
+                          <span className="text-xl font-bold text-success">{formatCurrency(prixRevient)}</span>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 )}
