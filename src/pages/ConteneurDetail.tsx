@@ -240,7 +240,7 @@ export default function ConteneurDetailPage() {
                   <div
                     className="absolute h-1 bg-primary rounded-full"
                     style={{ 
-                      width: conteneur.status === 'decharge' ? '100%' : '10%' 
+                      width: conteneur.status === 'decharge' ? '100%' : conteneur.status === 'arrivee' ? '75%' : '10%' 
                     }}
                   />
                 </div>
