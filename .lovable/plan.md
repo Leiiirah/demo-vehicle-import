@@ -1,75 +1,33 @@
-# Plan: Remove Default Exchange Rate and Hide DZD Costs Until Payment
+
 
 ## Problem
 
-The system currently defaults `theoreticalRate` to 134.5 everywhere (vehicle entity, creation logic, payment forms). DZD-based costs (totalCost, prix de revient, benefice) are calculated and displayed even before any payment is made. The user's rule: **no exchange rate or DZD costs should exist or be visible until the admin enters a real rate through an actual payment**.
+On the `/vehicles` page, the **Total (DZD)** column shows `-` for vehicles whose dossier is fully paid. This happens because `totalCost` in the database stays at `0` — the backend never updates it when payments are made. The weighted average exchange rate (`tauxChangeFinal`) is only computed client-side on the vehicle detail page.
+
+## Solution
+
+Update the backend so that when a dossier payment is created, updated, or deleted, the vehicles in that dossier have their `theoreticalRate` and `totalCost` recalculated using the weighted average exchange rate from all dossier payments.
 
 ## Changes
 
-### 1. Backend: Remove default exchange rate from vehicle entity and creation logic
+### 1. `backend/src/modules/payments/payments.service.ts`
 
-`**backend/src/entities/vehicle.entity.ts**`
+Add a new method `recalculateVehicleCosts(dossierId)` that:
+- Fetches all payments for the dossier
+- Computes the weighted average exchange rate: `sum(amount * exchangeRate) / sum(amount)`
+- Fetches all vehicles in that dossier (via conteneur relation)
+- Updates each vehicle's `theoreticalRate` and recalculates `totalCost` using the formula: `(purchasePrice + transportCost) * weightedRate + localFees + passeportCost`
+- Saves all updated vehicles
 
-- Change `theoreticalRate` default from `134.5` to `null` (nullable)
+Call this method after every `create`, `update`, and `remove` payment (alongside `autoUpdateDossierStatus`).
 
-`**backend/src/modules/vehicles/vehicles.service.ts**`
+### 2. `src/pages/Vehicles.tsx` (minor safety)
 
-- On vehicle creation: set `theoreticalRate` to `null` instead of `134.5`, and set `totalCost` to `0` (no DZD calculation without a rate)
-- On vehicle update: only recalculate `totalCost` if `theoreticalRate > 0`; otherwise keep `totalCost = 0`
-- In `recalculateContainerTransportCosts`: only recalculate totalCost for vehicles that have `theoreticalRate > 0`
+No changes needed — the page already displays `vehicle.totalCost` from the API. Once the backend populates it correctly, it will show up automatically.
 
-`**backend/src/modules/dashboard/dashboard.service.ts**`
+## Why this approach
 
-- Remove `134.5` fallback for avgRate in Zakat calculation; use 0 if no vehicles have rates
+- Keeps the source of truth in the database rather than duplicating client-side calculations
+- All pages that read `totalCost` (vehicles list, dashboard, caisse, reports) automatically get correct values
+- The existing `VehicleDetail.tsx` client-side calculation will match the stored value
 
-**New migration** to remove the default 134.5 from the `theoreticalRate` column:
-
-- `ALTER TABLE vehicles ALTER COLUMN "theoreticalRate" SET DEFAULT NULL`
-
-### 2. Frontend: Remove default exchange rate from payment form
-
-`**src/components/payments/AddPaymentDialog.tsx**`
-
-- Remove `exchangeRate: 134.5` default; leave field empty so admin must enter it
-
-### 3. Frontend: Hide DZD cost columns/cards when no rate exists
-
-`**src/pages/Conteneurs.tsx**`
-
-- The "Coût total DZD" column: show `-` when vehicles have no theoreticalRate (totalCost = 0)
-
-`**src/pages/Sales.tsx**`
-
-- "Coût total" KPI and profit calculations: only include vehicles where `totalCost > 0`
-
-`**src/pages/ClientDetail.tsx**` and `**src/pages/ClientSales.tsx**`
-
-- Profit/cost calculations: only use vehicles with `totalCost > 0`
-
-`**src/pages/Reports.tsx**`
-
-- Same: filter on `totalCost > 0` for profit calculations
-
-`**src/components/vehicles/EditVehicleDialog.tsx**`
-
--  the "Coût total (DZD)" field   keep it  autocalculated and editable if the admin wants
-
-`**src/pages/VehicleDetail.tsx**`
-
-- Already correctly hidden behind `vehicle.status === 'sold'` and `tauxChangeReel > 0` checks -- no change needed
-
-`**src/components/dossiers/DossierAnalytics.tsx**`
-
-- Already gated behind `isDossierSolde` and `theoreticalRate > 0` -- no change needed
-
-### 4. Frontend: Remove exchange rate input from AddVehicleDialog versements
-
-`**src/components/vehicles/AddVehicleDialog.tsx**`
-
-- The vehicle creation dialog has "versements" with exchange rate fields. These vehicle-level payments already go through the vehicle-payment system. The exchange rate field here is fine since it's explicitly entered by the admin per payment -- no change needed.
-
-## Summary
-
-- Default 134.5 removed from entity, service, migration, and payment form
-- DZD costs (totalCost, prix de revient, benefice) only calculated when a real rate is provided
-- All pages showing DZD costs gracefully handle missing rates by showing `-` or `0`
