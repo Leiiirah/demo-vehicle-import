@@ -2,10 +2,16 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class RenameDossierStatusTermineToSolde1708200000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // The enum is named "dossier_status_enum" (from InitialSchema)
+    // Must commit the transaction first, then add enum value outside transaction
+    await queryRunner.commitTransaction();
+
+    // Add new enum value outside of a transaction
     await queryRunner.query(`ALTER TYPE "dossier_status_enum" ADD VALUE IF NOT EXISTS 'solde'`);
 
-    // Update existing rows
+    // Start a new transaction for the UPDATE
+    await queryRunner.startTransaction();
+
+    // Now update existing rows
     await queryRunner.query(`UPDATE "dossiers" SET "status" = 'solde' WHERE "status" = 'termine'`);
   }
 
