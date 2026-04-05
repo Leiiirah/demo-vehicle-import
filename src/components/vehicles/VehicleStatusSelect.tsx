@@ -8,6 +8,7 @@ const statusOptions = [
   { value: 'in_transit', label: 'Chargée', className: 'badge-pending' },
   { value: 'arrived', label: 'Arrivé', className: 'badge-profit' },
   { value: 'sold', label: 'Vendu', className: 'bg-muted text-muted-foreground' },
+  { value: 'vendu_bare', label: 'Vendu Bare', className: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' },
 ];
 
 interface VehicleStatusSelectProps {

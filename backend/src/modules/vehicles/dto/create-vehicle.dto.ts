@@ -75,6 +75,14 @@ export class CreateVehicleDto {
 
   @IsString()
   @IsOptional()
+  color?: string;
+
+  @IsString()
+  @IsOptional()
+  transmission?: string;
+
+  @IsString()
+  @IsOptional()
   photoUrl?: string;
 
   @IsDateString()
