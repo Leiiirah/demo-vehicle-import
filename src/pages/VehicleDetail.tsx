@@ -558,10 +558,9 @@ const VehicleDetailPage = () => {
                     <p className="text-sm text-muted-foreground mb-3">
                       Total incluant : Douane, Transit, Quittance, Port
                     </p>
-                    <Input
-                      type="number"
+                    <FormattedNumberInput
                       value={chargesTransit || ''}
-                      onChange={(e) => handleChargesTransitChange(Number(e.target.value))}
+                      onValueChange={(v) => handleChargesTransitChange(v)}
                     />
                   </CardContent>
                 </Card>
