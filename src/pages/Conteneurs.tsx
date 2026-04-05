@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const statusConfig = {
   charge: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
+  arrivee: { label: 'Arrivée', className: 'bg-primary/10 text-primary border-primary/30' },
   decharge: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
 };
 
@@ -36,17 +37,20 @@ const formatCurrency = (amount: number) => {
 export default function ConteneursPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   const { data: conteneurs, isLoading, error } = useConteneurs();
   const deleteConteneur = useDeleteConteneur();
   const { toast } = useToast();
 
-  const filteredConteneurs = (conteneurs || []).filter(
-    (conteneur) =>
+  const filteredConteneurs = (conteneurs || []).filter((conteneur) => {
+    const matchesSearch =
       conteneur.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (conteneur.dossier?.reference?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
-  );
+      (conteneur.dossier?.reference?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+    const matchesStatus = statusFilter === 'all' || conteneur.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const { paginatedItems: paginatedConteneurs, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredConteneurs);
 
@@ -64,6 +68,7 @@ export default function ConteneursPage() {
   }
 
   const charged = (conteneurs || []).filter((c) => c.status === 'charge').length;
+  const arrived = (conteneurs || []).filter((c) => c.status === 'arrivee').length;
   const decharged = (conteneurs || []).filter((c) => c.status === 'decharge').length;
   const totalVehicles = (conteneurs || []).reduce((acc, c) => acc + (c.vehicles?.length || 0), 0);
 
@@ -106,10 +111,19 @@ export default function ConteneursPage() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Chargées</CardTitle>
-                  <Ship className="h-4 w-4 text-primary" />
+                  <Ship className="h-4 w-4 text-warning" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-primary">{charged}</div>
+                  <div className="text-2xl font-bold text-warning">{charged}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Arrivées</CardTitle>
+                  <Anchor className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-primary">{arrived}</div>
                 </CardContent>
               </Card>
               <Card>
