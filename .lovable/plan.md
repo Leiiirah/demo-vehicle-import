@@ -1,33 +1,27 @@
 
 
-## Enhanced Debt Display for Suppliers
+## Fix: Payment Should Check Caisse Summary, Not Balance Table
 
-### Current behavior
-- `remainingDebt = Math.max(totalInvestment - totalPaid, 0)` -- always >= 0, clamped
-- Displayed in red regardless of actual balance
+### Problem
+Payments check `caisse_balance` table (manually set, stale at 3,720,000 DZD) instead of the dynamic summary (102,480,000 DZD computed from entries).
 
-### New behavior
-- Remove the `Math.max(0, ...)` clamp -- allow negative values
-- **Positive debt** (admin owes supplier): show as `-X USD` in **red** with "Vous devez" label
-- **Negative debt / overpayment** (admin has credit with supplier): show as `+X USD` in **green** with "Crédit" label
-- **Zero**: neutral display
+### Solution
+Change the payment service to use the **Solde Actuel** from the caisse summary (totalEntrees - totalCharges) as the source of truth for balance validation.
 
 ### Changes
 
-**1. Backend: `suppliers.service.ts`** (line ~39)
-- Remove `Math.max` from `remainingDebt` calculation so it can be negative (negative = admin overpaid = has credit)
+**1. `backend/src/modules/payments/payments.service.ts`**
+- Replace `caisseBalanceService.getBalance()` check with `caisseService.getSummary()` to get `soldeActuel`
+- Compare `deductAmount` against `soldeActuel` instead of the static balance
+- Remove `caisseBalanceService.deduct()` call after payment — instead, the payment already creates a caisse entry (charge) which automatically reduces `soldeActuel`
+- Inject `CaisseService` instead of (or alongside) `CaisseBalanceService`
 
-**2. Frontend: `SupplierDetail.tsx`**
-- Remove `Math.max(0, ...)` from `filteredStats.remainingDebt` (line 121)
-- Update the "Dette restante" KPI card (lines 277-289):
-  - If `remainingDebt > 0`: red text, minus sign, label "Vous devez"
-  - If `remainingDebt < 0`: green text, plus sign, label "Crédit fournisseur"
-  - If `0`: neutral
+**2. `backend/src/modules/payments/payments.module.ts`**
+- Import `CaisseModule` or provide `CaisseService` so it can be injected
 
-**3. Frontend: `Suppliers.tsx`**
-- Update the "Dette totale en cours" summary card (lines 123-128): split into net debt vs net credit display
-- Update the table "Dette restante" column (lines 180-184):
-  - Positive: red with `-` prefix
-  - Negative: green with `+` prefix (show absolute value as credit)
-  - Zero: neutral/muted
+**3. Ensure payment creates a caisse entry**
+- After saving the payment, create a `CaisseEntry` of type `CHARGE` with the DZD amount so the summary automatically reflects the deduction
+- On payment deletion, create an `ENTREE` to reverse it
+
+This way the single source of truth is the caisse entries table, and the stale `caisse_balance` table is no longer involved in payment validation.
 
