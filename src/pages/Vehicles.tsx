@@ -292,7 +292,7 @@ const VehiclesPage = () => {
                 <tbody>
                   {filteredVehicles.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="text-center py-8 text-muted-foreground">
+                      <td colSpan={12} className="text-center py-8 text-muted-foreground">
                         Aucun véhicule trouvé
                       </td>
                     </tr>
