@@ -110,8 +110,7 @@ const VehicleDetailPage = () => {
   // État pour les charges DZD
   const [chargesTransit, setChargesTransit] = useState<number>(0);
 
-  // Taux de change réel (saisi par l'admin)
-  const [tauxChangeReel, setTauxChangeReel] = useState<number>(0);
+  // Taux de change is now derived from dossier payments (tauxChangeFinal)
 
   // Local state for new charge being added (before saving)
   const [newCharge, setNewCharge] = useState<{ label: string; amount: number } | null>(null);
@@ -122,7 +121,6 @@ const VehicleDetailPage = () => {
       setPrixVehicule(Number(vehicle.purchasePrice) || 0);
       setPrixTransport(Number(vehicle.transportCost) || 0);
       setChargesTransit(Number(vehicle.localFees) || 0);
-      setTauxChangeReel(Number(vehicle.theoreticalRate) || 0);
       setHasChanges(false);
     }
   }, [vehicle]);
@@ -137,7 +135,6 @@ const VehicleDetailPage = () => {
       return api.updateVehicle(id, {
         purchasePrice: prixVehicule,
         localFees: chargesTransit,
-        theoreticalRate: tauxChangeReel,
       });
     },
     onMutate: async () => {
@@ -189,19 +186,19 @@ const VehicleDetailPage = () => {
   };
 
 
-  // Calculs
+  // Calculs - use exchange rate from dossier payments
   const totalUSD = prixVehicule + prixTransport;
 
-  // Total USD converti en DZD via taux réel
-  const totalUSDenDZD = totalUSD * tauxChangeReel;
+  // Total USD converti en DZD via taux from payments
+  const totalUSDenDZD = totalUSD * tauxChangeFinal;
 
   // Total charges diverses
   const totalChargesDivers = chargesDivers.reduce((sum, c) => sum + Number(c.amount), 0);
 
-  // Prix de revient (calculé uniquement si taux réel saisi)
-  const prixRevient = tauxChangeReel > 0 ? totalUSDenDZD + chargesTransit + totalChargesDivers : 0;
+  // Prix de revient (calculé uniquement si taux from payments exists)
+  const prixRevient = tauxChangeFinal > 0 ? totalUSDenDZD + chargesTransit + totalChargesDivers : 0;
 
-  // Calcul de la répartition des bénéfices (safe access after loading check)
+  // Calcul de la répartition des bénéfices
   const sellingPrice = vehicle?.sellingPrice ?? 0;
   const hasBeneficeData = sellingPrice > 0 && prixRevient > 0;
   const benefice = sellingPrice - prixRevient;
