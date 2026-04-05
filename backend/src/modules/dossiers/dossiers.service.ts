@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Dossier } from '../../entities/dossier.entity';
+import { Dossier, DossierStatus } from '../../entities/dossier.entity';
+import { Payment } from '../../entities/payment.entity';
+import { Vehicle } from '../../entities/vehicle.entity';
 import { CreateDossierDto } from './dto/create-dossier.dto';
 import { UpdateDossierDto } from './dto/update-dossier.dto';
 
@@ -10,6 +12,10 @@ export class DossiersService {
   constructor(
     @InjectRepository(Dossier)
     private dossierRepository: Repository<Dossier>,
+    @InjectRepository(Payment)
+    private paymentRepository: Repository<Payment>,
+    @InjectRepository(Vehicle)
+    private vehicleRepository: Repository<Vehicle>,
   ) {}
 
   async findAll() {
