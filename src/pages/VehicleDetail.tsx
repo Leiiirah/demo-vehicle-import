@@ -666,32 +666,30 @@ const VehicleDetailPage = () => {
 
               {/* Colonne droite : Taux + Prix de revient */}
               <div className="space-y-4">
-                {/* Taux de change réel - only when vehicle is sold */}
-                {vehicle.status === 'sold' && (
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4" />
-                        Taux de change réel
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <Label>Taux DZD / USD</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={tauxChangeReel || ''}
-                          onChange={(e) => handleTauxReelChange(Number(e.target.value))}
-                          placeholder="Ex: 134.50"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                {/* Taux de change réel - always visible for manual input */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4" />
+                      Taux de change réel
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <Label>Taux DZD / USD</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={tauxChangeReel || ''}
+                        onChange={(e) => handleTauxReelChange(Number(e.target.value))}
+                        placeholder="Ex: 134.50"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
 
-                {/* Récap prix de revient - only when vehicle is sold */}
-                {vehicle.status === 'sold' && (
+                {/* Récap prix de revient - visible whenever tauxChangeReel > 0 */}
+                {tauxChangeReel > 0 && (
                   <Card className="border-primary/30 bg-primary/5">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base">Prix de revient</CardTitle>
@@ -800,6 +798,14 @@ const VehicleDetailPage = () => {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">VIN</span>
                     <code className="text-xs bg-muted px-2 py-1 rounded">{vehicle.vin}</code>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Couleur</span>
+                    <span className="font-medium">{vehicle.color || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Boîte</span>
+                    <span className="font-medium">{vehicle.transmission === 'manual' ? 'Manuelle' : 'Automatique'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Conteneur</span>

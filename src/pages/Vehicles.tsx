@@ -273,7 +273,7 @@ const VehiclesPage = () => {
           <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="data-table">
-                 <thead>
+                  <thead>
                   <tr>
                     <th>Véhicule</th>
                     <th>VIN</th>
@@ -283,6 +283,8 @@ const VehiclesPage = () => {
                     <th>Prix d'achat (USD)</th>
                     <th>Transport (USD)</th>
                     <th>Transit (DZD)</th>
+                    <th>Charges divers (DZD)</th>
+                    <th>Total (DZD)</th>
                     <th>Statut</th>
                     <th></th>
                   </tr>
@@ -290,7 +292,7 @@ const VehiclesPage = () => {
                 <tbody>
                   {filteredVehicles.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="text-center py-8 text-muted-foreground">
+                      <td colSpan={12} className="text-center py-8 text-muted-foreground">
                         Aucun véhicule trouvé
                       </td>
                     </tr>
@@ -348,6 +350,12 @@ const VehiclesPage = () => {
                         </td>
                         <td className="text-foreground">
                           {formatCurrency(Number(vehicle.localFees || 0))}
+                        </td>
+                        <td className="text-foreground">
+                          {formatCurrency(Number((vehicle as any).totalChargesDivers || 0))}
+                        </td>
+                        <td className="text-foreground">
+                          {Number(vehicle.totalCost) > 0 ? formatCurrency(Number(vehicle.totalCost)) : '-'}
                         </td>
                         <td><VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} /></td>
                         <td>

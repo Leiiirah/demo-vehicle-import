@@ -33,10 +33,23 @@ export class VehiclesService {
   ) {}
 
   async findAll() {
-    return this.vehicleRepository.find({
+    const vehicles = await this.vehicleRepository.find({
       order: { createdAt: 'DESC' },
       relations: ['supplier', 'conteneur', 'conteneur.dossier', 'client', 'passeport'],
     });
+
+    // Fetch charges for all vehicles in one query
+    const charges = await this.vehicleChargeRepository.find();
+    const chargesByVehicle = new Map<string, number>();
+    for (const charge of charges) {
+      const current = chargesByVehicle.get(charge.vehicleId) || 0;
+      chargesByVehicle.set(charge.vehicleId, current + Number(charge.amount));
+    }
+
+    return vehicles.map((v) => ({
+      ...v,
+      totalChargesDivers: chargesByVehicle.get(v.id) || 0,
+    }));
   }
 
   async findOne(id: string) {
