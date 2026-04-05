@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Payment } from '../../entities/payment.entity';
 import { Vehicle } from '../../entities/vehicle.entity';
+import { Dossier, DossierStatus } from '../../entities/dossier.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { CaisseService } from '../caisse/caisse.service';
@@ -14,6 +15,8 @@ export class PaymentsService {
     private paymentRepository: Repository<Payment>,
     @InjectRepository(Vehicle)
     private vehicleRepository: Repository<Vehicle>,
+    @InjectRepository(Dossier)
+    private dossierRepository: Repository<Dossier>,
     private caisseService: CaisseService,
   ) {}
 
@@ -60,9 +63,10 @@ export class PaymentsService {
     const payment = this.paymentRepository.create(createPaymentDto);
     const saved = await this.paymentRepository.save(payment);
 
-    // Payment is already reflected in caisse via the consolidated ledger
-    // (CaisseService.findAll() includes payments automatically)
-    // No need to create a separate caisse entry or deduct from balance
+    // Auto-update dossier status if fully paid
+    if (saved.dossierId) {
+      await this.autoUpdateDossierStatus(saved.dossierId);
+    }
 
     return saved;
   }
@@ -73,7 +77,14 @@ export class PaymentsService {
       throw new NotFoundException('Payment not found');
     }
     Object.assign(payment, updatePaymentDto);
-    return this.paymentRepository.save(payment);
+    const saved = await this.paymentRepository.save(payment);
+
+    // Auto-update dossier status after payment edit
+    if (saved.dossierId) {
+      await this.autoUpdateDossierStatus(saved.dossierId);
+    }
+
+    return saved;
   }
 
   async remove(id: string) {
@@ -81,15 +92,19 @@ export class PaymentsService {
     if (!payment) {
       throw new NotFoundException('Payment not found');
     }
-    // No need to refund caisse_balance — payment removal automatically
-    // removes it from the consolidated ledger (CaisseService.findAll())
+    const dossierId = payment.dossierId;
 
     await this.paymentRepository.remove(payment);
+
+    // Auto-update dossier status after payment deletion (may revert to en_cours)
+    if (dossierId) {
+      await this.autoUpdateDossierStatus(dossierId);
+    }
+
     return { message: 'Payment deleted successfully' };
   }
 
   async getDossierPaymentStats(dossierId: string) {
-    // Get all vehicles in this dossier
     const vehicles = await this.vehicleRepository
       .createQueryBuilder('vehicle')
       .innerJoin('vehicle.conteneur', 'conteneur')
@@ -98,7 +113,6 @@ export class PaymentsService {
 
     const totalDue = vehicles.reduce((sum, v) => sum + Number(v.purchasePrice) + Number(v.transportCost || 0), 0);
 
-    // Get all payments for this dossier
     const payments = await this.paymentRepository.find({
       where: { dossierId, type: 'supplier_payment' as any },
     });
@@ -117,6 +131,26 @@ export class PaymentsService {
       progress: totalDue > 0 ? (totalPaid / totalDue) * 100 : 0,
       payments,
     };
+  }
+
+  /**
+   * Auto-update dossier status based on payment progress:
+   * - progress >= 100 → "termine" (soldé)
+   * - progress < 100 → "en_cours" (only if currently termine, to revert on payment deletion)
+   */
+  private async autoUpdateDossierStatus(dossierId: string) {
+    const stats = await this.getDossierPaymentStats(dossierId);
+    const dossier = await this.dossierRepository.findOne({ where: { id: dossierId } });
+    if (!dossier) return;
+
+    if (stats.progress >= 100 && dossier.status !== DossierStatus.TERMINE) {
+      dossier.status = DossierStatus.TERMINE;
+      await this.dossierRepository.save(dossier);
+    } else if (stats.progress < 100 && dossier.status === DossierStatus.TERMINE) {
+      // Revert to en_cours if a payment was deleted and no longer fully paid
+      dossier.status = DossierStatus.EN_COURS;
+      await this.dossierRepository.save(dossier);
+    }
   }
 
   private async validateDossierPayment(
