@@ -39,7 +39,7 @@ export class SuppliersService {
       totalPaid,
       vehiclesSupplied,
       creditBalance,
-      remainingDebt: remainingDebt > 0 ? remainingDebt : 0,
+      remainingDebt,
     };
   }
 

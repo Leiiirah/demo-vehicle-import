@@ -120,12 +120,17 @@ const SuppliersPage = () => {
                   {formatCurrency(suppliersList.reduce((sum, s) => sum + (parseFloat(String(s.totalPaid)) || 0), 0))}
                 </p>
               </div>
-              <div className="kpi-card border-l-4 border-l-danger">
-                <p className="kpi-label">Dette totale en cours</p>
-                <p className="kpi-value text-danger">
-                  {formatCurrency(suppliersList.reduce((sum, s) => sum + (parseFloat(String(s.remainingDebt)) || 0), 0))}
-                </p>
-              </div>
+              {(() => {
+                const netDebt = suppliersList.reduce((sum, s) => sum + (parseFloat(String(s.remainingDebt)) || 0), 0);
+                return (
+                  <div className={`kpi-card border-l-4 ${netDebt > 0 ? 'border-l-danger' : netDebt < 0 ? 'border-l-success' : 'border-l-muted'}`}>
+                    <p className="kpi-label">{netDebt > 0 ? 'Dette totale' : netDebt < 0 ? 'Crédit total' : 'Solde'}</p>
+                    <p className={`kpi-value ${netDebt > 0 ? 'text-danger' : netDebt < 0 ? 'text-success' : 'text-muted-foreground'}`}>
+                      {netDebt > 0 ? '-' : netDebt < 0 ? '+' : ''}{formatCurrency(Math.abs(netDebt))}
+                    </p>
+                  </div>
+                );
+              })()}
             </>
           )}
         </div>
@@ -178,9 +183,9 @@ const SuppliersPage = () => {
                         {formatCurrency(supplier.creditBalance || 0)}
                       </TableCell>
                       <TableCell className={`text-right font-semibold ${
-                        (supplier.remainingDebt || 0) > 0 ? 'text-danger' : 'text-success'
+                        (supplier.remainingDebt || 0) > 0 ? 'text-danger' : (supplier.remainingDebt || 0) < 0 ? 'text-success' : 'text-muted-foreground'
                       }`}>
-                        {formatCurrency(supplier.remainingDebt || 0)}
+                        {(supplier.remainingDebt || 0) > 0 ? '-' : (supplier.remainingDebt || 0) < 0 ? '+' : ''}{formatCurrency(Math.abs(supplier.remainingDebt || 0))}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
