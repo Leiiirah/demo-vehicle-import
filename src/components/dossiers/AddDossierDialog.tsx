@@ -155,7 +155,7 @@ export const AddDossierDialog = ({ open, onOpenChange, preSelectedSupplierId }: 
               </Label>
               <Input 
                 id="reference" 
-                placeholder={`Ex: ${generateReference()} (auto si vide)`}
+                placeholder={selectedSupplier ? `Ex: ${selectedSupplier.name.toUpperCase().replace(/\s+/g, '-')}-001 (auto si vide)` : 'Sélectionnez un fournisseur d\'abord'}
                 value={reference}
                 onChange={(e) => setReference(e.target.value)}
               />
