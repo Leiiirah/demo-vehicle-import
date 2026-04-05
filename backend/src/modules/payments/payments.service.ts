@@ -44,16 +44,7 @@ export class PaymentsService {
   }
 
   async create(createPaymentDto: CreatePaymentDto) {
-    // If this is a supplier payment linked to a dossier, validate total
-    if (createPaymentDto.dossierId && createPaymentDto.type === 'supplier_payment') {
-      const validation = await this.validateDossierPayment(
-        createPaymentDto.dossierId,
-        createPaymentDto.amount,
-      );
-      if (!validation.valid) {
-        throw new BadRequestException(validation.message);
-      }
-    }
+    // Overpayment is allowed — excess becomes supplier credit
 
     // Calculate DZD amount to deduct
     const deductAmount = Number(createPaymentDto.amount) * Number(createPaymentDto.exchangeRate || 1);
