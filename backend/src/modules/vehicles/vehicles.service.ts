@@ -101,6 +101,8 @@ export class VehiclesService {
     const theoreticalRate = createVehicleDto.theoreticalRate || null;
     const localFees = createVehicleDto.localFees || 0;
     const purchasePrice = createVehicleDto.purchasePrice;
+    const normalizedColor = createVehicleDto.color?.trim() || null;
+    const normalizedTransmission = createVehicleDto.transmission?.trim() || 'automatic';
 
     // Only calculate totalCost if a rate is provided
     const totalCost = theoreticalRate && theoreticalRate > 0
@@ -109,6 +111,8 @@ export class VehiclesService {
 
     const vehicle = this.vehicleRepository.create({
       ...createVehicleDto,
+      color: normalizedColor,
+      transmission: normalizedTransmission,
       transportCost: transportCostPerVehicle,
       passeportCost,
       totalCost,
@@ -173,7 +177,17 @@ export class VehiclesService {
         : 0;
     }
 
-    Object.assign(vehicle, updateVehicleDto);
+    const normalizedUpdates = {
+      ...updateVehicleDto,
+      ...(updateVehicleDto.color !== undefined
+        ? { color: updateVehicleDto.color.trim() || null }
+        : {}),
+      ...(updateVehicleDto.transmission !== undefined
+        ? { transmission: updateVehicleDto.transmission.trim() || 'automatic' }
+        : {}),
+    };
+
+    Object.assign(vehicle, normalizedUpdates);
     await this.vehicleRepository.save(vehicle);
     return this.findOne(id);
   }
