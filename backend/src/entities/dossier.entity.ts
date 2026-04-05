@@ -14,7 +14,7 @@ import { Payment } from './payment.entity';
 
 export enum DossierStatus {
   EN_COURS = 'en_cours',
-  TERMINE = 'termine',
+  SOLDE = 'solde',
   ANNULE = 'annule',
 }
 

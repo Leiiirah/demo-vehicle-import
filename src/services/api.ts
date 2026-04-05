@@ -447,7 +447,7 @@ export interface Dossier {
   supplierId: string;
   supplier?: Supplier;
   dateCreation: string;
-  status: 'en_cours' | 'termine' | 'annule';
+  status: 'en_cours' | 'solde' | 'annule';
   conteneurs?: Conteneur[];
 }
 
@@ -455,7 +455,7 @@ export interface CreateDossierData {
   reference: string;
   supplierId: string;
   dateCreation: string;
-  status?: 'en_cours' | 'termine' | 'annule';
+  status?: 'en_cours' | 'solde' | 'annule';
 }
 
 export interface Conteneur {

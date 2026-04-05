@@ -32,7 +32,7 @@ interface EditDossierDialogProps {
   dossier: Dossier | null;
 }
 
-type DossierStatus = 'en_cours' | 'termine' | 'annule';
+type DossierStatus = 'en_cours' | 'solde' | 'annule';
 
 export function EditDossierDialog({ open, onOpenChange, dossier }: EditDossierDialogProps) {
   const queryClient = useQueryClient();
@@ -136,7 +136,7 @@ export function EditDossierDialog({ open, onOpenChange, dossier }: EditDossierDi
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="en_cours">En cours</SelectItem>
-                  <SelectItem value="termine">Terminé</SelectItem>
+                  <SelectItem value="solde">Soldé</SelectItem>
                   <SelectItem value="annule">Annulé</SelectItem>
                 </SelectContent>
               </Select>

@@ -5,7 +5,7 @@ import { api } from '@/services/api';
 import { formatCurrency } from '@/lib/utils';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useSupplier, useDossiers, useVehicles, usePayments } from '@/hooks/useApi';
-import { exportSupplierFullReport } from '@/lib/exportSupplierData';
+import { exportSupplierFullReport, exportSupplierDossierReport } from '@/lib/exportSupplierData';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { 
@@ -138,12 +138,12 @@ const SupplierDetailPage = () => {
   const getDossierStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
       en_cours: 'bg-primary/10 text-primary border-primary/20',
-      termine: 'bg-success/10 text-success border-success/20',
+      solde: 'bg-success/10 text-success border-success/20',
       annule: 'bg-destructive/10 text-destructive border-destructive/20',
     };
     const labels: Record<string, string> = {
       en_cours: 'En cours',
-      termine: 'Terminé',
+      solde: 'Soldé',
       annule: 'Annulé',
     };
     return <Badge variant="outline" className={styles[status]}>{labels[status]}</Badge>;
@@ -315,12 +315,13 @@ const SupplierDetailPage = () => {
                   <TableHead>Date de création</TableHead>
                   <TableHead>Conteneurs</TableHead>
                   <TableHead>Statut</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {supplierDossiers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                       Aucun dossier pour ce fournisseur
                     </TableCell>
                   </TableRow>
@@ -344,6 +345,19 @@ const SupplierDetailPage = () => {
                         {dossier.conteneurs?.length || 0} conteneur{(dossier.conteneurs?.length || 0) !== 1 ? 's' : ''}
                       </TableCell>
                       <TableCell>{getDossierStatusBadge(dossier.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            exportSupplierDossierReport(supplier.name, dossier, supplierVehicles);
+                            toast.success(`PDF exporté pour ${dossier.reference}`);
+                          }}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}

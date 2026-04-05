@@ -10,8 +10,7 @@ interface DossierWithConteneurs {
   conteneurs?: { id: string; numero: string; vehicles?: Vehicle[] }[];
 }
 
-const statusLabels: Record<string, string> = { en_cours: 'En cours', termine: 'Terminé', annule: 'Annulé' };
-const vStatusLabels: Record<string, string> = { ordered: 'En stock', in_transit: 'Chargée', arrived: 'Arrivé', sold: 'Vendu' };
+const statusLabels: Record<string, string> = { en_cours: 'En cours', solde: 'Soldé', annule: 'Annulé' };
 const typeLabels: Record<string, string> = { supplier_payment: 'Paiement fournisseur', client_payment: 'Paiement client', transport: 'Transport', fees: 'Frais' };
 
 function addHeader(doc: jsPDF, title: string, supplierName: string) {
@@ -35,6 +34,76 @@ function checkPage(doc: jsPDF, y: number, needed = 20): number {
   return y;
 }
 
+function getDossierTotal(dossier: DossierWithConteneurs, vehicles: Vehicle[]): number {
+  let total = 0;
+  const conteneurs = dossier.conteneurs || [];
+  for (const cont of conteneurs) {
+    const contVehicles = (cont.vehicles || []).length > 0
+      ? cont.vehicles!
+      : vehicles.filter(v => v.conteneurId === cont.id);
+    for (const v of contVehicles) {
+      total += Number(v.totalCost || 0);
+    }
+  }
+  return total;
+}
+
+function addDossierVehiclesTable(doc: jsPDF, y: number, dossier: DossierWithConteneurs, vehicles: Vehicle[]): { y: number; dossierTotal: number } {
+  let dossierTotal = 0;
+  const conteneurs = dossier.conteneurs || [];
+
+  if (conteneurs.length === 0) {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Aucun conteneur', 18, y);
+    return { y: y + 8, dossierTotal: 0 };
+  }
+
+  for (const cont of conteneurs) {
+    y = checkPage(doc, y, 25);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Conteneur: ${cont.numero}`, 18, y);
+    y += 6;
+
+    const contVehicles = (cont.vehicles || []).length > 0
+      ? cont.vehicles!
+      : vehicles.filter(v => v.conteneurId === cont.id);
+
+    if (contVehicles.length === 0) {
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Aucun véhicule', 22, y);
+      y += 7;
+      continue;
+    }
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setFillColor(230, 230, 235);
+    doc.rect(18, y - 3.5, 174, 6, 'F');
+    const cols = [18, 60, 100, 130, 160];
+    const headers = ['Véhicule', 'VIN', 'Achat ($)', 'Transport ($)', 'Coût Total ($)'];
+    headers.forEach((h, i) => doc.text(h, cols[i], y));
+    y += 6;
+
+    doc.setFont('helvetica', 'normal');
+    for (const v of contVehicles) {
+      y = checkPage(doc, y, 8);
+      doc.text(`${v.brand} ${v.model} ${v.year}`, cols[0], y);
+      doc.text(v.vin?.slice(-8) || '', cols[1], y);
+      doc.text(String(v.purchasePrice || 0), cols[2], y);
+      doc.text(String(v.transportCost || 0), cols[3], y);
+      doc.text(String(v.totalCost || 0), cols[4], y);
+      dossierTotal += Number(v.totalCost || 0);
+      y += 5;
+    }
+    y += 4;
+  }
+
+  return { y, dossierTotal };
+}
+
 function addDossiersSection(doc: jsPDF, y: number, dossiers: DossierWithConteneurs[], vehicles: Vehicle[]): number {
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
@@ -48,7 +117,11 @@ function addDossiersSection(doc: jsPDF, y: number, dossiers: DossierWithConteneu
     return y + 10;
   }
 
+  let grandTotal = 0;
+
   for (const dossier of dossiers) {
+    const dossierCostTotal = getDossierTotal(dossier, vehicles);
+    
     y = checkPage(doc, y, 30);
     doc.setFillColor(240, 240, 245);
     doc.rect(14, y - 5, 182, 10, 'F');
@@ -57,61 +130,27 @@ function addDossiersSection(doc: jsPDF, y: number, dossiers: DossierWithConteneu
     doc.text(`${dossier.reference}`, 16, y + 2);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.text(`${new Date(dossier.dateCreation).toLocaleDateString('fr-FR')}  |  ${statusLabels[dossier.status] || dossier.status}`, 100, y + 2);
+    doc.text(`${new Date(dossier.dateCreation).toLocaleDateString('fr-FR')}  |  ${statusLabels[dossier.status] || dossier.status}`, 80, y + 2);
+    // Dossier total on same line
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Total: $${dossierCostTotal.toLocaleString()}`, 155, y + 2);
+    doc.setFont('helvetica', 'normal');
     y += 12;
 
-    const conteneurs = dossier.conteneurs || [];
-    if (conteneurs.length === 0) {
-      doc.setFontSize(9);
-      doc.text('Aucun conteneur', 18, y);
-      y += 8;
-      continue;
-    }
-
-    for (const cont of conteneurs) {
-      y = checkPage(doc, y, 25);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Conteneur: ${cont.numero}`, 18, y);
-      y += 6;
-
-      const contVehicles = (cont.vehicles || []).length > 0
-        ? cont.vehicles!
-        : vehicles.filter(v => v.conteneurId === cont.id);
-
-      if (contVehicles.length === 0) {
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.text('Aucun véhicule', 22, y);
-        y += 7;
-        continue;
-      }
-
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      doc.setFillColor(230, 230, 235);
-      doc.rect(18, y - 3.5, 174, 6, 'F');
-      const cols = [18, 55, 85, 105, 125, 150, 170];
-      const headers = ['Véhicule', 'VIN', 'Statut', 'Achat ($)', 'Transport', 'Coût Total', 'Vente DZD'];
-      headers.forEach((h, i) => doc.text(h, cols[i], y));
-      y += 6;
-
-      doc.setFont('helvetica', 'normal');
-      for (const v of contVehicles) {
-        y = checkPage(doc, y, 8);
-        doc.text(`${v.brand} ${v.model} ${v.year}`, cols[0], y);
-        doc.text(v.vin?.slice(-8) || '', cols[1], y);
-        doc.text(vStatusLabels[v.status] || v.status, cols[2], y);
-        doc.text(String(v.purchasePrice || 0), cols[3], y);
-        doc.text(String(v.transportCost || 0), cols[4], y);
-        doc.text(String(v.totalCost || 0), cols[5], y);
-        doc.text(v.sellingPrice ? String(v.sellingPrice) : '-', cols[6], y);
-        y += 5;
-      }
-      y += 4;
-    }
+    const result = addDossierVehiclesTable(doc, y, dossier, vehicles);
+    y = result.y;
+    grandTotal += result.dossierTotal;
     y += 4;
   }
+
+  // Grand total for all dossiers
+  y = checkPage(doc, y, 15);
+  doc.setFillColor(220, 220, 230);
+  doc.rect(14, y - 4, 182, 10, 'F');
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Total Général Dossiers: $${grandTotal.toLocaleString()}`, 16, y + 3);
+  y += 14;
 
   return y;
 }
@@ -190,4 +229,45 @@ export function exportSupplierFullReport(
   addTransactionsSection(doc, y, payments, supplier);
 
   doc.save(`${supplierName}_rapport.pdf`);
+}
+
+/**
+ * Export a single dossier PDF for a supplier
+ */
+export function exportSupplierDossierReport(
+  supplierName: string,
+  dossier: DossierWithConteneurs,
+  vehicles: Vehicle[],
+) {
+  const doc = new jsPDF();
+  let y = addHeader(doc, `Dossier ${dossier.reference}`, supplierName);
+
+  const dossierCostTotal = getDossierTotal(dossier, vehicles);
+
+  // Dossier header
+  doc.setFillColor(240, 240, 245);
+  doc.rect(14, y - 5, 182, 10, 'F');
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${dossier.reference}`, 16, y + 2);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text(`${new Date(dossier.dateCreation).toLocaleDateString('fr-FR')}  |  ${statusLabels[dossier.status] || dossier.status}`, 80, y + 2);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Total: $${dossierCostTotal.toLocaleString()}`, 155, y + 2);
+  doc.setFont('helvetica', 'normal');
+  y += 12;
+
+  const result = addDossierVehiclesTable(doc, y, dossier, vehicles);
+  y = result.y + 6;
+
+  // Total line
+  y = checkPage(doc, y, 12);
+  doc.setFillColor(220, 220, 230);
+  doc.rect(14, y - 4, 182, 10, 'F');
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Total Dossier: $${result.dossierTotal.toLocaleString()}`, 16, y + 3);
+
+  doc.save(`${supplierName}_${dossier.reference}.pdf`);
 }

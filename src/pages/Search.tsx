@@ -44,7 +44,7 @@ interface SearchResult {
 
 const statusConfig = {
   en_cours: { label: 'En cours', className: 'bg-primary/10 text-primary border-primary/30' },
-  termine: { label: 'Terminé', className: 'bg-success/10 text-success border-success/30' },
+  solde: { label: 'Soldé', className: 'bg-success/10 text-success border-success/30' },
   annule: { label: 'Annulé', className: 'bg-destructive/10 text-destructive border-destructive/30' },
 };
 
