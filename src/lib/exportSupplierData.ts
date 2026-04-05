@@ -239,11 +239,15 @@ export function exportSupplierDossierReport(
   supplierName: string,
   dossier: DossierWithConteneurs,
   vehicles: Vehicle[],
+  payments: Payment[] = [],
 ) {
   const doc = new jsPDF();
   let y = addHeader(doc, `Dossier ${dossier.reference}`, supplierName);
 
   const dossierCostTotal = getDossierTotal(dossier, vehicles);
+  const dossierPayments = payments.filter(p => p.dossierId === dossier.id);
+  const totalVersements = dossierPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+  const reste = dossierCostTotal - totalVersements;
 
   // Dossier header
   doc.setFillColor(240, 240, 245);
@@ -262,6 +266,65 @@ export function exportSupplierDossierReport(
   const result = addDossierVehiclesTable(doc, y, dossier, vehicles);
   y = result.y + 6;
 
+  // Payment summary section
+  y = checkPage(doc, y, 40);
+  doc.setFillColor(245, 245, 250);
+  doc.roundedRect(14, y, 182, 24, 3, 3, 'F');
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Résumé des versements', 20, y + 7);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text(`Total dû: $${dossierCostTotal.toLocaleString()}`, 20, y + 14);
+  doc.text(`Versements effectués: $${totalVersements.toLocaleString()}`, 85, y + 14);
+  if (reste > 0) {
+    doc.setTextColor(200, 0, 0);
+    doc.text(`Reste à payer: $${reste.toLocaleString()}`, 20, y + 21);
+    doc.setTextColor(0, 0, 0);
+  } else if (reste < 0) {
+    doc.setTextColor(0, 150, 0);
+    doc.text(`Crédit: +$${Math.abs(reste).toLocaleString()}`, 20, y + 21);
+    doc.setTextColor(0, 0, 0);
+  } else {
+    doc.setTextColor(0, 150, 0);
+    doc.text(`Soldé`, 20, y + 21);
+    doc.setTextColor(0, 0, 0);
+  }
+  doc.text(`Nombre de versements: ${dossierPayments.length}`, 85, y + 21);
+  y += 30;
+
+  // Payment details table
+  if (dossierPayments.length > 0) {
+    y = checkPage(doc, y, 20);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Détail des versements', 14, y);
+    y += 6;
+
+    const cols = [14, 40, 80, 115, 145, 170];
+    const headers = ['Date', 'Référence', 'Montant ($)', 'Taux', 'Équiv. DZD', 'Statut'];
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setFillColor(230, 230, 235);
+    doc.rect(14, y - 3.5, 182, 6, 'F');
+    headers.forEach((h, i) => doc.text(h, cols[i], y));
+    y += 6;
+
+    doc.setFont('helvetica', 'normal');
+    for (const p of dossierPayments) {
+      y = checkPage(doc, y, 8);
+      doc.text(new Date(p.date).toLocaleDateString('fr-FR'), cols[0], y);
+      doc.text(p.reference?.slice(0, 18) || '', cols[1], y);
+      doc.text(String(Number(p.amount).toLocaleString()), cols[2], y);
+      doc.text(String(Number(p.exchangeRate).toFixed(2)), cols[3], y);
+      const dzd = Number(p.amount) * Number(p.exchangeRate);
+      doc.text(dzd.toLocaleString(), cols[4], y);
+      doc.text(p.status === 'completed' ? 'Complété' : 'En attente', cols[5], y);
+      y += 5;
+    }
+    y += 6;
+  }
+
   // Total line
   y = checkPage(doc, y, 12);
   doc.setFillColor(220, 220, 230);
@@ -269,6 +332,7 @@ export function exportSupplierDossierReport(
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.text(`Total Dossier: $${result.dossierTotal.toLocaleString()}`, 16, y + 3);
+  doc.text(`Versé: $${totalVersements.toLocaleString()}  |  Reste: $${Math.max(reste, 0).toLocaleString()}`, 100, y + 3);
 
   doc.save(`${supplierName}_${dossier.reference}.pdf`);
 }
