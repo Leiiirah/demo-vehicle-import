@@ -111,14 +111,14 @@ export class VehiclesService {
 
     const vehicle = this.vehicleRepository.create({
       ...createVehicleDto,
-      color: normalizedColor,
+      color: normalizedColor ?? undefined,
       transmission: normalizedTransmission,
       transportCost: transportCostPerVehicle,
       passeportCost,
       totalCost,
     });
 
-    const savedVehicle = await this.vehicleRepository.save(vehicle);
+    const savedVehicle = await this.vehicleRepository.save(vehicle) as Vehicle;
 
     // Recalculate transport cost for all vehicles in this container
     await this.recalculateContainerTransportCosts(createVehicleDto.conteneurId);
