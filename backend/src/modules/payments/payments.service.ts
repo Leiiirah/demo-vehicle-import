@@ -194,10 +194,24 @@ export class PaymentsService {
       .where('conteneur.dossierId = :dossierId', { dossierId })
       .getMany();
 
+    // Fetch all charges for these vehicles in one query
+    const vehicleIds = vehicles.map(v => v.id);
+    const charges = vehicleIds.length > 0
+      ? await this.vehicleChargeRepository
+          .createQueryBuilder('charge')
+          .where('charge.vehicleId IN (:...vehicleIds)', { vehicleIds })
+          .getMany()
+      : [];
+    const chargesByVehicle = new Map<string, number>();
+    for (const c of charges) {
+      chargesByVehicle.set(c.vehicleId, (chargesByVehicle.get(c.vehicleId) || 0) + Number(c.amount));
+    }
+
     for (const v of vehicles) {
       v.theoreticalRate = weightedRate;
+      const totalCharges = chargesByVehicle.get(v.id) || 0;
       v.totalCost = (Number(v.purchasePrice) + Number(v.transportCost || 0)) * weightedRate
-        + Number(v.localFees || 0) + Number(v.passeportCost || 0);
+        + Number(v.localFees || 0) + Number(v.passeportCost || 0) + totalCharges;
       await this.vehicleRepository.save(v);
     }
   }
