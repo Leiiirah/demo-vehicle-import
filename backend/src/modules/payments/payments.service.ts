@@ -16,6 +16,8 @@ export class PaymentsService {
     private paymentRepository: Repository<Payment>,
     @InjectRepository(Vehicle)
     private vehicleRepository: Repository<Vehicle>,
+    @InjectRepository(VehicleCharge)
+    private vehicleChargeRepository: Repository<VehicleCharge>,
     @InjectRepository(Dossier)
     private dossierRepository: Repository<Dossier>,
     private caisseService: CaisseService,
