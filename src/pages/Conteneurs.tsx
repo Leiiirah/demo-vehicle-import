@@ -76,6 +76,11 @@ export default function ConteneursPage() {
   const decharged = (conteneurs || []).filter((c) => c.status === 'decharge').length;
   const totalVehicles = (conteneurs || []).reduce((acc, c) => acc + (c.vehicles?.length || 0), 0);
 
+  const sumPrixTotal = filteredConteneurs.reduce((acc, c) => {
+    const cTotal = (c.vehicles || []).reduce((sum: number, v: any) => sum + (parseFloat(String(v.totalCost)) || 0), 0);
+    return acc + cTotal;
+  }, 0);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -94,7 +99,7 @@ export default function ConteneursPage() {
         <AddConteneurDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
 
         {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-6">
           {isLoading ? (
             <>
               {[...Array(4)].map((_, i) => (
@@ -146,6 +151,15 @@ export default function ConteneursPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{totalVehicles}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Prix Total{statusFilter !== 'all' ? ` (${statusConfig[statusFilter as keyof typeof statusConfig]?.label})` : ''}</CardTitle>
+                  <Container className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-lg font-bold">{formatCurrency(sumPrixTotal)}</div>
                 </CardContent>
               </Card>
             </>
