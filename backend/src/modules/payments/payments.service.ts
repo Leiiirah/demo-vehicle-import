@@ -159,10 +159,28 @@ export class PaymentsService {
   }
 
   /**
+   * Recalculate all dossier vehicle costs (fixes stale data).
+   */
+  async recalculateAllDossierCosts() {
+    const rows = await this.paymentRepository
+      .createQueryBuilder('p')
+      .select('DISTINCT p."dossierId"', 'dossierId')
+      .where('p."dossierId" IS NOT NULL')
+      .getRawMany();
+
+    let updated = 0;
+    for (const row of rows) {
+      await this.recalculateVehicleCosts(row.dossierId);
+      updated++;
+    }
+    return { dossiersProcessed: updated };
+  }
+
+  /**
    * Recalculate vehicle costs when dossier payments change.
    * Uses weighted average exchange rate from all dossier payments.
    */
-  private async recalculateVehicleCosts(dossierId: string) {
+  async recalculateVehicleCosts(dossierId: string) {
     const payments = await this.paymentRepository.find({
       where: { dossierId, type: 'supplier_payment' as any },
     });

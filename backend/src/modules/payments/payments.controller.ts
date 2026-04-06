@@ -37,6 +37,11 @@ export class PaymentsController {
     return this.paymentsService.findOne(id);
   }
 
+  @Post('recalculate-all-costs')
+  recalculateAllCosts() {
+    return this.paymentsService.recalculateAllDossierCosts();
+  }
+
   @Post()
   create(@Body() createPaymentDto: CreatePaymentDto) {
     return this.paymentsService.create(createPaymentDto);

@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQueries } from '@tanstack/react-query';
+import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -52,6 +52,21 @@ const VehiclesPage = () => {
   const { data: vehicles, isLoading, error } = useVehicles();
   const deleteVehicle = useDeleteVehicle();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const recalcDone = useRef(false);
+
+  // Auto-recalculate all dossier costs on first mount to fix stale data
+  useEffect(() => {
+    if (recalcDone.current) return;
+    recalcDone.current = true;
+    api.request('/api/payments/recalculate-all-costs', { method: 'POST' })
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      })
+      .catch(() => {
+        // silent — non-critical
+      });
+  }, [queryClient]);
 
   // Collect unique dossier IDs from vehicles
   const dossierIds = useMemo(() => {
