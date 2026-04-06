@@ -1,56 +1,35 @@
+## Problem
 
-Goal
+Old vehicles in the database have stale `totalCost` values (e.g., calculated with rate 134.5 instead of the correct weighted average 253.00). The backend recalculation logic only runs when a payment is created/updated/deleted -- it never retroactively fixes existing data.
 
-Make `/vehicles` show **Total (DZD)** as soon as the dossier has a real supplier payment/rate, instead of showing `-`.
+The vehicle detail page shows the correct value because it calculates client-side from dossier payments, but the `/vehicles` list reads the stored `totalCost` which is wrong for old records.
 
-What I found
+## Solution
 
-- `src/pages/Vehicles.tsx` only shows the value when `Number(vehicle.totalCost) > 0`; otherwise it hardcodes `-`.
-- That page already loads dossier payment stats and even defines `isVehiclePaid()`, but never uses it to compute/display a fallback amount.
-- `src/pages/VehicleDetail.tsx` already knows how to calculate the weighted exchange rate from dossier payments, so the detail page and list page are using different logic.
-- The backend recalculation in `backend/src/modules/payments/payments.service.ts` helps, but stale/older vehicles can still keep `totalCost = 0`, and the stored total is not fully aligned with `vehicle_charges`.
+Two-part fix:
 
-Implementation plan
+### 1. Add a "recalculate all" endpoint (backend)
 
-1. Fix the `/vehicles` display logic
-   - Update `src/pages/Vehicles.tsx` to use the dossier payment payload (`payments`), not only `progress`.
-   - Build a per-dossier weighted rate map using the same formula as `VehicleDetail.tsx`:
-     `sum(amount * exchangeRate) / sum(amount)`.
-   - Compute a `displayTotalDzd` fallback for each row when stored `totalCost` is `0` but the dossier has a usable payment rate.
-   - Use the same business formula the detail page expects:
-     ````text
-     (purchasePrice + transportCost) * weightedRate
-     + localFees
-     + passeportCost
-     + totalChargesDivers
-     ````
-   - Render that computed amount instead of `-`.
+Add a new endpoint `POST /api/payments/recalculate-all-costs` in `payments.controller.ts` that:
 
-2. Make backend totals consistent
-   - Refactor the recalculation logic into one shared backend path so payments and vehicle-charge updates use the same formula.
-   - Include `vehicle_charges` in the stored total, so `/vehicles`, `/vehicles/:id`, dossier analytics, and exports stay aligned.
-   - Prefer counting only relevant supplier payments (completed ones) for progress/rate calculations.
+- Fetches all dossiers that have at least one payment
+- Calls the existing `recalculateVehicleCosts(dossierId)` for each one
+- This fixes all stale vehicle totals in one shot
 
-3. Refresh data immediately after mutations
-   - Invalidate `vehicles`, `vehicle`, and dossier payment stats queries after:
-     - creating/updating/deleting dossier payments
-     - creating/updating/deleting vehicle charges
-   - This avoids needing a manual refresh before `/vehicles` updates.
+Make `recalculateVehicleCosts` public so the controller can call it.
 
-4. Add regression coverage
-   - Extend backend payment/vehicle tests so a dossier payment recalculates vehicle totals.
-   - Verify an already-paid dossier with old `totalCost = 0` now shows a DZD total in `/vehicles`.
-   - Verify adding/editing charges still changes the final total correctly.
+**File: `backend/src/modules/payments/payments.controller.ts**` -- Add new POST endpoint  
+**File: `backend/src/modules/payments/payments.service.ts**` -- Make `recalculateVehicleCosts` public, add `recalculateAllDossierCosts()` method that loops through all dossiers with payments
 
-Technical details
+### 2. Auto-trigger recalculation on app startup or via admin action (frontend)
 
-- Main files involved:
-  - `src/pages/Vehicles.tsx`
-  - `src/pages/VehicleDetail.tsx`
-  - `src/components/payments/AddPaymentDialog.tsx`
-  - `src/components/dossiers/DossierPaymentLedger.tsx`
-  - `src/hooks/useApi.ts`
-  - `backend/src/modules/payments/payments.service.ts`
-  - `backend/src/modules/vehicles/vehicles.service.ts`
-- No database schema change is needed.
-- Best design: centralize the server-side “recalculate vehicle total” logic once, because both payment mutations and vehicle-charge mutations need it.
+Add a button in the Settings page or call the recalculate endpoint once from the Vehicles page on mount to fix stale data. A simple approach: add a "Recalculer les coûts" button on the `/vehicles` page that calls the endpoint.  
+
+
+**File:** `src/pages/Vehicles.tsx` -- Add a small admin button to trigger recalculation dont add a button make it automatique 
+
+### Files to change
+
+1. `**backend/src/modules/payments/payments.service.ts**` -- Make `recalculateVehicleCosts` public, add `recalculateAllDossierCosts()` that fetches distinct dossier IDs from payments table and loops recalculation
+2. `**backend/src/modules/payments/payments.controller.ts**` -- Add `POST /payments/recalculate-all-costs` endpoint
+3. `**src/pages/Vehicles.tsx**` -- Add a "Recalculer les coûts" button that calls the new endpoint and invalidates the vehicles query
