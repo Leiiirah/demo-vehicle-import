@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { formatCurrency } from '@/lib/utils';
+import { formatPdfCurrency, formatPdfDate } from '@/lib/pdfFormatters';
 
 interface VehicleTransaction {
   brand: string;
@@ -44,7 +44,7 @@ export function exportClientTransactionsPDF(
     doc.text(`Société: ${client.company}`, 14, y);
     y += 7;
   }
-  doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 14, y);
+  doc.text(`Date: ${formatPdfDate(new Date())}`, 14, y);
   y += 12;
 
   // Table header
@@ -86,9 +86,9 @@ export function exportClientTransactionsPDF(
     const status = v.paymentStatus === 'solde' ? 'Soldé' : v.paymentStatus === 'versement' ? 'Versement' : 'En attente';
 
     doc.text(name.substring(0, 30), cols[0], y);
-    doc.text(formatCurrency(sp), cols[1], y);
-    doc.text(formatCurrency(ap), cols[2], y);
-    doc.text(formatCurrency(remaining), cols[3], y);
+    doc.text(formatPdfCurrency(sp, 'DZD'), cols[1], y);
+    doc.text(formatPdfCurrency(ap, 'DZD'), cols[2], y);
+    doc.text(formatPdfCurrency(remaining, 'DZD'), cols[3], y);
     doc.text(status, cols[4], y);
 
     y += 7;
@@ -104,9 +104,9 @@ export function exportClientTransactionsPDF(
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.text('TOTAUX', cols[0], y);
-  doc.text(formatCurrency(totalSelling), cols[1], y);
-  doc.text(formatCurrency(totalPaid), cols[2], y);
-  doc.text(formatCurrency(totalRemaining), cols[3], y);
+  doc.text(formatPdfCurrency(totalSelling, 'DZD'), cols[1], y);
+  doc.text(formatPdfCurrency(totalPaid, 'DZD'), cols[2], y);
+  doc.text(formatPdfCurrency(totalRemaining, 'DZD'), cols[3], y);
 
   y += 15;
 
@@ -115,8 +115,8 @@ export function exportClientTransactionsPDF(
   doc.roundedRect(12, y - 5, pageWidth - 24, 30, 3, 3, 'F');
   doc.setFontSize(10);
   doc.text(`Total transactions: ${vehicles.length}`, 18, y + 2);
-  doc.text(`Total payé: ${formatCurrency(totalPaid)}`, 18, y + 10);
-  doc.text(`Reste à payer: ${formatCurrency(totalRemaining)}`, 18, y + 18);
+  doc.text(`Total payé: ${formatPdfCurrency(totalPaid, 'DZD')}`, 18, y + 10);
+  doc.text(`Reste à payer: ${formatPdfCurrency(totalRemaining, 'DZD')}`, 18, y + 18);
 
   doc.save(`transactions-${client.nom}-${client.prenom}-${new Date().toISOString().split('T')[0]}.pdf`);
 }

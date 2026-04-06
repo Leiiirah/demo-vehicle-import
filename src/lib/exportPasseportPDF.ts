@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import { formatPdfDate } from '@/lib/pdfFormatters';
 
 interface PasseportData {
   nom: string;
@@ -26,7 +27,7 @@ export function exportPasseportPDF(passeport: PasseportData) {
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
   pdf.setTextColor(120, 120, 120);
-  pdf.text(`Date d'export : ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, y, { align: 'center' });
+  pdf.text(`Date d'export : ${formatPdfDate(new Date())}`, pageWidth / 2, y, { align: 'center' });
   pdf.setTextColor(0, 0, 0);
   y += 15;
 
@@ -47,7 +48,7 @@ export function exportPasseportPDF(passeport: PasseportData) {
   ];
 
   if (passeport.createdAt) {
-    fields.push({ label: 'Date de création', value: new Date(passeport.createdAt).toLocaleDateString('fr-FR') });
+    fields.push({ label: 'Date de création', value: formatPdfDate(passeport.createdAt) });
   }
 
   fields.forEach((field) => {

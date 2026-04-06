@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import type { Payment, Vehicle } from '@/services/api';
-import { formatCurrency } from '@/lib/utils';
+import { formatPdfCurrency, formatPdfDate, formatPdfNumber } from '@/lib/pdfFormatters';
 
 interface DossierWithConteneurs {
   id: string;
@@ -20,7 +20,7 @@ function addHeader(doc: jsPDF, title: string, supplierName: string) {
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
   doc.text(`Fournisseur: ${supplierName}`, 14, 28);
-  doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 14, 35);
+  doc.text(`Date: ${formatPdfDate(new Date())}`, 14, 35);
   doc.setDrawColor(200);
   doc.line(14, 38, 196, 38);
   return 44;
@@ -92,10 +92,10 @@ function addDossierVehiclesTable(doc: jsPDF, y: number, dossier: DossierWithCont
       y = checkPage(doc, y, 8);
       doc.text(`${v.brand} ${v.model} ${v.year}`, cols[0], y);
       doc.text(v.vin?.slice(-8) || '', cols[1], y);
-      doc.text(String(v.purchasePrice || 0), cols[2], y);
-      doc.text(String(v.transportCost || 0), cols[3], y);
       const coutTotalUSD = Number(v.purchasePrice || 0) + Number(v.transportCost || 0);
-      doc.text(String(coutTotalUSD), cols[4], y);
+      doc.text(formatPdfNumber(Number(v.purchasePrice || 0), { minimumFractionDigits: 2, maximumFractionDigits: 2 }), cols[2], y);
+      doc.text(formatPdfNumber(Number(v.transportCost || 0), { minimumFractionDigits: 2, maximumFractionDigits: 2 }), cols[3], y);
+      doc.text(formatPdfNumber(coutTotalUSD, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), cols[4], y);
       dossierTotal += coutTotalUSD;
       y += 5;
     }
@@ -131,10 +131,10 @@ function addDossiersSection(doc: jsPDF, y: number, dossiers: DossierWithConteneu
     doc.text(`${dossier.reference}`, 16, y + 2);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.text(`${new Date(dossier.dateCreation).toLocaleDateString('fr-FR')}  |  ${statusLabels[dossier.status] || dossier.status}`, 80, y + 2);
+    doc.text(`${formatPdfDate(dossier.dateCreation)}  |  ${statusLabels[dossier.status] || dossier.status}`, 80, y + 2);
     // Dossier total on same line
     doc.setFont('helvetica', 'bold');
-    doc.text(`Total: $${dossierCostTotal.toLocaleString()}`, 155, y + 2);
+    doc.text(`Total: ${formatPdfCurrency(dossierCostTotal, 'USD')}`, 155, y + 2);
     doc.setFont('helvetica', 'normal');
     y += 12;
 
@@ -150,7 +150,7 @@ function addDossiersSection(doc: jsPDF, y: number, dossiers: DossierWithConteneu
   doc.rect(14, y - 4, 182, 10, 'F');
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text(`Total Général Dossiers: $${grandTotal.toLocaleString()}`, 16, y + 3);
+  doc.text(`Total Général Dossiers: ${formatPdfCurrency(grandTotal, 'USD')}`, 16, y + 3);
   y += 14;
 
   return y;
@@ -172,9 +172,9 @@ function addTransactionsSection(doc: jsPDF, y: number, payments: Payment[], supp
   doc.text('Résumé Financier', 20, y + 7);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text(`Total Payé: ${formatCurrency(supplier.totalPaid || 0, 'USD')}`, 20, y + 14);
-  doc.text(`Dette Restante: ${formatCurrency(supplier.remainingDebt || 0, 'USD')}`, 85, y + 14);
-  doc.text(`Solde Crédit: ${formatCurrency(supplier.creditBalance || 0, 'USD')}`, 150, y + 14);
+  doc.text(`Total Payé: ${formatPdfCurrency(supplier.totalPaid || 0, 'USD')}`, 20, y + 14);
+  doc.text(`Dette Restante: ${formatPdfCurrency(supplier.remainingDebt || 0, 'USD')}`, 85, y + 14);
+  doc.text(`Solde Crédit: ${formatPdfCurrency(supplier.creditBalance || 0, 'USD')}`, 150, y + 14);
   doc.text(`Nombre de transactions: ${payments.length}`, 20, y + 21);
   y += 36;
 
@@ -203,12 +203,12 @@ function addTransactionsSection(doc: jsPDF, y: number, payments: Payment[], supp
       y += 6;
       doc.setFont('helvetica', 'normal');
     }
-    doc.text(new Date(p.date).toLocaleDateString('fr-FR'), cols[0], y);
+    doc.text(formatPdfDate(p.date), cols[0], y);
     doc.text(p.reference?.slice(0, 15) || '', cols[1], y);
     doc.text(typeLabels[p.type] || p.type, cols[2], y);
-    doc.text(String(p.amount), cols[3], y);
+    doc.text(formatPdfNumber(Number(p.amount || 0), { minimumFractionDigits: 0, maximumFractionDigits: 2 }), cols[3], y);
     doc.text(p.currency, cols[4], y);
-    doc.text(String(p.exchangeRate), cols[5], y);
+    doc.text(formatPdfNumber(Number(p.exchangeRate || 0), { minimumFractionDigits: 2, maximumFractionDigits: 2 }), cols[5], y);
     doc.text(p.status === 'completed' ? 'Complété' : 'En attente', cols[6], y);
     y += 5;
   }
@@ -257,9 +257,9 @@ export function exportSupplierDossierReport(
   doc.text(`${dossier.reference}`, 16, y + 2);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text(`${new Date(dossier.dateCreation).toLocaleDateString('fr-FR')}  |  ${statusLabels[dossier.status] || dossier.status}`, 80, y + 2);
+  doc.text(`${formatPdfDate(dossier.dateCreation)}  |  ${statusLabels[dossier.status] || dossier.status}`, 80, y + 2);
   doc.setFont('helvetica', 'bold');
-  doc.text(`Total: $${dossierCostTotal.toLocaleString()}`, 155, y + 2);
+  doc.text(`Total: ${formatPdfCurrency(dossierCostTotal, 'USD')}`, 155, y + 2);
   doc.setFont('helvetica', 'normal');
   y += 12;
 
@@ -275,15 +275,15 @@ export function exportSupplierDossierReport(
   doc.text('Résumé des versements', 20, y + 7);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text(`Total dû: $${dossierCostTotal.toLocaleString()}`, 20, y + 14);
-  doc.text(`Versements effectués: $${totalVersements.toLocaleString()}`, 85, y + 14);
+  doc.text(`Total dû: ${formatPdfCurrency(dossierCostTotal, 'USD')}`, 20, y + 14);
+  doc.text(`Versements effectués: ${formatPdfCurrency(totalVersements, 'USD')}`, 85, y + 14);
   if (reste > 0) {
     doc.setTextColor(200, 0, 0);
-    doc.text(`Reste à payer: $${reste.toLocaleString()}`, 20, y + 21);
+    doc.text(`Reste à payer: ${formatPdfCurrency(reste, 'USD')}`, 20, y + 21);
     doc.setTextColor(0, 0, 0);
   } else if (reste < 0) {
     doc.setTextColor(0, 150, 0);
-    doc.text(`Crédit: +$${Math.abs(reste).toLocaleString()}`, 20, y + 21);
+    doc.text(`Crédit: +${formatPdfCurrency(Math.abs(reste), 'USD')}`, 20, y + 21);
     doc.setTextColor(0, 0, 0);
   } else {
     doc.setTextColor(0, 150, 0);
@@ -313,12 +313,12 @@ export function exportSupplierDossierReport(
     doc.setFont('helvetica', 'normal');
     for (const p of dossierPayments) {
       y = checkPage(doc, y, 8);
-      doc.text(new Date(p.date).toLocaleDateString('fr-FR'), cols[0], y);
+      doc.text(formatPdfDate(p.date), cols[0], y);
       doc.text(p.reference?.slice(0, 18) || '', cols[1], y);
-      doc.text(String(Number(p.amount).toLocaleString()), cols[2], y);
-      doc.text(String(Number(p.exchangeRate).toFixed(2)), cols[3], y);
+      doc.text(formatPdfNumber(Number(p.amount || 0), { minimumFractionDigits: 0, maximumFractionDigits: 2 }), cols[2], y);
+      doc.text(formatPdfNumber(Number(p.exchangeRate || 0), { minimumFractionDigits: 2, maximumFractionDigits: 2 }), cols[3], y);
       const dzd = Number(p.amount) * Number(p.exchangeRate);
-      doc.text(dzd.toLocaleString(), cols[4], y);
+      doc.text(formatPdfNumber(dzd), cols[4], y);
       doc.text(p.status === 'completed' ? 'Complété' : 'En attente', cols[5], y);
       y += 5;
     }
@@ -331,8 +331,8 @@ export function exportSupplierDossierReport(
   doc.rect(14, y - 4, 182, 10, 'F');
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text(`Total Dossier: $${result.dossierTotal.toLocaleString()}`, 16, y + 3);
-  doc.text(`Versé: $${totalVersements.toLocaleString()}  |  Reste: $${Math.max(reste, 0).toLocaleString()}`, 100, y + 3);
+  doc.text(`Total Dossier: ${formatPdfCurrency(result.dossierTotal, 'USD')}`, 16, y + 3);
+  doc.text(`Versé: ${formatPdfCurrency(totalVersements, 'USD')}  |  Reste: ${formatPdfCurrency(Math.max(reste, 0), 'USD')}`, 100, y + 3);
 
   doc.save(`${supplierName}_${dossier.reference}.pdf`);
 }
