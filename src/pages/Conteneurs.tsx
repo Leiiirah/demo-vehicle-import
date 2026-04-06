@@ -76,6 +76,11 @@ export default function ConteneursPage() {
   const decharged = (conteneurs || []).filter((c) => c.status === 'decharge').length;
   const totalVehicles = (conteneurs || []).reduce((acc, c) => acc + (c.vehicles?.length || 0), 0);
 
+  const sumPrixTotal = filteredConteneurs.reduce((acc, c) => {
+    const cTotal = (c.vehicles || []).reduce((sum: number, v: any) => sum + (parseFloat(String(v.totalCost)) || 0), 0);
+    return acc + cTotal;
+  }, 0);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
