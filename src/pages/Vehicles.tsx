@@ -52,6 +52,21 @@ const VehiclesPage = () => {
   const { data: vehicles, isLoading, error } = useVehicles();
   const deleteVehicle = useDeleteVehicle();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const recalcDone = useRef(false);
+
+  // Auto-recalculate all dossier costs on first mount to fix stale data
+  useEffect(() => {
+    if (recalcDone.current) return;
+    recalcDone.current = true;
+    api.request('/api/payments/recalculate-all-costs', { method: 'POST' })
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      })
+      .catch(() => {
+        // silent — non-critical
+      });
+  }, [queryClient]);
 
   // Collect unique dossier IDs from vehicles
   const dossierIds = useMemo(() => {
