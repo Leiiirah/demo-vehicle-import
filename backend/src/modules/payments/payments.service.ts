@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Payment } from '../../entities/payment.entity';
 import { Vehicle } from '../../entities/vehicle.entity';
+import { VehicleCharge } from '../../entities/vehicle-charge.entity';
 import { Dossier, DossierStatus } from '../../entities/dossier.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
