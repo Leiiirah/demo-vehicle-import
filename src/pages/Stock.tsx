@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useVehicles } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
@@ -13,20 +14,84 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Search, AlertCircle, Car, DollarSign } from 'lucide-react';
-
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
+import { api } from '@/services/api';
 
 export default function StockPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [monthFilter, setMonthFilter] = useState<string>('all');
   const { data: vehicles, isLoading, error } = useVehicles();
+  const queryClient = useQueryClient();
+  const recalcDone = useRef(false);
 
-  // Only vehicles that are "En stock" (ordered), in a déchargée container, and not sold
+  // Auto-recalculate all dossier costs on first mount to fix stale data
+  useEffect(() => {
+    if (recalcDone.current) return;
+    recalcDone.current = true;
+    api.request('/api/payments/recalculate-all-costs', { method: 'POST' })
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      })
+      .catch(() => {});
+  }, [queryClient]);
+
+  // Only vehicles that are "En stock" (ordered)
   const stockVehicles = (vehicles || []).filter(
     (v: any) => v.status === 'ordered'
   );
+
+  // Collect unique dossier IDs
+  const dossierIds = useMemo(() => {
+    if (!vehicles) return [];
+    const ids = new Set<string>();
+    stockVehicles.forEach((v: any) => {
+      if (v.conteneur?.dossier?.id) ids.add(v.conteneur.dossier.id);
+    });
+    return Array.from(ids);
+  }, [vehicles, stockVehicles]);
+
+  // Fetch payment stats for all dossiers
+  const dossierStatsQueries = useQueries({
+    queries: dossierIds.map((dossierId) => ({
+      queryKey: ['payments', 'dossier', dossierId, 'stats'],
+      queryFn: () => api.request<{ progress: number; payments: any[] }>(`/api/payments/dossier/${dossierId}/stats`),
+      enabled: !!dossierId,
+      staleTime: 30000,
+    })),
+  });
+
+  // Map dossier ID → { paid, weightedRate }
+  const dossierRateMap = useMemo(() => {
+    const map: Record<string, { paid: boolean; weightedRate: number }> = {};
+    dossierIds.forEach((id, idx) => {
+      const data = dossierStatsQueries[idx]?.data;
+      if (!data) {
+        map[id] = { paid: false, weightedRate: 0 };
+        return;
+      }
+      const payments = data.payments || [];
+      const totalPaid = payments.reduce((s: number, p: any) => s + Number(p.amount), 0);
+      const weightedRate = totalPaid > 0
+        ? payments.reduce((s: number, p: any) => s + Number(p.amount) * Number(p.exchangeRate), 0) / totalPaid
+        : 0;
+      map[id] = { paid: data.progress >= 100, weightedRate };
+    });
+    return map;
+  }, [dossierIds, dossierStatsQueries]);
+
+  const getDisplayTotalDzd = (vehicle: any): number => {
+    if (Number(vehicle.totalCost) > 0) return Number(vehicle.totalCost);
+    const dossierId = vehicle.conteneur?.dossier?.id;
+    if (!dossierId) return 0;
+    const rate = dossierRateMap[dossierId]?.weightedRate || 0;
+    if (rate <= 0) return 0;
+    return (Number(vehicle.purchasePrice || 0) + Number(vehicle.transportCost || 0)) * rate
+      + Number(vehicle.localFees || 0)
+      + Number(vehicle.passeportCost || 0)
+      + Number((vehicle as any).totalChargesDivers || 0);
+  };
 
   const filteredVehicles = stockVehicles.filter((v: any) => {
     const matchesSearch =
@@ -74,7 +139,7 @@ export default function StockPage() {
         <div className="grid gap-4 md:grid-cols-2">
           {isLoading ? (
             <>
-              {[...Array(3)].map((_, i) => (
+              {[...Array(2)].map((_, i) => (
                 <Skeleton key={i} className="h-24" />
               ))}
             </>
@@ -149,27 +214,29 @@ export default function StockPage() {
               </div>
             ) : (
               <>
-                <div className="rounded-md border">
+                <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Marque</TableHead>
-                        <TableHead>Modèle</TableHead>
-                        <TableHead>Année</TableHead>
+                        <TableHead>Véhicule</TableHead>
                         <TableHead>VIN</TableHead>
+                        <TableHead>Couleur</TableHead>
+                        <TableHead>Boîte</TableHead>
                         <TableHead>Fournisseur</TableHead>
                         <TableHead>Passeport</TableHead>
-                        <TableHead>Prix d'Achat (USD)</TableHead>
+                        <TableHead>Prix d'achat (USD)</TableHead>
                         <TableHead>Transport (USD)</TableHead>
                         <TableHead>Passeport (DZD)</TableHead>
                         <TableHead>Transit (DZD)</TableHead>
+                        <TableHead>Charges divers (DZD)</TableHead>
+                        <TableHead>Total (DZD)</TableHead>
                         <TableHead>Date d'arrivée</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {paginatedItems.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
                             {searchTerm
                               ? `Aucun véhicule trouvé pour "${searchTerm}"`
                               : 'Aucun véhicule en stock'}
@@ -182,22 +249,58 @@ export default function StockPage() {
                             className="cursor-pointer hover:bg-muted/50"
                             onClick={() => navigate(`/vehicles/${vehicle.id}`)}
                           >
-                            <TableCell className="font-medium">
-                              <div className="flex items-center gap-2">
-                                {(vehicle as any).photoUrl ? <img src={(vehicle as any).photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-8 w-8 rounded object-cover" /> : <div className="h-8 w-8 rounded bg-muted flex items-center justify-center"><Car className="h-4 w-4 text-muted-foreground" /></div>}
-                                {vehicle.brand}
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                {vehicle.photoUrl ? (
+                                  <img src={vehicle.photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-10 w-10 rounded-lg object-cover" />
+                                ) : (
+                                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                                    <Car className="h-5 w-5 text-muted-foreground" />
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="font-medium text-foreground">{vehicle.brand} {vehicle.model}</p>
+                                  <p className="text-xs text-muted-foreground">{vehicle.year}</p>
+                                </div>
                               </div>
                             </TableCell>
-                            <TableCell>{vehicle.model}</TableCell>
-                            <TableCell>{vehicle.year}</TableCell>
-                            <TableCell className="font-mono text-xs">{vehicle.vin}</TableCell>
-                            <TableCell>{vehicle.supplier?.name || '-'}</TableCell>
-                            <TableCell>{vehicle.passeport ? `${vehicle.passeport.nom} ${vehicle.passeport.prenom}` : '-'}</TableCell>
-                            <TableCell>{formatCurrency(Number(vehicle.purchasePrice || 0), 'USD')}</TableCell>
-                            <TableCell>{formatCurrency(Number(vehicle.transportCost || 0), 'USD')}</TableCell>
-                            <TableCell>{formatCurrency(Number(vehicle.passeportCost || 0))}</TableCell>
-                            <TableCell>{formatCurrency(Number(vehicle.localFees || 0))}</TableCell>
-                            <TableCell>{vehicle.arrivalDate ? new Date(vehicle.arrivalDate).toLocaleDateString('fr-FR') : '-'}</TableCell>
+                            <TableCell>
+                              <code className="text-xs bg-muted px-2 py-1 rounded">{vehicle.vin}</code>
+                            </TableCell>
+                            <TableCell className="text-foreground text-sm">{vehicle.color || '-'}</TableCell>
+                            <TableCell className="text-foreground text-sm">
+                              {vehicle.transmission === 'manual' ? 'Manuelle' : 'Automatique'}
+                            </TableCell>
+                            <TableCell className="text-foreground">{vehicle.supplier?.name || '-'}</TableCell>
+                            <TableCell>
+                              {vehicle.passeport ? (
+                                <span
+                                  className="text-primary hover:underline cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/passeports/${vehicle.passeport.id}`);
+                                  }}
+                                >
+                                  {vehicle.passeport.prenom} {vehicle.passeport.nom}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-foreground">{formatCurrency(Number(vehicle.purchasePrice || 0), 'USD')}</TableCell>
+                            <TableCell className="text-foreground">{formatCurrency(Number(vehicle.transportCost || 0), 'USD')}</TableCell>
+                            <TableCell className="text-foreground">{formatCurrency(Number(vehicle.passeportCost || 0))}</TableCell>
+                            <TableCell className="text-foreground">{formatCurrency(Number(vehicle.localFees || 0))}</TableCell>
+                            <TableCell className="text-foreground">{formatCurrency(Number((vehicle as any).totalChargesDivers || 0))}</TableCell>
+                            <TableCell className="text-foreground">
+                              {(() => {
+                                const total = getDisplayTotalDzd(vehicle);
+                                return total > 0 ? formatCurrency(total) : '-';
+                              })()}
+                            </TableCell>
+                            <TableCell className="text-foreground">
+                              {vehicle.arrivalDate ? new Date(vehicle.arrivalDate).toLocaleDateString('fr-FR') : '-'}
+                            </TableCell>
                           </TableRow>
                         ))
                       )}
