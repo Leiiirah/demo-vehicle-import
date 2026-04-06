@@ -42,8 +42,10 @@ const conteneurStatusConfig = {
   decharge: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
 };
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
+const formatCurrencyDZD = (amount: number) => {
+  const parts = Math.abs(Math.round(amount)).toString().split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (amount < 0 ? '-' : '') + parts.join('.') + ' DZD';
 };
 
 export default function DossierDetailPage() {

@@ -32,7 +32,9 @@ const statusConfig = {
 };
 
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('fr-DZ', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' DZD';
+  const parts = Math.abs(Math.round(amount)).toString().split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (amount < 0 ? '-' : '') + parts.join('.') + ' DZD';
 };
 
 export default function ConteneursPage() {
