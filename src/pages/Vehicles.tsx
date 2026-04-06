@@ -67,21 +67,49 @@ const VehiclesPage = () => {
   const dossierStatsQueries = useQueries({
     queries: dossierIds.map((dossierId) => ({
       queryKey: ['payments', 'dossier', dossierId, 'stats'],
-      queryFn: () => api.request<{ progress: number }>(`/api/payments/dossier/${dossierId}/stats`),
+      queryFn: () => api.request<{ progress: number; payments: any[] }>(`/api/payments/dossier/${dossierId}/stats`),
       enabled: !!dossierId,
       staleTime: 30000,
     })),
   });
 
-  // Map dossier ID → fully paid boolean
-  const dossierPaidMap = useMemo(() => {
-    const map: Record<string, boolean> = {};
+  // Map dossier ID → { paid, weightedRate }
+  const dossierRateMap = useMemo(() => {
+    const map: Record<string, { paid: boolean; weightedRate: number }> = {};
     dossierIds.forEach((id, idx) => {
       const data = dossierStatsQueries[idx]?.data;
-      map[id] = data ? data.progress >= 100 : false;
+      if (!data) {
+        map[id] = { paid: false, weightedRate: 0 };
+        return;
+      }
+      const payments = data.payments || [];
+      const totalPaid = payments.reduce((s: number, p: any) => s + Number(p.amount), 0);
+      const weightedRate = totalPaid > 0
+        ? payments.reduce((s: number, p: any) => s + Number(p.amount) * Number(p.exchangeRate), 0) / totalPaid
+        : 0;
+      map[id] = { paid: data.progress >= 100, weightedRate };
     });
     return map;
   }, [dossierIds, dossierStatsQueries]);
+
+  // Map dossier ID → fully paid boolean (kept for backward compat)
+  const dossierPaidMap = useMemo(() => {
+    const map: Record<string, boolean> = {};
+    Object.entries(dossierRateMap).forEach(([id, v]) => { map[id] = v.paid; });
+    return map;
+  }, [dossierRateMap]);
+
+  const getDisplayTotalDzd = (vehicle: any): number => {
+    if (Number(vehicle.totalCost) > 0) return Number(vehicle.totalCost);
+    const dossierId = vehicle.conteneur?.dossier?.id;
+    if (!dossierId) return 0;
+    const rate = dossierRateMap[dossierId]?.weightedRate || 0;
+    if (rate <= 0) return 0;
+    return (Number(vehicle.purchasePrice || 0) + Number(vehicle.transportCost || 0)) * rate
+      + Number(vehicle.localFees || 0)
+      + Number(vehicle.passeportCost || 0)
+      + Number((vehicle as any).totalChargesDivers || 0);
+  };
 
   const isVehiclePaid = (vehicle: any) => {
     const dossierId = vehicle.conteneur?.dossier?.id;
@@ -355,7 +383,10 @@ const VehiclesPage = () => {
                           {formatCurrency(Number((vehicle as any).totalChargesDivers || 0))}
                         </td>
                         <td className="text-foreground">
-                          {Number(vehicle.totalCost) > 0 ? formatCurrency(Number(vehicle.totalCost)) : '-'}
+                          {(() => {
+                            const total = getDisplayTotalDzd(vehicle);
+                            return total > 0 ? formatCurrency(total) : '-';
+                          })()}
                         </td>
                         <td><VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} /></td>
                         <td>
