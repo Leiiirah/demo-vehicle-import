@@ -99,6 +99,18 @@ const VehiclesPage = () => {
     return map;
   }, [dossierRateMap]);
 
+  const getDisplayTotalDzd = (vehicle: any): number => {
+    if (Number(vehicle.totalCost) > 0) return Number(vehicle.totalCost);
+    const dossierId = vehicle.conteneur?.dossier?.id;
+    if (!dossierId) return 0;
+    const rate = dossierRateMap[dossierId]?.weightedRate || 0;
+    if (rate <= 0) return 0;
+    return (Number(vehicle.purchasePrice || 0) + Number(vehicle.transportCost || 0)) * rate
+      + Number(vehicle.localFees || 0)
+      + Number(vehicle.passeportCost || 0)
+      + Number((vehicle as any).totalChargesDivers || 0);
+  };
+
   const isVehiclePaid = (vehicle: any) => {
     const dossierId = vehicle.conteneur?.dossier?.id;
     return dossierId ? dossierPaidMap[dossierId] === true : false;
