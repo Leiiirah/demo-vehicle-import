@@ -51,17 +51,15 @@ const SuppliersPage = () => {
   });
 
   const formatCurrency = (amount: number, currency: 'USD' | 'DZD' = 'USD') => {
+    const formatWithSpaces = (num: number) => {
+      const parts = Math.abs(Math.round(num)).toString().split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      return (num < 0 ? '-' : '') + parts.join('.');
+    };
     if (currency === 'USD') {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-      }).format(amount);
+      return '$' + formatWithSpaces(amount);
     }
-    return new Intl.NumberFormat('fr-DZ', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-    }).format(amount) + ' DZD';
+    return formatWithSpaces(amount) + ' DZD';
   };
 
   if (error) {
