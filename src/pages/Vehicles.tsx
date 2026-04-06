@@ -67,21 +67,37 @@ const VehiclesPage = () => {
   const dossierStatsQueries = useQueries({
     queries: dossierIds.map((dossierId) => ({
       queryKey: ['payments', 'dossier', dossierId, 'stats'],
-      queryFn: () => api.request<{ progress: number }>(`/api/payments/dossier/${dossierId}/stats`),
+      queryFn: () => api.request<{ progress: number; payments: any[] }>(`/api/payments/dossier/${dossierId}/stats`),
       enabled: !!dossierId,
       staleTime: 30000,
     })),
   });
 
-  // Map dossier ID → fully paid boolean
-  const dossierPaidMap = useMemo(() => {
-    const map: Record<string, boolean> = {};
+  // Map dossier ID → { paid, weightedRate }
+  const dossierRateMap = useMemo(() => {
+    const map: Record<string, { paid: boolean; weightedRate: number }> = {};
     dossierIds.forEach((id, idx) => {
       const data = dossierStatsQueries[idx]?.data;
-      map[id] = data ? data.progress >= 100 : false;
+      if (!data) {
+        map[id] = { paid: false, weightedRate: 0 };
+        return;
+      }
+      const payments = data.payments || [];
+      const totalPaid = payments.reduce((s: number, p: any) => s + Number(p.amount), 0);
+      const weightedRate = totalPaid > 0
+        ? payments.reduce((s: number, p: any) => s + Number(p.amount) * Number(p.exchangeRate), 0) / totalPaid
+        : 0;
+      map[id] = { paid: data.progress >= 100, weightedRate };
     });
     return map;
   }, [dossierIds, dossierStatsQueries]);
+
+  // Map dossier ID → fully paid boolean (kept for backward compat)
+  const dossierPaidMap = useMemo(() => {
+    const map: Record<string, boolean> = {};
+    Object.entries(dossierRateMap).forEach(([id, v]) => { map[id] = v.paid; });
+    return map;
+  }, [dossierRateMap]);
 
   const isVehiclePaid = (vehicle: any) => {
     const dossierId = vehicle.conteneur?.dossier?.id;
