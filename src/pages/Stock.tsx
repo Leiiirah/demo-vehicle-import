@@ -136,7 +136,7 @@ export default function StockPage() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           {isLoading ? (
             <>
               {[...Array(2)].map((_, i) => (
@@ -161,6 +161,17 @@ export default function StockPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{formatCurrency(totalPurchaseValue, 'USD')}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Stock (DZD)</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {formatCurrency(stockVehicles.reduce((acc: number, v: any) => acc + getDisplayTotalDzd(v), 0))}
+                  </div>
                 </CardContent>
               </Card>
             </>
