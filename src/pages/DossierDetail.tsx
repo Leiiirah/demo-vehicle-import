@@ -252,7 +252,7 @@ export default function DossierDetailPage() {
                               ? new Date(conteneur.dateArrivee).toLocaleDateString('fr-FR')
                               : '-'}
                           </TableCell>
-                          {isDossierFullyPaid && <TableCell>{formatCurrency((conteneur.vehicles || []).reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0))}</TableCell>}
+                          {isDossierFullyPaid && <TableCell>{formatCurrencyDZD((conteneur.vehicles || []).reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0))}</TableCell>}
                           <TableCell className="text-center">{conteneur.vehicles?.length || 0}</TableCell>
                           <TableCell>
                             <Select
