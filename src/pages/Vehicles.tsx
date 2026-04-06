@@ -383,7 +383,10 @@ const VehiclesPage = () => {
                           {formatCurrency(Number((vehicle as any).totalChargesDivers || 0))}
                         </td>
                         <td className="text-foreground">
-                          {Number(vehicle.totalCost) > 0 ? formatCurrency(Number(vehicle.totalCost)) : '-'}
+                          {(() => {
+                            const total = getDisplayTotalDzd(vehicle);
+                            return total > 0 ? formatCurrency(total) : '-';
+                          })()}
                         </td>
                         <td><VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} /></td>
                         <td>
