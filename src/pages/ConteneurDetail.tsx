@@ -28,7 +28,6 @@ import { toast } from 'sonner';
 const statusConfig = {
   charge: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
   arrivee: { label: 'Arrivée', className: 'bg-primary/10 text-primary border-primary/30' },
-  decharge: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
 };
 
 const vehicleStatusConfig = {
@@ -238,7 +237,7 @@ export default function ConteneurDetailPage() {
                   <div
                     className="absolute h-1 bg-primary rounded-full"
                     style={{ 
-                      width: conteneur.status === 'decharge' ? '100%' : conteneur.status === 'arrivee' ? '75%' : '10%' 
+                      width: conteneur.status === 'arrivee' ? '100%' : '10%' 
                     }}
                   />
                 </div>

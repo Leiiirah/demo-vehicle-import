@@ -28,7 +28,6 @@ import { useToast } from '@/hooks/use-toast';
 const statusConfig = {
   charge: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
   arrivee: { label: 'Arrivée', className: 'bg-primary/10 text-primary border-primary/30' },
-  decharge: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
 };
 
 const formatCurrency = (amount: number) => {
@@ -73,7 +72,6 @@ export default function ConteneursPage() {
 
   const charged = (conteneurs || []).filter((c) => c.status === 'charge').length;
   const arrived = (conteneurs || []).filter((c) => c.status === 'arrivee').length;
-  const decharged = (conteneurs || []).filter((c) => c.status === 'decharge').length;
   const totalVehicles = (conteneurs || []).reduce((acc, c) => acc + (c.vehicles?.length || 0), 0);
 
   const sumPrixTotal = filteredConteneurs.reduce((acc, c) => {
@@ -137,15 +135,6 @@ export default function ConteneursPage() {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Déchargées</CardTitle>
-                  <Anchor className="h-4 w-4 text-success" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-success">{decharged}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Véhicules</CardTitle>
                   <FolderOpen className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
@@ -191,7 +180,6 @@ export default function ConteneursPage() {
                   <SelectItem value="all">Tous les statuts</SelectItem>
                   <SelectItem value="charge">Chargée</SelectItem>
                   <SelectItem value="arrivee">Arrivée</SelectItem>
-                  <SelectItem value="decharge">Déchargée</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -259,7 +247,7 @@ export default function ConteneursPage() {
                                   value={conteneur.status}
                                   onValueChange={(value) => {
                                     updateConteneur.mutate(
-                                      { id: conteneur.id, data: { status: value as 'charge' | 'arrivee' | 'decharge' } },
+                                      { id: conteneur.id, data: { status: value as 'charge' | 'arrivee' } },
                                       {
                                         onSuccess: () => toast({ title: 'Statut mis à jour' }),
                                         onError: () => toast({ title: 'Erreur', variant: 'destructive' }),
@@ -273,7 +261,6 @@ export default function ConteneursPage() {
                                   <SelectContent>
                                     <SelectItem value="charge">Chargée</SelectItem>
                                     <SelectItem value="arrivee">Arrivée</SelectItem>
-                                    <SelectItem value="decharge">Déchargée</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </TableCell>
