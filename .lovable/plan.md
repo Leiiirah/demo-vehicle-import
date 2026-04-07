@@ -1,35 +1,32 @@
-## Problem
+## Plan: Système de Ventes Groupées
 
-Old vehicles in the database have stale `totalCost` values (e.g., calculated with rate 134.5 instead of the correct weighted average 253.00). The backend recalculation logic only runs when a payment is created/updated/deleted -- it never retroactively fixes existing data.
+### 1. Backend - Nouvelle entité Sale
+- Créer `backend/src/entities/sale.entity.ts` avec: id, clientId, date, totalSellingPrice, totalCost, totalProfit, amountPaid, debt, status
+- Relation OneToMany avec Vehicle (un Sale peut avoir plusieurs véhicules)
+- Ajouter `saleId` sur Vehicle entity
 
-The vehicle detail page shows the correct value because it calculates client-side from dossier payments, but the `/vehicles` list reads the stored `totalCost` which is wrong for old records.
+### 2. Backend - Migration
+- Créer table `sales` avec les champs nécessaires
+- Ajouter colonne `saleId` sur `vehicles`
 
-## Solution
+### 3. Backend - Module Sales
+- Controller, Service, DTOs pour CRUD des ventes
+- Endpoint POST /sales pour créer une vente groupée (client + véhicules + prix)
+- Calcul automatique de la dette: prix total vente - montant payé + dettes des ventes précédentes
 
-Two-part fix:
+### 4. Frontend - Mise à jour NewSaleDialog
+- Au lieu d'updater chaque véhicule individuellement, créer une Sale via l'API
+- Le backend gère l'affectation des véhicules au client et au sale
 
-### 1. Add a "recalculate all" endpoint (backend)
+### 5. Frontend - Page Client
+- Afficher les ventes comme lignes résumées dans le tableau principal
+- Section détaillée expandable montrant les véhicules de chaque vente
+- Afficher la dette cumulée
 
-Add a new endpoint `POST /api/payments/recalculate-all-costs` in `payments.controller.ts` that:
+### 6. Frontend - Page Client Sales
+- Grouper les véhicules par vente
+- Afficher le cumul de dette entre ventes
 
-- Fetches all dossiers that have at least one payment
-- Calls the existing `recalculateVehicleCosts(dossierId)` for each one
-- This fixes all stale vehicle totals in one shot
-
-Make `recalculateVehicleCosts` public so the controller can call it.
-
-**File: `backend/src/modules/payments/payments.controller.ts**` -- Add new POST endpoint  
-**File: `backend/src/modules/payments/payments.service.ts**` -- Make `recalculateVehicleCosts` public, add `recalculateAllDossierCosts()` method that loops through all dossiers with payments
-
-### 2. Auto-trigger recalculation on app startup or via admin action (frontend)
-
-Add a button in the Settings page or call the recalculate endpoint once from the Vehicles page on mount to fix stale data. A simple approach: add a "Recalculer les coûts" button on the `/vehicles` page that calls the endpoint.  
-
-
-**File:** `src/pages/Vehicles.tsx` -- Add a small admin button to trigger recalculation dont add a button make it automatique 
-
-### Files to change
-
-1. `**backend/src/modules/payments/payments.service.ts**` -- Make `recalculateVehicleCosts` public, add `recalculateAllDossierCosts()` that fetches distinct dossier IDs from payments table and loops recalculation
-2. `**backend/src/modules/payments/payments.controller.ts**` -- Add `POST /payments/recalculate-all-costs` endpoint
-3. `**src/pages/Vehicles.tsx**` -- Add a "Recalculer les coûts" button that calls the new endpoint and invalidates the vehicles query
+### Logique de dette
+- À l'affectation: dette = prix vente total - 0 (pas encore payé) + dette précédente
+- Quand un paiement est fait, il réduit la dette de la vente la plus ancienne d'abord

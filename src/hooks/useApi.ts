@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api, type CreateUserData, type CreateSupplierData, type CreateDossierData, type CreateConteneurData, type CreateVehicleData, type CreateClientData, type CreatePasseportData, type CreatePaymentData, type CreateVehiclePaymentData, type CreateVehicleChargeData } from '@/services/api';
+import { api, type CreateUserData, type CreateSupplierData, type CreateDossierData, type CreateConteneurData, type CreateVehicleData, type CreateClientData, type CreatePasseportData, type CreatePaymentData, type CreateVehiclePaymentData, type CreateVehicleChargeData, type CreateSaleData } from '@/services/api';
 
 // Auth hooks
 export function useCurrentUser() {
@@ -517,5 +517,57 @@ export function useTopVehicles(params?: { month?: number; year?: number }) {
   return useQuery({
     queryKey: ['dashboard', 'topVehicles', params],
     queryFn: () => api.getTopVehicles(params),
+  });
+}
+
+// Sales hooks
+export function useSales() {
+  return useQuery({
+    queryKey: ['sales'],
+    queryFn: () => api.getSales(),
+  });
+}
+
+export function useSalesByClient(clientId: string) {
+  return useQuery({
+    queryKey: ['sales', 'client', clientId],
+    queryFn: () => api.getSalesByClient(clientId),
+    enabled: !!clientId,
+  });
+}
+
+export function useCreateSale() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateSaleData) => api.createSale(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+    },
+  });
+}
+
+export function useAddSalePayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ saleId, amount }: { saleId: string; amount: number }) =>
+      api.addSalePayment(saleId, amount),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+    },
+  });
+}
+
+export function useDeleteSale() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.deleteSale(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+    },
   });
 }

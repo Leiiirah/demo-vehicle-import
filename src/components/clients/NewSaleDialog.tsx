@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useClients, useVehicles, useUpdateVehicle } from '@/hooks/useApi';
+import { useClients, useVehicles, useCreateSale } from '@/hooks/useApi';
 import { formatCurrency } from '@/lib/utils';
 import { Car, Search, Loader2, Check, Users, ArrowRight, ArrowLeft, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -24,15 +24,10 @@ interface NewSaleDialogProps {
 
 type Step = 'client' | 'vehicle' | 'price';
 
-interface VehicleSaleEntry {
-  vehicleId: string;
-  sellingPrice: string;
-}
-
 export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
   const { data: clients = [], isLoading: clientsLoading } = useClients();
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles();
-  const updateVehicle = useUpdateVehicle();
+  const createSale = useCreateSale();
 
   const [step, setStep] = useState<Step>('client');
   const [clientSearch, setClientSearch] = useState('');
@@ -106,31 +101,23 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
     setIsSubmitting(true);
 
     try {
-      for (const vehicleId of selectedVehicleIds) {
-        const data: any = { clientId: selectedClient.id };
-        const price = vehiclePrices[vehicleId];
-        if (price) {
-          data.sellingPrice = Number(price);
-        }
-        await new Promise<void>((resolve, reject) => {
-          updateVehicle.mutate(
-            { id: vehicleId, data },
-            {
-              onSuccess: () => resolve(),
-              onError: () => reject(),
-            }
-          );
-        });
-      }
+      await createSale.mutateAsync({
+        clientId: selectedClient.id,
+        vehicles: selectedVehicleIds.map((vehicleId) => ({
+          vehicleId,
+          sellingPrice: Number(vehiclePrices[vehicleId]),
+        })),
+      });
+
       toast.success(
         selectedVehicleIds.length === 1
-          ? `Véhicule affecté à ${selectedClient.nom} ${selectedClient.prenom}`
-          : `${selectedVehicleIds.length} véhicules affectés à ${selectedClient.nom} ${selectedClient.prenom}`
+          ? `Vente enregistrée pour ${selectedClient.nom} ${selectedClient.prenom}`
+          : `Vente de ${selectedVehicleIds.length} véhicules enregistrée pour ${selectedClient.nom} ${selectedClient.prenom}`
       );
       handleReset();
       onOpenChange(false);
     } catch {
-      toast.error("Erreur lors de l'affectation");
+      toast.error("Erreur lors de l'enregistrement de la vente");
       setIsSubmitting(false);
     }
   };
@@ -206,7 +193,6 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
 
         {step === 'vehicle' && (
           <>
-            {/* Selected count badge */}
             {selectedVehicleIds.length > 0 && (
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="default" className="text-xs">
@@ -330,7 +316,7 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
               </Button>
               <Button onClick={handleAssign} disabled={!allPricesFilled || isSubmitting}>
                 {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Affecter {selectedVehicleIds.length > 1 ? `(${selectedVehicleIds.length})` : ''}
+                Enregistrer la vente
               </Button>
             </DialogFooter>
           </>

@@ -398,6 +398,31 @@ class ApiClient {
   async deleteZakatRecord(id: string) {
     return this.request<void>(`/api/zakat/${id}`, { method: 'DELETE' });
   }
+
+  // Sales
+  async getSales() {
+    return this.request<Sale[]>('/api/sales');
+  }
+
+  async getSalesByClient(clientId: string) {
+    return this.request<Sale[]>(`/api/sales/client/${clientId}`);
+  }
+
+  async getSale(id: string) {
+    return this.request<Sale>(`/api/sales/${id}`);
+  }
+
+  async createSale(data: CreateSaleData) {
+    return this.request<Sale>('/api/sales', { method: 'POST', body: data });
+  }
+
+  async addSalePayment(saleId: string, amount: number) {
+    return this.request<Sale>(`/api/sales/${saleId}/payment`, { method: 'POST', body: { amount } });
+  }
+
+  async deleteSale(id: string) {
+    return this.request(`/api/sales/${id}`, { method: 'DELETE' });
+  }
 }
 
 // Types
@@ -495,6 +520,8 @@ export interface Vehicle {
   conteneur?: Conteneur;
   passeportId?: string;
   passeport?: Passeport;
+  saleId?: string;
+  sale?: Sale;
   status: 'ordered' | 'in_transit' | 'arrived' | 'sold';
   purchasePrice: number;
   transportCost: number;
@@ -775,6 +802,28 @@ export interface CreateCarModelData {
   brand: string;
   model: string;
   imageUrl?: string;
+}
+
+export interface Sale {
+  id: string;
+  clientId: string;
+  client?: Client;
+  date: string;
+  totalSellingPrice: number;
+  totalCost: number;
+  totalProfit: number;
+  amountPaid: number;
+  debt: number;
+  carriedDebt: number;
+  vehicles?: Vehicle[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateSaleData {
+  clientId: string;
+  date?: string;
+  vehicles: { vehicleId: string; sellingPrice: number }[];
 }
 
 export const api = new ApiClient(API_URL);
