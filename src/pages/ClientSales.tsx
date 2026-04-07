@@ -19,7 +19,7 @@ import {
 import { Label } from '@/components/ui/label';
 import {
   Users, Search, Download, Loader2, TrendingUp, DollarSign,
-  Car, CheckCircle, Clock, Eye, Trash2, FileText, Wallet, CreditCard,
+  Car, CheckCircle, Clock, Eye, Trash2, FileText, Wallet, CreditCard, ChevronDown, ExternalLink,
 } from 'lucide-react';
 import { useClients, useVehicles, useDeleteClient, useUpdateVehicle, useSales, useAddSalePayment } from '@/hooks/useApi';
 import { useCreateCaisseEntry } from '@/hooks/useCaisse';
