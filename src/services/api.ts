@@ -520,6 +520,8 @@ export interface Vehicle {
   conteneur?: Conteneur;
   passeportId?: string;
   passeport?: Passeport;
+  saleId?: string;
+  sale?: Sale;
   status: 'ordered' | 'in_transit' | 'arrived' | 'sold';
   purchasePrice: number;
   transportCost: number;
