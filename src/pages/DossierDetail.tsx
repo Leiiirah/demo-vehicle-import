@@ -39,7 +39,7 @@ const statusConfig = {
 
 const conteneurStatusConfig = {
   charge: { label: 'Chargée', className: 'bg-warning/10 text-warning border-warning/30' },
-  decharge: { label: 'Déchargée', className: 'bg-success/10 text-success border-success/30' },
+  arrivee: { label: 'Arrivée', className: 'bg-primary/10 text-primary border-primary/30' },
 };
 
 const formatCurrencyDZD = (amount: number) => {
@@ -267,7 +267,7 @@ export default function DossierDetailPage() {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="charge">Chargée</SelectItem>
-                                <SelectItem value="decharge">Déchargée</SelectItem>
+                                <SelectItem value="arrivee">Arrivée</SelectItem>
                               </SelectContent>
                             </Select>
                           </TableCell>
