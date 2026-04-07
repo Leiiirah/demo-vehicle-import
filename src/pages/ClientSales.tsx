@@ -20,7 +20,7 @@ import {
   Users, Search, Download, Loader2, TrendingUp, DollarSign,
   Car, CheckCircle, Clock, Eye, Trash2, FileText, Wallet, CreditCard,
 } from 'lucide-react';
-import { useClients, useVehicles, useDeleteClient, useUpdateVehicle } from '@/hooks/useApi';
+import { useClients, useVehicles, useDeleteClient, useUpdateVehicle, useSales, useAddSalePayment } from '@/hooks/useApi';
 import { useCreateCaisseEntry } from '@/hooks/useCaisse';
 import { AssignVehicleDialog } from '@/components/clients/AssignVehicleDialog';
 import { NewSaleDialog } from '@/components/clients/NewSaleDialog';
