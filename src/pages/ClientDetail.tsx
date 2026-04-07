@@ -348,19 +348,14 @@ const ClientDetailPage = () => {
             </CardContent>
           </Card>
 
-          {/* Véhicules assignés / Ventes */}
-          {client.vehicles && client.vehicles.length > 0 && (
-            <ClientVehiclesSection vehicles={client.vehicles} />
-          )}
-
-          {/* Résumé des Transactions */}
-          {soldVehicles.length > 0 && (
+          {/* Ventes groupées */}
+          {clientSales.length > 0 && (
             <Card className="md:col-span-2">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Wallet className="h-5 w-5" />
-                  Résumé des Transactions
-                  <Badge variant="secondary" className="ml-1">{soldVehicles.length}</Badge>
+                  Ventes
+                  <Badge variant="secondary" className="ml-1">{clientSales.length}</Badge>
                 </CardTitle>
                 <Button
                   variant="outline"
@@ -390,51 +385,85 @@ const ClientDetailPage = () => {
                     <p className="text-lg font-bold text-destructive">{formatCurrency(totalRemaining)}</p>
                   </div>
                 </div>
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Véhicule</TableHead>
-                        <TableHead className="text-right">Prix de vente</TableHead>
-                        <TableHead className="text-right">Montant payé</TableHead>
-                        <TableHead className="text-right">Reste</TableHead>
-                        <TableHead>Statut</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {soldVehicles.map((v: any) => {
-                        const sp = Number(v.sellingPrice || 0);
-                        const ap = Number(v.amountPaid || 0);
-                        const remaining = Math.max(0, sp - ap);
-                        return (
-                          <TableRow key={v.id}>
-                            <TableCell className="font-medium">{v.brand} {v.model} ({v.year})</TableCell>
-                            <TableCell className="text-right">{formatCurrency(sp)}</TableCell>
-                            <TableCell className="text-right text-success">{formatCurrency(ap)}</TableCell>
-                            <TableCell className="text-right">
-                              {remaining > 0 ? (
-                                <span className="text-destructive">{formatCurrency(remaining)}</span>
-                              ) : (
-                                <span className="text-success">0 DZD</span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {v.paymentStatus === 'solde' ? (
-                                <Badge className="bg-success/10 text-success border-success/20" variant="outline">Soldé</Badge>
-                              ) : v.paymentStatus === 'versement' ? (
-                                <Badge className="bg-warning/10 text-warning border-warning/20" variant="outline">Versement</Badge>
-                              ) : (
-                                <Badge variant="secondary">En attente</Badge>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                <div className="space-y-4">
+                  {clientSales.map((sale: any, idx: number) => {
+                    const saleVehicles = sale.vehicles || [];
+                    const saleDebt = Number(sale.debt) || 0;
+                    const saleCarriedDebt = Number(sale.carriedDebt) || 0;
+                    const salePaid = Number(sale.amountPaid) || 0;
+                    const saleTotalSelling = Number(sale.totalSellingPrice) || 0;
+
+                    return (
+                      <div key={sale.id} className="rounded-lg border border-border">
+                        <div className="flex items-center justify-between p-4 bg-muted/30">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                              <span className="text-sm font-bold text-primary">#{idx + 1}</span>
+                            </div>
+                            <div>
+                              <div className="font-medium text-sm">
+                                Vente du {new Date(sale.date).toLocaleDateString('fr-FR')}
+                                <Badge variant="secondary" className="ml-2 text-xs">{saleVehicles.length} véhicule(s)</Badge>
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Total: {formatCurrency(saleTotalSelling)}
+                                {saleCarriedDebt > 0 && (
+                                  <span className="text-warning ml-2">+ {formatCurrency(saleCarriedDebt)} dette reportée</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            {saleDebt > 0 ? (
+                              <Badge variant="outline" className="border-destructive text-destructive">
+                                Dette: {formatCurrency(saleDebt)}
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-success/10 text-success border-success/20" variant="outline">Soldé</Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="rounded-md">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Véhicule</TableHead>
+                                <TableHead className="text-right">Prix de vente</TableHead>
+                                <TableHead className="text-right">Coût de revient</TableHead>
+                                <TableHead className="text-right">Bénéfice</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {saleVehicles.map((v: any) => {
+                                const sp = Number(v.sellingPrice || 0);
+                                const tc = Number(v.totalCost || 0);
+                                return (
+                                  <TableRow key={v.id}>
+                                    <TableCell className="font-medium">{v.brand} {v.model} ({v.year})</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(sp)}</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(tc)}</TableCell>
+                                    <TableCell className="text-right">
+                                      <span className={sp - tc >= 0 ? 'text-success' : 'text-destructive'}>
+                                        {formatCurrency(sp - tc)}
+                                      </span>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Véhicules assignés (legacy - without sale) */}
+          {client.vehicles && client.vehicles.filter((v: any) => !v.saleId).length > 0 && (
+            <ClientVehiclesSection vehicles={client.vehicles.filter((v: any) => !v.saleId)} />
           )}
         </div>
       </div>
