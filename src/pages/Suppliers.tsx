@@ -99,7 +99,7 @@ const SuppliersPage = () => {
         </div>
 
         {/* Cartes récapitulatives */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {isLoading ? (
             <>
               <Skeleton className="h-24" />
@@ -111,6 +111,12 @@ const SuppliersPage = () => {
               <div className="kpi-card">
                 <p className="kpi-label">Total fournisseurs</p>
                 <p className="kpi-value">{suppliersList.length}</p>
+              </div>
+              <div className="kpi-card border-l-4 border-l-primary">
+                <p className="kpi-label">Total investissement</p>
+                <p className="kpi-value text-primary">
+                  {formatCurrency(suppliersList.reduce((sum, s) => sum + (parseFloat(String(s.totalPaid)) || 0) + (parseFloat(String(s.remainingDebt)) || 0), 0))}
+                </p>
               </div>
               <div className="kpi-card border-l-4 border-l-success">
                 <p className="kpi-label">Total payé</p>
@@ -152,8 +158,8 @@ const SuppliersPage = () => {
                   <TableRow>
                     <TableHead>Nom</TableHead>
                     <TableHead className="text-right">Véhicules</TableHead>
+                    <TableHead className="text-right">Total investissement</TableHead>
                     <TableHead className="text-right">Total payé</TableHead>
-                    <TableHead className="text-right">Solde crédit</TableHead>
                     <TableHead className="text-right">Dette restante</TableHead>
                     <TableHead className="w-[100px]">Actions</TableHead>
                   </TableRow>
@@ -174,11 +180,11 @@ const SuppliersPage = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">{supplier.vehiclesSupplied || 0}</TableCell>
+                      <TableCell className="text-right text-primary font-medium">
+                        {formatCurrency((parseFloat(String(supplier.totalPaid)) || 0) + (parseFloat(String(supplier.remainingDebt)) || 0))}
+                      </TableCell>
                       <TableCell className="text-right text-success font-medium">
                         {formatCurrency(supplier.totalPaid || 0)}
-                      </TableCell>
-                      <TableCell className="text-right text-primary font-medium">
-                        {formatCurrency(supplier.creditBalance || 0)}
                       </TableCell>
                       <TableCell className={`text-right font-semibold ${
                         (supplier.remainingDebt || 0) > 0 ? 'text-danger' : (supplier.remainingDebt || 0) < 0 ? 'text-success' : 'text-muted-foreground'
