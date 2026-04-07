@@ -39,8 +39,10 @@ const ClientSalesPage = () => {
   const deleteClient = useDeleteClient();
   const updateVehicle = useUpdateVehicle();
   const createCaisseEntry = useCreateCaisseEntry();
+  const addSalePayment = useAddSalePayment();
   const { toast } = useToast();
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles();
+  const { data: salesData = [], isLoading: salesLoading } = useSales();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
@@ -52,7 +54,7 @@ const ClientSalesPage = () => {
   const [versementVehicle, setVersementVehicle] = useState<any>(null);
   const [versementAmount, setVersementAmount] = useState('');
 
-  const isLoading = clientsLoading || vehiclesLoading;
+  const isLoading = clientsLoading || vehiclesLoading || salesLoading;
 
 
   // Get all vehicles that have a client (= sales)
