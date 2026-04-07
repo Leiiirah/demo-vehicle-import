@@ -361,7 +361,7 @@ const ClientSalesPage = () => {
           </CardHeader>
           <CardContent>
             {salesData.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {salesData
                   .filter((sale: any) => {
                     const client = sale.client;
@@ -381,108 +381,121 @@ const ClientSalesPage = () => {
                     const saleProfit = Number(sale.totalProfit) || 0;
 
                     return (
-                      <div key={sale.id} className="rounded-lg border border-border overflow-hidden">
-                        {/* Sale header */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-muted/30 gap-2">
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                              <Users className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                              <div className="font-medium">
-                                {sale.client?.nom} {sale.client?.prenom}
-                                <Badge variant="secondary" className="ml-2 text-xs">{saleVehicles.length} véhicule(s)</Badge>
+                      <Collapsible key={sale.id}>
+                        <div className="rounded-lg border border-border overflow-hidden">
+                          <CollapsibleTrigger asChild>
+                            <button className="w-full flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-muted/30 gap-2 hover:bg-muted/50 transition-colors cursor-pointer text-left group">
+                              <div className="flex items-center gap-3">
+                                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180 shrink-0" />
+                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                  <Users className="h-5 w-5 text-primary" />
+                                </div>
+                                <div>
+                                  <div className="font-medium">
+                                    {sale.client?.nom} {sale.client?.prenom}
+                                    <Badge variant="secondary" className="ml-2 text-xs">{saleVehicles.length} véhicule(s)</Badge>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {new Date(sale.date).toLocaleDateString('fr-FR')}
+                                    {sale.client?.telephone && ` • ${sale.client.telephone}`}
+                                  </div>
+                                </div>
                               </div>
-                              <div className="text-xs text-muted-foreground">
-                                {new Date(sale.date).toLocaleDateString('fr-FR')}
-                                {sale.client?.telephone && ` • ${sale.client.telephone}`}
+                              <div className="flex items-center gap-3 text-sm">
+                                <div className="text-right">
+                                  <p className="text-xs text-muted-foreground">Total vente</p>
+                                  <p className="font-bold">{formatCurrency(saleTotalSelling)}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs text-muted-foreground">Payé</p>
+                                  <p className="font-bold text-success">{formatCurrency(salePaid)}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs text-muted-foreground">Dette</p>
+                                  <p className={`font-bold ${saleDebt > 0 ? 'text-destructive' : 'text-success'}`}>
+                                    {formatCurrency(saleDebt)}
+                                  </p>
+                                </div>
+                                {saleCarriedDebt > 0 && (
+                                  <Badge variant="outline" className="border-warning text-warning text-xs">
+                                    +{formatCurrency(saleCarriedDebt)} reportée
+                                  </Badge>
+                                )}
                               </div>
-                            </div>
+                            </button>
+                          </CollapsibleTrigger>
+                          <div className="flex gap-1 px-4 py-1 bg-muted/30 border-t border-border justify-end">
+                            <Button variant="ghost" size="sm" onClick={() => {
+                              if (sale.client) navigate(`/clients/${sale.client.id}`);
+                            }}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => {
+                              if (sale.client) {
+                                const clientVehicles = soldVehicles.filter((v: any) => v.clientId === sale.client.id);
+                                exportClientTransactionsPDF(sale.client, clientVehicles);
+                                toast({ title: 'PDF généré' });
+                              }
+                            }}>
+                              <FileText className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <div className="flex items-center gap-3 text-sm">
-                            <div className="text-right">
-                              <p className="text-xs text-muted-foreground">Total vente</p>
-                              <p className="font-bold">{formatCurrency(saleTotalSelling)}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xs text-muted-foreground">Payé</p>
-                              <p className="font-bold text-success">{formatCurrency(salePaid)}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xs text-muted-foreground">Dette</p>
-                              <p className={`font-bold ${saleDebt > 0 ? 'text-destructive' : 'text-success'}`}>
-                                {formatCurrency(saleDebt)}
-                              </p>
-                            </div>
-                            {saleCarriedDebt > 0 && (
-                              <Badge variant="outline" className="border-warning text-warning text-xs">
-                                +{formatCurrency(saleCarriedDebt)} reportée
-                              </Badge>
-                            )}
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="sm" onClick={() => {
-                                if (sale.client) {
-                                  navigate(`/clients/${sale.client.id}`);
-                                }
-                              }}>
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => {
-                                if (sale.client) {
-                                  const clientVehicles = soldVehicles.filter((v: any) => v.clientId === sale.client.id);
-                                  exportClientTransactionsPDF(sale.client, clientVehicles);
-                                  toast({ title: 'PDF généré' });
-                                }
-                              }}>
-                                <FileText className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Vehicles in this sale */}
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Véhicule</TableHead>
-                              <TableHead className="text-right">Prix de vente</TableHead>
-                              <TableHead className="text-right">Coût de revient</TableHead>
-                              <TableHead className="text-right">Bénéfice</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {saleVehicles.map((vehicle: any) => {
-                              const sp = Number(vehicle.sellingPrice || 0);
-                              const tc = Number(vehicle.totalCost || 0);
-                              return (
-                                <TableRow key={vehicle.id}>
-                                  <TableCell>
-                                    <div className="flex items-center gap-3">
-                                      {vehicle.photoUrl ? (
-                                        <img src={vehicle.photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-8 w-8 rounded object-cover" />
-                                      ) : (
-                                        <div className="h-8 w-8 rounded bg-secondary flex items-center justify-center">
-                                          <Car className="h-4 w-4 text-secondary-foreground" />
-                                        </div>
-                                      )}
-                                      <div>
-                                        <div className="font-medium text-sm">{vehicle.brand} {vehicle.model} ({vehicle.year})</div>
-                                        <div className="text-xs text-muted-foreground">{vehicle.vin}</div>
-                                      </div>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="text-right font-medium">{formatCurrency(sp)}</TableCell>
-                                  <TableCell className="text-right">{formatCurrency(tc)}</TableCell>
-                                  <TableCell className="text-right">
-                                    <span className={sp - tc >= 0 ? 'text-success' : 'text-destructive'}>
-                                      {formatCurrency(sp - tc)}
-                                    </span>
-                                  </TableCell>
+                          <CollapsibleContent>
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Véhicule</TableHead>
+                                  <TableHead className="text-right">Prix de vente</TableHead>
+                                  <TableHead className="text-right">Montant payé</TableHead>
+                                  <TableHead className="text-right">Montant restant</TableHead>
+                                  <TableHead className="text-center">Action</TableHead>
                                 </TableRow>
-                              );
-                            })}
-                          </TableBody>
-                        </Table>
-                      </div>
+                              </TableHeader>
+                              <TableBody>
+                                {saleVehicles.map((vehicle: any) => {
+                                  const sp = Number(vehicle.sellingPrice || 0);
+                                  const ap = Number(vehicle.amountPaid || 0);
+                                  const remaining = Math.max(0, sp - ap);
+                                  return (
+                                    <TableRow key={vehicle.id}>
+                                      <TableCell>
+                                        <div className="flex items-center gap-3">
+                                          {vehicle.photoUrl ? (
+                                            <img src={vehicle.photoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-8 w-8 rounded object-cover" />
+                                          ) : (
+                                            <div className="h-8 w-8 rounded bg-secondary flex items-center justify-center">
+                                              <Car className="h-4 w-4 text-secondary-foreground" />
+                                            </div>
+                                          )}
+                                          <div>
+                                            <div className="font-medium text-sm">{vehicle.brand} {vehicle.model} ({vehicle.year})</div>
+                                            <div className="text-xs text-muted-foreground">{vehicle.vin}</div>
+                                          </div>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="text-right font-medium">{formatCurrency(sp)}</TableCell>
+                                      <TableCell className="text-right font-medium text-success">{formatCurrency(ap)}</TableCell>
+                                      <TableCell className="text-right font-medium">
+                                        {remaining > 0 ? (
+                                          <span className="text-destructive">{formatCurrency(remaining)}</span>
+                                        ) : (
+                                          <span className="text-success">0 DZD</span>
+                                        )}
+                                      </TableCell>
+                                      <TableCell className="text-center">
+                                        <Button variant="ghost" size="sm" onClick={() => navigate(`/vehicles/${vehicle.id}`)}>
+                                          <ExternalLink className="h-4 w-4 mr-1" />
+                                          Voir
+                                        </Button>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                              </TableBody>
+                            </Table>
+                          </CollapsibleContent>
+                        </div>
+                      </Collapsible>
                     );
                   })}
               </div>
@@ -491,8 +504,6 @@ const ClientSalesPage = () => {
                 Aucune vente enregistrée
               </div>
             )}
-          </CardContent>
-        </Card>
 
         {/* Legacy individual vehicles (without sale) */}
         {filteredVehicles.filter((v: any) => !v.saleId).length > 0 && (
