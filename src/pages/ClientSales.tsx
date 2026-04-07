@@ -504,6 +504,8 @@ const ClientSalesPage = () => {
                 Aucune vente enregistrée
               </div>
             )}
+          </CardContent>
+        </Card>
 
         {/* Legacy individual vehicles (without sale) */}
         {filteredVehicles.filter((v: any) => !v.saleId).length > 0 && (
