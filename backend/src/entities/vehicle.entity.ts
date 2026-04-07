@@ -11,6 +11,7 @@ import { Supplier } from './supplier.entity';
 import { Conteneur } from './conteneur.entity';
 import { Client } from './client.entity';
 import { Passeport } from './passeport.entity';
+import { Sale } from './sale.entity';
 
 export enum VehicleStatus {
   ORDERED = 'ordered',
@@ -115,6 +116,13 @@ export class Vehicle {
 
   @Column({ type: 'date', nullable: true })
   soldDate: Date;
+
+  @Column({ nullable: true })
+  saleId: string | null;
+
+  @ManyToOne(() => Sale, (sale) => sale.vehicles, { nullable: true })
+  @JoinColumn({ name: 'saleId' })
+  sale: Sale;
 
   @Column({
     type: 'enum',
