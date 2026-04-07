@@ -234,7 +234,9 @@ export function exportSupplierFullReport(
   let y = addHeader(doc, 'Rapport Complet', supplierName);
 
   y = addDossiersSection(doc, y, dossiers, vehicles);
-  addTransactionsSection(doc, y, payments, supplier);
+  // Calculate total investment from all dossiers
+  const totalInvestment = dossiers.reduce((sum, d) => sum + getDossierTotal(d, vehicles), 0);
+  addTransactionsSection(doc, y, payments, supplier, totalInvestment);
 
   doc.save(`${supplierName}_rapport.pdf`);
 }
