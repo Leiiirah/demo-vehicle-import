@@ -11,11 +11,16 @@ import { Badge } from '@/components/ui/badge';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { Plus, Search, FolderOpen, Building2, Container, Car, AlertCircle, Trash2, MoreVertical } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { Plus, Search, FolderOpen, Building2, Container, Car, AlertCircle, Trash2, CalendarIcon, X } from 'lucide-react';
 import { AddDossierDialog } from '@/components/dossiers/AddDossierDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 
 const statusConfig = {
@@ -28,18 +33,25 @@ export default function DossiersPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const { data: dossiers, isLoading, error } = useDossiers();
   const deleteMutation = useDeleteDossier();
 
-  const filteredDossiers = (dossiers || []).filter(
-    (dossier) =>
+  const filteredDossiers = (dossiers || []).filter((dossier) => {
+    const matchesSearch =
       dossier.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (dossier.supplier?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
-  );
-
+      (dossier.supplier?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+    const matchesStatus = statusFilter === 'all' || dossier.status === statusFilter;
+    const dossierDate = new Date(dossier.dateCreation);
+    const matchesDateFrom = !dateFrom || dossierDate >= dateFrom;
+    const matchesDateTo = !dateTo || dossierDate <= dateTo;
+    return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
+  });
   const { paginatedItems: paginatedDossiers, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredDossiers);
 
   if (error) {
@@ -125,8 +137,8 @@ export default function DossiersPage() {
             <CardDescription>Cliquez sur un dossier pour voir ses détails</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <div className="relative">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Rechercher par référence ou fournisseur..."
@@ -135,6 +147,44 @@ export default function DossiersPage() {
                   className="pl-9"
                 />
               </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="en_cours">En cours</SelectItem>
+                  <SelectItem value="solde">Soldé</SelectItem>
+                  <SelectItem value="annule">Annulé</SelectItem>
+                </SelectContent>
+              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-[150px] justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateFrom ? format(dateFrom, 'dd/MM/yyyy') : 'Date début'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-[150px] justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateTo ? format(dateTo, 'dd/MM/yyyy') : 'Date fin'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+              {(statusFilter !== 'all' || dateFrom || dateTo) && (
+                <Button variant="ghost" size="icon" onClick={() => { setStatusFilter('all'); setDateFrom(undefined); setDateTo(undefined); }}>
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
             </div>
 
             {isLoading ? (
