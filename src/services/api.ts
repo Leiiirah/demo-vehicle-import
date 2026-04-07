@@ -387,6 +387,18 @@ class ApiClient {
     return this.request<ZakatRecord[]>('/api/zakat');
   }
 
+  async createZakatRecord(data: CreateZakatRecordData) {
+    return this.request<ZakatRecord>('/api/zakat', { method: 'POST', body: data });
+  }
+
+  async updateZakatRecord(id: string, data: UpdateZakatRecordData) {
+    return this.request<ZakatRecord>(`/api/zakat/${id}`, { method: 'PATCH', body: data });
+  }
+
+  async deleteZakatRecord(id: string) {
+    return this.request<void>(`/api/zakat/${id}`, { method: 'DELETE' });
+  }
+
   // Sales
   async getSales() {
     return this.request<Sale[]>('/api/sales');
