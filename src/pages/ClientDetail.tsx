@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useClient, useUpdateClient, useDeleteClient } from '@/hooks/useApi';
+import { useClient, useUpdateClient, useDeleteClient, useSalesByClient, useAddSalePayment } from '@/hooks/useApi';
 import { formatCurrency } from '@/lib/utils';
 import { 
   ArrowLeft, 
@@ -44,6 +44,8 @@ const ClientDetailPage = () => {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   
   const { data: client, isLoading, error } = useClient(id || '');
+  const { data: clientSales = [] } = useSalesByClient(id || '');
+  const addSalePayment = useAddSalePayment();
   const updateClient = useUpdateClient();
   const deleteClient = useDeleteClient();
 
