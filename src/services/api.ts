@@ -387,16 +387,29 @@ class ApiClient {
     return this.request<ZakatRecord[]>('/api/zakat');
   }
 
-  async createZakatRecord(data: CreateZakatRecordData) {
-    return this.request<ZakatRecord>('/api/zakat', { method: 'POST', body: data });
+  // Sales
+  async getSales() {
+    return this.request<Sale[]>('/api/sales');
   }
 
-  async updateZakatRecord(id: string, data: UpdateZakatRecordData) {
-    return this.request<ZakatRecord>(`/api/zakat/${id}`, { method: 'PATCH', body: data });
+  async getSalesByClient(clientId: string) {
+    return this.request<Sale[]>(`/api/sales/client/${clientId}`);
   }
 
-  async deleteZakatRecord(id: string) {
-    return this.request<void>(`/api/zakat/${id}`, { method: 'DELETE' });
+  async getSale(id: string) {
+    return this.request<Sale>(`/api/sales/${id}`);
+  }
+
+  async createSale(data: CreateSaleData) {
+    return this.request<Sale>('/api/sales', { method: 'POST', body: data });
+  }
+
+  async addSalePayment(saleId: string, amount: number) {
+    return this.request<Sale>(`/api/sales/${saleId}/payment`, { method: 'POST', body: { amount } });
+  }
+
+  async deleteSale(id: string) {
+    return this.request(`/api/sales/${id}`, { method: 'DELETE' });
   }
 }
 
