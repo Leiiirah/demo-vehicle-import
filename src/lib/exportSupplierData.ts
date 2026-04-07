@@ -88,6 +88,7 @@ function addDossierVehiclesTable(doc: jsPDF, y: number, dossier: DossierWithCont
     y += 6;
 
     doc.setFont('helvetica', 'normal');
+    let contTotal = 0;
     for (const v of contVehicles) {
       y = checkPage(doc, y, 8);
       doc.text(`${v.brand} ${v.model} ${v.year}`, cols[0], y);
@@ -97,9 +98,17 @@ function addDossierVehiclesTable(doc: jsPDF, y: number, dossier: DossierWithCont
       doc.text(formatPdfNumber(Number(v.transportCost || 0), { minimumFractionDigits: 2, maximumFractionDigits: 2 }), cols[3], y);
       doc.text(formatPdfNumber(coutTotalUSD, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), cols[4], y);
       dossierTotal += coutTotalUSD;
+      contTotal += coutTotalUSD;
       y += 5;
     }
-    y += 4;
+
+    // Container subtotal
+    y = checkPage(doc, y, 8);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Sous-total ${cont.numero}: ${formatPdfCurrency(contTotal, 'USD')}`, cols[2], y);
+    doc.setFont('helvetica', 'normal');
+    y += 6;
   }
 
   return { y, dossierTotal };
@@ -156,9 +165,9 @@ function addDossiersSection(doc: jsPDF, y: number, dossiers: DossierWithConteneu
   return y;
 }
 
-function addTransactionsSection(doc: jsPDF, y: number, payments: Payment[], supplier: { totalPaid?: number; remainingDebt?: number; creditBalance?: number }): number {
-  doc.addPage();
-  y = 20;
+function addTransactionsSection(doc: jsPDF, y: number, payments: Payment[], supplier: { totalPaid?: number; remainingDebt?: number; creditBalance?: number }, totalInvestment: number): number {
+  // Continue on same page, no addPage
+  y = checkPage(doc, y, 60);
 
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
@@ -172,10 +181,10 @@ function addTransactionsSection(doc: jsPDF, y: number, payments: Payment[], supp
   doc.text('Résumé Financier', 20, y + 7);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text(`Total Payé: ${formatPdfCurrency(supplier.totalPaid || 0, 'USD')}`, 20, y + 14);
-  doc.text(`Dette Restante: ${formatPdfCurrency(supplier.remainingDebt || 0, 'USD')}`, 85, y + 14);
-  doc.text(`Solde Crédit: ${formatPdfCurrency(supplier.creditBalance || 0, 'USD')}`, 150, y + 14);
-  doc.text(`Nombre de transactions: ${payments.length}`, 20, y + 21);
+  doc.text(`Total Investissement: ${formatPdfCurrency(totalInvestment, 'USD')}`, 20, y + 14);
+  doc.text(`Total Payé: ${formatPdfCurrency(supplier.totalPaid || 0, 'USD')}`, 100, y + 14);
+  doc.text(`Dette Restante: ${formatPdfCurrency(supplier.remainingDebt || 0, 'USD')}`, 20, y + 21);
+  doc.text(`Solde Crédit: ${formatPdfCurrency(supplier.creditBalance || 0, 'USD')}`, 100, y + 21);
   y += 36;
 
   if (payments.length === 0) {
@@ -183,8 +192,8 @@ function addTransactionsSection(doc: jsPDF, y: number, payments: Payment[], supp
     return y + 10;
   }
 
-  const cols = [14, 40, 75, 110, 135, 155, 175];
-  const headers = ['Date', 'Référence', 'Type', 'Montant', 'Devise', 'Taux', 'Statut'];
+  const cols = [14, 45, 85, 125, 155];
+  const headers = ['Date', 'Référence', 'Type', 'Montant', 'Devise'];
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   doc.setFillColor(230, 230, 235);
@@ -204,12 +213,10 @@ function addTransactionsSection(doc: jsPDF, y: number, payments: Payment[], supp
       doc.setFont('helvetica', 'normal');
     }
     doc.text(formatPdfDate(p.date), cols[0], y);
-    doc.text(p.reference?.slice(0, 15) || '', cols[1], y);
+    doc.text(p.reference?.slice(0, 18) || '', cols[1], y);
     doc.text(typeLabels[p.type] || p.type, cols[2], y);
     doc.text(formatPdfNumber(Number(p.amount || 0), { minimumFractionDigits: 0, maximumFractionDigits: 2 }), cols[3], y);
     doc.text(p.currency, cols[4], y);
-    doc.text(formatPdfNumber(Number(p.exchangeRate || 0), { minimumFractionDigits: 2, maximumFractionDigits: 2 }), cols[5], y);
-    doc.text(p.status === 'completed' ? 'Complété' : 'En attente', cols[6], y);
     y += 5;
   }
 
@@ -227,7 +234,9 @@ export function exportSupplierFullReport(
   let y = addHeader(doc, 'Rapport Complet', supplierName);
 
   y = addDossiersSection(doc, y, dossiers, vehicles);
-  addTransactionsSection(doc, y, payments, supplier);
+  // Calculate total investment from all dossiers
+  const totalInvestment = dossiers.reduce((sum, d) => sum + getDossierTotal(d, vehicles), 0);
+  addTransactionsSection(doc, y, payments, supplier, totalInvestment);
 
   doc.save(`${supplierName}_rapport.pdf`);
 }
