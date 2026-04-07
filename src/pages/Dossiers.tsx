@@ -137,8 +137,8 @@ export default function DossiersPage() {
             <CardDescription>Cliquez sur un dossier pour voir ses détails</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <div className="relative">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Rechercher par référence ou fournisseur..."
@@ -147,6 +147,44 @@ export default function DossiersPage() {
                   className="pl-9"
                 />
               </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="en_cours">En cours</SelectItem>
+                  <SelectItem value="solde">Soldé</SelectItem>
+                  <SelectItem value="annule">Annulé</SelectItem>
+                </SelectContent>
+              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-[150px] justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateFrom ? format(dateFrom, 'dd/MM/yyyy') : 'Date début'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-[150px] justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateTo ? format(dateTo, 'dd/MM/yyyy') : 'Date fin'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+              {(statusFilter !== 'all' || dateFrom || dateTo) && (
+                <Button variant="ghost" size="icon" onClick={() => { setStatusFilter('all'); setDateFrom(undefined); setDateTo(undefined); }}>
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
             </div>
 
             {isLoading ? (
