@@ -802,4 +802,26 @@ export interface CreateCarModelData {
   imageUrl?: string;
 }
 
+export interface Sale {
+  id: string;
+  clientId: string;
+  client?: Client;
+  date: string;
+  totalSellingPrice: number;
+  totalCost: number;
+  totalProfit: number;
+  amountPaid: number;
+  debt: number;
+  carriedDebt: number;
+  vehicles?: Vehicle[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateSaleData {
+  clientId: string;
+  date?: string;
+  vehicles: { vehicleId: string; sellingPrice: number }[];
+}
+
 export const api = new ApiClient(API_URL);
