@@ -11,11 +11,16 @@ import { Badge } from '@/components/ui/badge';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { Plus, Search, FolderOpen, Building2, Container, Car, AlertCircle, Trash2, MoreVertical } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { Plus, Search, FolderOpen, Building2, Container, Car, AlertCircle, Trash2, CalendarIcon, X } from 'lucide-react';
 import { AddDossierDialog } from '@/components/dossiers/AddDossierDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 
 const statusConfig = {
@@ -28,18 +33,25 @@ export default function DossiersPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const { data: dossiers, isLoading, error } = useDossiers();
   const deleteMutation = useDeleteDossier();
 
-  const filteredDossiers = (dossiers || []).filter(
-    (dossier) =>
+  const filteredDossiers = (dossiers || []).filter((dossier) => {
+    const matchesSearch =
       dossier.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (dossier.supplier?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
-  );
-
+      (dossier.supplier?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+    const matchesStatus = statusFilter === 'all' || dossier.status === statusFilter;
+    const dossierDate = new Date(dossier.dateCreation);
+    const matchesDateFrom = !dateFrom || dossierDate >= dateFrom;
+    const matchesDateTo = !dateTo || dossierDate <= dateTo;
+    return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
+  });
   const { paginatedItems: paginatedDossiers, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredDossiers);
 
   if (error) {
