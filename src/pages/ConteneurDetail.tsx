@@ -285,11 +285,10 @@ export default function ConteneurDetailPage() {
                     <TableHead>Véhicule</TableHead>
                     <TableHead>VIN</TableHead>
                     <TableHead>Passeport</TableHead>
+                    <TableHead>Couleur</TableHead>
+                    <TableHead>Boîte</TableHead>
                     <TableHead>Prix d'achat</TableHead>
                     <TableHead>Transport</TableHead>
-                    <TableHead>Passeport (DZD)</TableHead>
-                    <TableHead>Transit (DZD)</TableHead>
-                    <TableHead>Statut</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead className="w-12"></TableHead>
                   </TableRow>
@@ -337,10 +336,10 @@ export default function ConteneurDetailPage() {
                               <span className="text-muted-foreground">-</span>
                             )}
                           </TableCell>
+                          <TableCell>{vehicule.color || '-'}</TableCell>
+                          <TableCell>{vehicule.transmission === 'manual' ? 'Manuelle' : 'Automatique'}</TableCell>
                           <TableCell>{formatCurrency(Number(vehicule.purchasePrice || 0), 'USD')}</TableCell>
                           <TableCell>{formatCurrency(Number(vehicule.transportCost || 0), 'USD')}</TableCell>
-                          <TableCell>{formatCurrency(Number(vehicule.passeportCost || 0))}</TableCell>
-                          <TableCell>{formatCurrency(Number(vehicule.localFees || 0))}</TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <VehicleStatusSelect vehicleId={vehicule.id} currentStatus={vehicule.status} />
                           </TableCell>
