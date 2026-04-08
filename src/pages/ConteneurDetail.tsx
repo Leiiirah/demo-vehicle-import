@@ -393,6 +393,11 @@ export default function ConteneurDetailPage() {
         onOpenChange={setEditDialogOpen} 
         conteneur={conteneur}
       />
+      <EditVehicleDialog
+        open={!!editingVehicle}
+        onOpenChange={(open) => { if (!open) setEditingVehicle(null); }}
+        vehicle={editingVehicle}
+      />
     </DashboardLayout>
   );
 }
