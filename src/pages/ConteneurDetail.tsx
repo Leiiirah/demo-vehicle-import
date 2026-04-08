@@ -14,13 +14,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Container, FolderOpen, Car, Edit, Plus, Ship, Anchor, AlertCircle, Trash2 } from 'lucide-react';
+import { ArrowLeft, Container, FolderOpen, Car, Edit, Plus, Ship, Anchor, AlertCircle, Trash2, Pencil } from 'lucide-react';
 
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { AffecterVehiculeDialog } from '@/components/conteneurs/AffecterVehiculeDialog';
 import { VehicleStatusSelect } from '@/components/vehicles/VehicleStatusSelect';
 import { EditConteneurDialog } from '@/components/conteneurs/EditConteneurDialog';
+import { EditVehicleDialog } from '@/components/vehicles/EditVehicleDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
@@ -48,6 +49,7 @@ export default function ConteneurDetailPage() {
   const navigate = useNavigate();
   const [affecterVehiculeOpen, setAffecterVehiculeOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<any>(null);
 
   const { data: conteneur, isLoading, error } = useConteneur(id || '');
   const dossierId = conteneur?.dossierId;
@@ -343,7 +345,10 @@ export default function ConteneurDetailPage() {
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <VehicleStatusSelect vehicleId={vehicule.id} currentStatus={vehicule.status} />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setEditingVehicle(vehicule); }}>
+                              <Pencil className="h-4 w-4 text-muted-foreground" />
+                            </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
@@ -387,6 +392,11 @@ export default function ConteneurDetailPage() {
         open={editDialogOpen} 
         onOpenChange={setEditDialogOpen} 
         conteneur={conteneur}
+      />
+      <EditVehicleDialog
+        open={!!editingVehicle}
+        onOpenChange={(open) => { if (!open) setEditingVehicle(null); }}
+        vehicle={editingVehicle}
       />
     </DashboardLayout>
   );
