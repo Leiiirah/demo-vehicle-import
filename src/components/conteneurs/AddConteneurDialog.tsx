@@ -58,10 +58,12 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
     enabled: open,
   });
 
-  // Filter containers that have status 'arrivee' - these numbers can be reused
+  // Filter containers that have status 'arrivee' AND no active 'charge' container with the same number
   const availableArriveeNumeros = useMemo(() => {
-    const arrivee = allConteneurs.filter(c => c.status === 'arrivee');
-    // Get unique numbers
+    const chargeNumeros = new Set(
+      allConteneurs.filter(c => c.status === 'charge').map(c => c.numero)
+    );
+    const arrivee = allConteneurs.filter(c => c.status === 'arrivee' && !chargeNumeros.has(c.numero));
     const seen = new Set<string>();
     return arrivee.filter(c => {
       if (seen.has(c.numero)) return false;
