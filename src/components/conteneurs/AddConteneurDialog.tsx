@@ -37,6 +37,7 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
   const [coutTransport, setCoutTransport] = useState('');
   const [dateDepart, setDateDepart] = useState('');
   const [dateArrivee, setDateArrivee] = useState('');
+  const [numeroError, setNumeroError] = useState('');
 
   const queryClient = useQueryClient();
 
