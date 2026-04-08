@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
@@ -20,7 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Container, FolderOpen, Calendar, Package, Ship, Anchor, Loader2 } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Container, FolderOpen, Calendar, Package, Ship, Anchor, Loader2, ChevronDown } from 'lucide-react';
 import { api, type CreateConteneurData } from '@/services/api';
 import { toast } from '@/hooks/use-toast';
 
@@ -38,16 +43,41 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
   const [dateDepart, setDateDepart] = useState('');
   const [dateArrivee, setDateArrivee] = useState('');
   const [numeroError, setNumeroError] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const queryClient = useQueryClient();
 
-  // Charger les dossiers depuis l'API
   const { data: dossiers = [] } = useQuery({
     queryKey: ['dossiers'],
     queryFn: () => api.getDossiers(),
   });
 
-  // Mettre à jour dossierId si preSelectedDossierId change
+  const { data: allConteneurs = [] } = useQuery({
+    queryKey: ['conteneurs'],
+    queryFn: () => api.getConteneurs(),
+    enabled: open,
+  });
+
+  // Filter containers that have status 'arrivee' - these numbers can be reused
+  const availableArriveeNumeros = useMemo(() => {
+    const arrivee = allConteneurs.filter(c => c.status === 'arrivee');
+    // Get unique numbers
+    const seen = new Set<string>();
+    return arrivee.filter(c => {
+      if (seen.has(c.numero)) return false;
+      seen.add(c.numero);
+      return true;
+    });
+  }, [allConteneurs]);
+
+  // Filter suggestions based on current input
+  const filteredSuggestions = useMemo(() => {
+    if (!numero) return availableArriveeNumeros;
+    return availableArriveeNumeros.filter(c => 
+      c.numero.toUpperCase().includes(numero.toUpperCase())
+    );
+  }, [availableArriveeNumeros, numero]);
+
   useEffect(() => {
     if (preSelectedDossierId) {
       setDossierId(preSelectedDossierId);
@@ -65,8 +95,8 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
     },
     onError: (error: any) => {
       const message = error?.message || 'Erreur inconnue';
-      if (message.includes('conteneur avec ce numéro existe déjà')) {
-        setNumeroError(message);
+      if (message.includes('conteneur avec ce numéro existe déjà') || message.includes('already exists')) {
+        setNumeroError('Ce numéro de conteneur est déjà utilisé par un conteneur en cours de chargement. Vous ne pouvez le réutiliser que lorsque le conteneur précédent est arrivé.');
       } else {
         toast({ title: 'Erreur', description: message, variant: 'destructive' });
       }
@@ -95,6 +125,7 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
     setDateDepart('');
     setDateArrivee('');
     setNumeroError('');
+    setShowSuggestions(false);
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -144,7 +175,6 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
               </Select>
             </div>
 
-            {/* Info dossier sélectionné */}
             {selectedDossier && (
               <div className="p-3 bg-accent/50 rounded-lg">
                 <div className="flex justify-between text-sm">
@@ -154,24 +184,52 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
               </div>
             )}
 
-            {/* Numéro conteneur */}
+            {/* Numéro conteneur with suggestions */}
             <div className="space-y-2">
               <Label htmlFor="numero" className="flex items-center gap-2">
                 <Container className="h-4 w-4 text-muted-foreground" />
                 Numéro du conteneur *
               </Label>
-              <Input 
-                id="numero" 
-                placeholder="Ex: MSKU1234567"
-                value={numero}
-                onChange={(e) => { setNumero(e.target.value.toUpperCase()); setNumeroError(''); }}
-                className={`uppercase ${numeroError ? 'border-destructive' : ''}`}
-              />
+              <div className="relative">
+                <Input 
+                  id="numero" 
+                  placeholder="Ex: MSKU1234567"
+                  value={numero}
+                  onChange={(e) => { setNumero(e.target.value.toUpperCase()); setNumeroError(''); }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  className={`uppercase ${numeroError ? 'border-destructive' : ''}`}
+                  autoComplete="off"
+                />
+                {showSuggestions && filteredSuggestions.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                    <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b border-border">
+                      Conteneurs arrivés — réutilisables
+                    </div>
+                    {filteredSuggestions.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className="w-full text-left px-3 py-2 hover:bg-accent/50 transition-colors flex items-center justify-between"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setNumero(c.numero);
+                          setNumeroError('');
+                          setShowSuggestions(false);
+                        }}
+                      >
+                        <span className="font-mono text-sm font-medium">{c.numero}</span>
+                        <span className="text-xs text-green-600 dark:text-green-400">Arrivé ✓</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               {numeroError ? (
                 <p className="text-xs text-destructive font-medium">{numeroError}</p>
               ) : (
                 <p className="text-xs text-muted-foreground">
-                  Code ISO du conteneur (11 caractères)
+                  Code ISO du conteneur (11 caractères). Tapez pour voir les numéros réutilisables.
                 </p>
               )}
             </div>
@@ -223,7 +281,6 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
               </Label>
               
               <div className="grid grid-cols-2 gap-3">
-                {/* Date de départ */}
                 <div className="space-y-2">
                   <Label htmlFor="dateDepart" className="text-xs flex items-center gap-1">
                     <Ship className="h-3 w-3 text-muted-foreground" />
@@ -237,7 +294,6 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
                   />
                 </div>
                 
-                {/* Date d'arrivée */}
                 <div className="space-y-2">
                   <Label htmlFor="dateArrivee" className="text-xs flex items-center gap-1">
                     <Anchor className="h-3 w-3 text-muted-foreground" />
