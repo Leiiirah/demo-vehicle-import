@@ -285,11 +285,10 @@ export default function ConteneurDetailPage() {
                     <TableHead>Véhicule</TableHead>
                     <TableHead>VIN</TableHead>
                     <TableHead>Passeport</TableHead>
+                    <TableHead>Couleur</TableHead>
+                    <TableHead>Boîte</TableHead>
                     <TableHead>Prix d'achat</TableHead>
                     <TableHead>Transport</TableHead>
-                    <TableHead>Passeport (DZD)</TableHead>
-                    <TableHead>Transit (DZD)</TableHead>
-                    <TableHead>Statut</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead className="w-12"></TableHead>
                   </TableRow>
