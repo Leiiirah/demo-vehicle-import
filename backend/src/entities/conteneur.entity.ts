@@ -28,7 +28,7 @@ export class Conteneur {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column()
   numero: string;
 
   @Column()
