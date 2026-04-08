@@ -62,13 +62,19 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
       onOpenChange(false);
       resetForm();
     },
-    onError: (error: Error) => {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    onError: (error: any) => {
+      const message = error?.response?.data?.message || error?.message || 'Erreur inconnue';
+      if (error?.response?.status === 409) {
+        setNumeroError(message);
+      } else {
+        toast({ title: 'Erreur', description: message, variant: 'destructive' });
+      }
     },
   });
 
   const handleSubmit = () => {
     if (!dossierId || !numero) return;
+    setNumeroError('');
     
     createMutation.mutate({
       numero,
@@ -87,6 +93,7 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
     setCoutTransport('');
     setDateDepart('');
     setDateArrivee('');
+    setNumeroError('');
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -156,12 +163,16 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
                 id="numero" 
                 placeholder="Ex: MSKU1234567"
                 value={numero}
-                onChange={(e) => setNumero(e.target.value.toUpperCase())}
-                className="uppercase"
+                onChange={(e) => { setNumero(e.target.value.toUpperCase()); setNumeroError(''); }}
+                className={`uppercase ${numeroError ? 'border-destructive' : ''}`}
               />
-              <p className="text-xs text-muted-foreground">
-                Code ISO du conteneur (11 caractères)
-              </p>
+              {numeroError ? (
+                <p className="text-xs text-destructive font-medium">{numeroError}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Code ISO du conteneur (11 caractères)
+                </p>
+              )}
             </div>
 
             {/* Type de conteneur */}

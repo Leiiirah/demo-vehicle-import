@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Conteneur, ConteneurStatus } from '../../entities/conteneur.entity';
@@ -34,6 +34,15 @@ export class ConteneursService {
   }
 
   async create(createConteneurDto: CreateConteneurDto) {
+    // Check if a container with this number already exists
+    const existing = await this.conteneurRepository.findOne({
+      where: { numero: createConteneurDto.numero },
+    });
+    if (existing && existing.status !== ConteneurStatus.ARRIVEE) {
+      throw new ConflictException(
+        'Un conteneur avec ce numéro existe déjà et est encore en cours de chargement. Vous ne pouvez réutiliser ce numéro que lorsque le conteneur précédent est arrivé.',
+      );
+    }
     const conteneur = this.conteneurRepository.create(createConteneurDto);
     return this.conteneurRepository.save(conteneur);
   }
