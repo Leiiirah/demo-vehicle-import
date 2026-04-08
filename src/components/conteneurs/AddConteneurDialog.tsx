@@ -64,8 +64,8 @@ export const AddConteneurDialog = ({ open, onOpenChange, preSelectedDossierId }:
       resetForm();
     },
     onError: (error: any) => {
-      const message = error?.response?.data?.message || error?.message || 'Erreur inconnue';
-      if (error?.response?.status === 409) {
+      const message = error?.message || 'Erreur inconnue';
+      if (message.includes('conteneur avec ce numéro existe déjà')) {
         setNumeroError(message);
       } else {
         toast({ title: 'Erreur', description: message, variant: 'destructive' });
