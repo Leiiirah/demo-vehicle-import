@@ -343,6 +343,7 @@ export default function ConteneurDetailPage() {
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <VehicleStatusSelect vehicleId={vehicule.id} currentStatus={vehicule.status} />
                           </TableCell>
+                          <TableCell>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
