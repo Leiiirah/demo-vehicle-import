@@ -328,7 +328,7 @@ const VehiclesPage = () => {
                     <th>Transit (DZD)</th>
                     <th>Charges divers (DZD)</th>
                     <th>Total (DZD)</th>
-                    <th>Statut</th>
+                    
                     <th></th>
                   </tr>
                 </thead>
@@ -403,7 +403,7 @@ const VehiclesPage = () => {
                             return total > 0 ? formatCurrency(total) : '-';
                           })()}
                         </td>
-                        <td><VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} /></td>
+                        
                         <td>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -491,7 +491,7 @@ const VehiclesPage = () => {
                           </p>
                         </div>
                       </div>
-                      <VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} />
+                      
                     </div>
 
                     <div className="space-y-2 text-sm">
