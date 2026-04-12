@@ -181,10 +181,9 @@ function addTransactionsSection(doc: jsPDF, y: number, payments: Payment[], supp
   doc.text('Résumé Financier', 20, y + 7);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text(`Total Investissement: ${formatPdfCurrency(totalInvestment, 'USD')}`, 20, y + 14);
+  doc.text(`Total Achat: ${formatPdfCurrency(totalInvestment, 'USD')}`, 20, y + 14);
   doc.text(`Total Payé: ${formatPdfCurrency(supplier.totalPaid || 0, 'USD')}`, 100, y + 14);
   doc.text(`Dette Restante: ${formatPdfCurrency(supplier.remainingDebt || 0, 'USD')}`, 20, y + 21);
-  doc.text(`Solde Crédit: ${formatPdfCurrency(supplier.creditBalance || 0, 'USD')}`, 100, y + 21);
   y += 36;
 
   if (payments.length === 0) {
