@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { ProfitChart } from '@/components/dashboard/ProfitChart';
@@ -15,9 +15,6 @@ import {
   Banknote,
   Wallet,
   Calendar,
-  Heart,
-  Save,
-  History,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,26 +46,6 @@ const Index = () => {
 
   const { data: stats, isLoading, error } = useDashboardStats(filterParams);
 
-  const saveZakatMutation = useMutation({
-    mutationFn: () => {
-      if (!stats) throw new Error('No stats');
-      const year = new Date().getFullYear();
-      return api.createZakatRecord({
-        year,
-        assetsTotal: (stats.valeurStock || 0) + (stats.valeurChargees || 0) + (stats.creanceTotal || 0) + (stats.totalCaisse || 0),
-        debtsTotal: stats.dettesTotal || 0,
-        zakatBase: stats.zakatBase || 0,
-        zakatAmount: stats.zakatAmount || 0,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['zakat-records'] });
-      toast({ title: 'Zakat enregistrée', description: `Zakat ${new Date().getFullYear()} sauvegardée avec succès` });
-    },
-    onError: (error: Error) => {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
-    },
-  });
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
@@ -201,52 +178,6 @@ const Index = () => {
           )}
         </div>
 
-        {/* Section Zakat */}
-        {!isLoading && stats && (
-          <Card className="border-l-4 border-l-success">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-success-muted text-success">
-                    <Heart className="h-5 w-5" />
-                  </div>
-                  Zakat (زكاة)
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => saveZakatMutation.mutate()}
-                    disabled={saveZakatMutation.isPending || (stats.zakatAmount || 0) === 0}
-                  >
-                    <Save className="h-4 w-4 mr-1" />
-                    Enregistrer {new Date().getFullYear()}
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => navigate('/zakat')}>
-                    <History className="h-4 w-4 mr-1" />
-                    Historique
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Assiette Zakat</p>
-                  <p className="text-xl font-semibold text-foreground">{formatCurrency(stats.zakatBase || 0)}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Actifs nets zakatable</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Montant Zakat dû</p>
-                  <p className="text-xl font-semibold text-success">{formatCurrency(stats.zakatAmount || 0)}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {(stats.zakatAmount || 0) === 0 ? 'En dessous du Nissab (~2,500,000 DZD)' : '2.5% de l\'assiette'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Graphique */}
         <ProfitChart filterParams={filterParams} />
