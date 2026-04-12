@@ -113,7 +113,7 @@ const SuppliersPage = () => {
                 <p className="kpi-value">{suppliersList.length}</p>
               </div>
               <div className="kpi-card border-l-4 border-l-primary">
-                <p className="kpi-label">Total investissement</p>
+                <p className="kpi-label">Total achat</p>
                 <p className="kpi-value text-primary">
                   {formatCurrency(suppliersList.reduce((sum, s) => sum + (parseFloat(String(s.totalPaid)) || 0) + (parseFloat(String(s.remainingDebt)) || 0), 0))}
                 </p>
@@ -158,7 +158,7 @@ const SuppliersPage = () => {
                   <TableRow>
                     <TableHead>Nom</TableHead>
                     <TableHead className="text-right">Véhicules</TableHead>
-                    <TableHead className="text-right">Total investissement</TableHead>
+                    <TableHead className="text-right">Total achat</TableHead>
                     <TableHead className="text-right">Total payé</TableHead>
                     <TableHead className="text-right">Dette restante</TableHead>
                     <TableHead className="w-[100px]">Actions</TableHead>
