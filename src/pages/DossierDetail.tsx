@@ -214,6 +214,7 @@ export default function DossierDetailPage() {
                     <TableHead>Numéro</TableHead>
                     <TableHead>Départ</TableHead>
                     <TableHead>Arrivée</TableHead>
+                    <TableHead>Total Achat (USD)</TableHead>
                     {isDossierFullyPaid && <TableHead>Prix Total</TableHead>}
                     <TableHead className="text-center">Véhicules</TableHead>
                     <TableHead>Statut</TableHead>
