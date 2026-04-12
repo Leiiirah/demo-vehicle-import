@@ -18,15 +18,15 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, ZakatRecord } from '@/services/api';
 import { formatCurrency } from '@/lib/utils';
-import { Heart, Pencil, Trash2, Plus } from 'lucide-react';
+import { Heart, Pencil, Trash2, Banknote } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCreateCaisseEntry } from '@/hooks/useCaisse';
 
 export default function ZakatPage() {
   const { toast } = useToast();
@@ -36,6 +36,8 @@ export default function ZakatPage() {
   const [editNotes, setEditNotes] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [retraitRecord, setRetraitRecord] = useState<ZakatRecord | null>(null);
+  const createCaisseEntry = useCreateCaisseEntry();
 
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['zakat-records'],
@@ -74,6 +76,40 @@ export default function ZakatPage() {
       id: editRecord.id,
       data: { amountPaid: parseFloat(editPaid) || 0, notes: editNotes || undefined },
     });
+  };
+
+  const handleRetraitZakat = () => {
+    if (!retraitRecord) return;
+    const remaining = Number(retraitRecord.zakatAmount) - Number(retraitRecord.amountPaid);
+    if (remaining <= 0) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    createCaisseEntry.mutate(
+      {
+        type: 'retrait',
+        montant: remaining,
+        date: today,
+        description: `Retrait Zakat — Année ${retraitRecord.year}`,
+        reference: `ZAKAT-${retraitRecord.year}`,
+      },
+      {
+        onSuccess: () => {
+          // Also update the zakat record as fully paid
+          updateMutation.mutate(
+            {
+              id: retraitRecord.id,
+              data: { amountPaid: Number(retraitRecord.zakatAmount) },
+            },
+            {
+              onSuccess: () => {
+                setRetraitRecord(null);
+                toast({ title: 'Retrait Zakat effectué', description: `${formatCurrency(remaining)} déduit de la caisse` });
+              },
+            },
+          );
+        },
+      },
+    );
   };
 
   const totalZakat = records.reduce((sum, r) => sum + Number(r.zakatAmount), 0);
@@ -170,6 +206,17 @@ export default function ZakatPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
+                              {!isPaid && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="text-success"
+                                  title="Retrait Zakat"
+                                  onClick={() => setRetraitRecord(record)}
+                                >
+                                  <Banknote className="h-4 w-4" />
+                                </Button>
+                              )}
                               <Button size="icon" variant="ghost" onClick={() => handleEdit(record)}>
                                 <Pencil className="h-4 w-4" />
                               </Button>
@@ -240,6 +287,45 @@ export default function ZakatPage() {
             >
               Supprimer
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Retrait Zakat confirmation */}
+      <Dialog open={!!retraitRecord} onOpenChange={() => setRetraitRecord(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Retrait Zakat — Année {retraitRecord?.year}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-muted-foreground">
+              Confirmez-vous le retrait du montant Zakat restant de la caisse ?
+            </p>
+            <div className="bg-muted rounded-lg p-4 space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Zakat dû</span>
+                <span className="font-semibold">{formatCurrency(Number(retraitRecord?.zakatAmount || 0))}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Déjà payé</span>
+                <span>{formatCurrency(Number(retraitRecord?.amountPaid || 0))}</span>
+              </div>
+              <div className="border-t pt-2 flex justify-between">
+                <span className="text-sm font-medium">Montant du retrait</span>
+                <span className="text-lg font-bold text-destructive">
+                  {formatCurrency(Math.max(0, Number(retraitRecord?.zakatAmount || 0) - Number(retraitRecord?.amountPaid || 0)))}
+                </span>
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setRetraitRecord(null)}>Annuler</Button>
+              <Button
+                onClick={handleRetraitZakat}
+                disabled={createCaisseEntry.isPending || updateMutation.isPending}
+              >
+                {createCaisseEntry.isPending ? 'Traitement...' : 'Confirmer le retrait'}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
