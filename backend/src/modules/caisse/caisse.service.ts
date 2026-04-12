@@ -188,6 +188,9 @@ export class CaisseService {
     const entry = this.caisseRepo.create({
       ...dto,
       type: dto.type as CaisseEntryType,
+      paymentMethod: dto.paymentMethod
+        ? (dto.paymentMethod as unknown as CaissePaymentMethod)
+        : undefined,
     });
     return this.caisseRepo.save(entry);
   }
