@@ -18,15 +18,15 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, ZakatRecord } from '@/services/api';
 import { formatCurrency } from '@/lib/utils';
-import { Heart, Pencil, Trash2, Plus } from 'lucide-react';
+import { Heart, Pencil, Trash2, Banknote } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCreateCaisseEntry } from '@/hooks/useCaisse';
 
 export default function ZakatPage() {
   const { toast } = useToast();
@@ -36,6 +36,8 @@ export default function ZakatPage() {
   const [editNotes, setEditNotes] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [retraitRecord, setRetraitRecord] = useState<ZakatRecord | null>(null);
+  const createCaisseEntry = useCreateCaisseEntry();
 
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['zakat-records'],
