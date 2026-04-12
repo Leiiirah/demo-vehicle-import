@@ -51,7 +51,7 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
   // Fetch existing payments for this dossier to auto-generate reference
   const { data: dossierPayments } = useQuery({
     queryKey: ['payments', { dossierId: preSelectedDossierId }],
-    queryFn: () => api.getDossierPaymentStats(preSelectedDossierId!),
+    queryFn: () => api.getPayments(preSelectedDossierId),
     enabled: !!preSelectedDossierId && open,
   });
 
