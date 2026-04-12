@@ -184,13 +184,44 @@ export default function ConteneursPage() {
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filtrer par statut" />
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Statut" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les statuts</SelectItem>
                   <SelectItem value="charge">Chargée</SelectItem>
                   <SelectItem value="arrivee">Arrivée</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Mois" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les mois</SelectItem>
+                  <SelectItem value="1">Janvier</SelectItem>
+                  <SelectItem value="2">Février</SelectItem>
+                  <SelectItem value="3">Mars</SelectItem>
+                  <SelectItem value="4">Avril</SelectItem>
+                  <SelectItem value="5">Mai</SelectItem>
+                  <SelectItem value="6">Juin</SelectItem>
+                  <SelectItem value="7">Juillet</SelectItem>
+                  <SelectItem value="8">Août</SelectItem>
+                  <SelectItem value="9">Septembre</SelectItem>
+                  <SelectItem value="10">Octobre</SelectItem>
+                  <SelectItem value="11">Novembre</SelectItem>
+                  <SelectItem value="12">Décembre</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={yearFilter} onValueChange={setYearFilter}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Année" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes</SelectItem>
+                  {availableYears.map(y => (
+                    <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
