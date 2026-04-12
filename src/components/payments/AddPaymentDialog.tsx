@@ -151,15 +151,13 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="reference">Référence *</Label>
+                <Label htmlFor="reference">Référence</Label>
                 <Input
                   id="reference"
-                  placeholder="REF-001"
-                  {...register('reference')}
+                  value={nextReference}
+                  readOnly
+                  className="bg-muted"
                 />
-                {errors.reference && (
-                  <p className="text-sm text-destructive">{errors.reference.message}</p>
-                )}
               </div>
             </div>
 
