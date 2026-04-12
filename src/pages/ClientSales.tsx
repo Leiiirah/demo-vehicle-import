@@ -19,7 +19,7 @@ import {
 import { Label } from '@/components/ui/label';
 import {
   Users, Search, Download, Loader2, TrendingUp, DollarSign,
-  Car, CheckCircle, Clock, Eye, Trash2, FileText, Wallet, CreditCard, ChevronDown, ExternalLink,
+  Car, CheckCircle, Clock, Eye, Trash2, FileText, Wallet, CreditCard, ChevronDown, ExternalLink, Landmark,
 } from 'lucide-react';
 import { useClients, useVehicles, useDeleteClient, useUpdateVehicle, useSales, useAddSalePayment } from '@/hooks/useApi';
 import { useCreateCaisseEntry } from '@/hooks/useCaisse';
@@ -54,6 +54,7 @@ const ClientSalesPage = () => {
   const [versementDialogOpen, setVersementDialogOpen] = useState(false);
   const [versementVehicle, setVersementVehicle] = useState<any>(null);
   const [versementAmount, setVersementAmount] = useState('');
+  const [versementMode, setVersementMode] = useState<'versement' | 'virement'>('versement');
 
   const isLoading = clientsLoading || vehiclesLoading || salesLoading;
 
