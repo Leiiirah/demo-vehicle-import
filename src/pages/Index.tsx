@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { ProfitChart } from '@/components/dashboard/ProfitChart';
@@ -15,9 +15,7 @@ import {
   Banknote,
   Wallet,
   Calendar,
-  Heart,
-  Save,
-  History,
+  Calendar,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,23 +47,6 @@ const Index = () => {
 
   const { data: stats, isLoading, error } = useDashboardStats(filterParams);
 
-  const saveZakatMutation = useMutation({
-    mutationFn: () => {
-      if (!stats) throw new Error('No stats');
-      const year = new Date().getFullYear();
-      return api.createZakatRecord({
-        year,
-        assetsTotal: (stats.valeurStock || 0) + (stats.valeurChargees || 0) + (stats.creanceTotal || 0) + (stats.totalCaisse || 0),
-        debtsTotal: stats.dettesTotal || 0,
-        zakatBase: stats.zakatBase || 0,
-        zakatAmount: stats.zakatAmount || 0,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['zakat-records'] });
-      toast({ title: 'Zakat enregistrée', description: `Zakat ${new Date().getFullYear()} sauvegardée avec succès` });
-    },
-    onError: (error: Error) => {
       toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     },
   });
