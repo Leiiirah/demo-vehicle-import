@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
 import {
   Dialog,
   DialogDescription,
@@ -48,6 +48,18 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Fetch existing payments for this dossier to auto-generate reference
+  const { data: dossierPayments } = useQuery({
+    queryKey: ['payments', { dossierId: preSelectedDossierId }],
+    queryFn: () => api.getPayments(preSelectedDossierId),
+    enabled: !!preSelectedDossierId && open,
+  });
+
+  const nextReference = (() => {
+    const count = Array.isArray(dossierPayments) ? dossierPayments.length : 0;
+    return String(count + 1).padStart(3, '0');
+  })();
+
   const {
     register,
     handleSubmit,
@@ -63,6 +75,13 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
       exchangeRate: undefined as unknown as number,
     },
   });
+
+  // Auto-set reference when dialog opens or payments data changes
+  useEffect(() => {
+    if (open) {
+      setValue('reference', nextReference);
+    }
+  }, [open, nextReference, setValue]);
 
   const currency = watch('currency');
 
@@ -132,15 +151,13 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="reference">Référence *</Label>
+                <Label htmlFor="reference">Référence</Label>
                 <Input
                   id="reference"
-                  placeholder="REF-001"
-                  {...register('reference')}
+                  value={nextReference}
+                  readOnly
+                  className="bg-muted"
                 />
-                {errors.reference && (
-                  <p className="text-sm text-destructive">{errors.reference.message}</p>
-                )}
               </div>
             </div>
 

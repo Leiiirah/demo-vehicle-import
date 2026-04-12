@@ -271,8 +271,9 @@ class ApiClient {
   }
 
   // Payments
-  async getPayments() {
-    return this.request<Payment[]>('/api/payments');
+  async getPayments(dossierId?: string) {
+    const query = dossierId ? `?dossierId=${dossierId}` : '';
+    return this.request<Payment[]>(`/api/payments${query}`);
   }
 
   async getPayment(id: string) {
