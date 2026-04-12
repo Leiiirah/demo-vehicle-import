@@ -64,7 +64,7 @@ export class CaisseService {
       benefice: null,
       createdAt: vc.createdAt,
       updatedAt: vc.updatedAt,
-      _source: 'vehicle_charge',
+      _source: 'payment',
     }));
 
     // Transform sold vehicles into sale entries
