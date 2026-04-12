@@ -403,7 +403,7 @@ const VehiclesPage = () => {
                             return total > 0 ? formatCurrency(total) : '-';
                           })()}
                         </td>
-                        <td><VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} /></td>
+                        
                         <td>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
