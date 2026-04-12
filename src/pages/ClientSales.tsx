@@ -19,7 +19,7 @@ import {
 import { Label } from '@/components/ui/label';
 import {
   Users, Search, Download, Loader2, TrendingUp, DollarSign,
-  Car, CheckCircle, Clock, Eye, Trash2, FileText, Wallet, CreditCard, ChevronDown, ExternalLink,
+  Car, CheckCircle, Clock, Eye, Trash2, FileText, Wallet, CreditCard, ChevronDown, ExternalLink, Landmark,
 } from 'lucide-react';
 import { useClients, useVehicles, useDeleteClient, useUpdateVehicle, useSales, useAddSalePayment } from '@/hooks/useApi';
 import { useCreateCaisseEntry } from '@/hooks/useCaisse';
@@ -54,6 +54,7 @@ const ClientSalesPage = () => {
   const [versementDialogOpen, setVersementDialogOpen] = useState(false);
   const [versementVehicle, setVersementVehicle] = useState<any>(null);
   const [versementAmount, setVersementAmount] = useState('');
+  const [versementMode, setVersementMode] = useState<'versement' | 'virement'>('versement');
 
   const isLoading = clientsLoading || vehiclesLoading || salesLoading;
 
@@ -163,18 +164,20 @@ const ClientSalesPage = () => {
       },
       {
         onSuccess: () => {
-          // Create caisse entry for the versement
+          // Create caisse entry for the versement with payment method
           createCaisseEntry.mutate({
             type: 'entree',
             montant: amount,
             date: new Date().toISOString().split('T')[0],
-            description: `Versement ${versementVehicle.brand} ${versementVehicle.model} ${versementVehicle.year} — ${versementVehicle.client?.nom || ''} ${versementVehicle.client?.prenom || ''}`.trim(),
+            description: `${versementMode === 'virement' ? 'Virement' : 'Versement'} ${versementVehicle.brand} ${versementVehicle.model} ${versementVehicle.year} — ${versementVehicle.client?.nom || ''} ${versementVehicle.client?.prenom || ''}`.trim(),
             vehicleId: versementVehicle.id,
+            paymentMethod: versementMode,
           });
           toast({ title: isFull ? 'Paiement complet — véhicule soldé' : 'Versement enregistré' });
           setVersementDialogOpen(false);
           setVersementVehicle(null);
           setVersementAmount('');
+          setVersementMode('versement');
         },
         onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
       },
@@ -649,7 +652,35 @@ const ClientSalesPage = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="versementAmount">Montant du versement (DZD)</Label>
+                <Label>Mode de paiement</Label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={versementMode === 'versement' ? 'default' : 'outline'}
+                    className="flex-1 gap-2"
+                    onClick={() => setVersementMode('versement')}
+                  >
+                    <Wallet className="h-4 w-4" />
+                    Versement
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={versementMode === 'virement' ? 'default' : 'outline'}
+                    className="flex-1 gap-2"
+                    onClick={() => setVersementMode('virement')}
+                  >
+                    <Landmark className="h-4 w-4" />
+                    Virement
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {versementMode === 'versement'
+                    ? 'Le montant sera ajouté au solde de la caisse.'
+                    : 'Le montant sera enregistré dans l\'onglet Banque (sans impact sur la caisse).'}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="versementAmount">Montant du paiement (DZD)</Label>
                 <FormattedNumberInput
                   id="versementAmount"
                   placeholder="0"

@@ -17,6 +17,11 @@ export enum CaisseEntryType {
   VENTE_AUTO = 'vente_auto',
 }
 
+export enum CaissePaymentMethod {
+  VERSEMENT = 'versement',
+  VIREMENT = 'virement',
+}
+
 @Entity('caisse_entries')
 export class CaisseEntry {
   @PrimaryGeneratedColumn('uuid')
@@ -64,6 +69,14 @@ export class CaisseEntry {
 
   @Column({ type: 'decimal', precision: 14, scale: 2, nullable: true })
   benefice: number;
+
+  @Column({
+    type: 'enum',
+    enum: CaissePaymentMethod,
+    nullable: true,
+    default: CaissePaymentMethod.VERSEMENT,
+  })
+  paymentMethod: CaissePaymentMethod;
 
   @CreateDateColumn()
   createdAt: Date;

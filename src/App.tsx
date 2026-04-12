@@ -30,6 +30,7 @@ import CaissePage from "./pages/Caisse";
 import StockPage from "./pages/Stock";
 import ModelsPage from "./pages/Models";
 import ZakatPage from "./pages/Zakat";
+import BanquePage from "./pages/Banque";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="/stock" element={<ProtectedRoute><StockPage /></ProtectedRoute>} />
             <Route path="/models" element={<ProtectedRoute><ModelsPage /></ProtectedRoute>} />
             <Route path="/zakat" element={<ProtectedRoute><ZakatPage /></ProtectedRoute>} />
+            <Route path="/banque" element={<ProtectedRoute><BanquePage /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
