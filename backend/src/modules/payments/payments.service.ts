@@ -203,7 +203,7 @@ export class PaymentsService {
 
     const totalPaid = payments.reduce((s, p) => s + Number(p.amount), 0);
     const weightedRate = totalPaid > 0
-      ? payments.reduce((s, p) => s + Number(p.amount) * Number(p.exchangeRate), 0) / totalPaid
+      ? Math.round(payments.reduce((s, p) => s + Number(p.amount) * Number(p.exchangeRate), 0) / totalPaid * 100) / 100
       : 0;
 
     const vehicles = await this.vehicleRepository

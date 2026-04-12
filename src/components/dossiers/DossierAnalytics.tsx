@@ -33,7 +33,7 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
     const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount), 0);
     if (totalAmount === 0) return 0;
     const weightedRate = payments.reduce((sum, p) => sum + Number(p.amount) * Number(p.exchangeRate), 0);
-    return weightedRate / totalAmount;
+    return Math.round((weightedRate / totalAmount) * 100) / 100;
   }, [dossierPaymentStats]);
 
   const stats = useMemo(() => {
