@@ -103,6 +103,7 @@ export class CaisseService {
       prixVente: e.prixVente ? Number(e.prixVente) : null,
       prixRevient: e.prixRevient ? Number(e.prixRevient) : null,
       benefice: e.benefice ? Number(e.benefice) : null,
+      paymentMethod: e.paymentMethod || 'versement',
       _source: 'manual',
     }));
 
@@ -203,11 +204,18 @@ export class CaisseService {
     let totalEntrees = 0;
     let totalCharges = 0;
     let totalBenefices = 0;
+    let totalVirements = 0;
 
     for (const entry of allEntries) {
       const montant = Number(entry.montant) || 0;
+      const isVirement = (entry as any).paymentMethod === 'virement';
+
       if (entry.type === 'entree') {
-        totalEntrees += montant;
+        if (isVirement) {
+          totalVirements += montant;
+        } else {
+          totalEntrees += montant;
+        }
       } else if (entry.type === 'vente_auto') {
         totalEntrees += montant;
         totalBenefices += Number(entry.benefice) || 0;
@@ -223,6 +231,7 @@ export class CaisseService {
       totalCharges,
       totalBenefices,
       soldeActuel,
+      totalVirements,
     };
   }
 }
