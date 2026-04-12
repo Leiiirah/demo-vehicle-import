@@ -49,12 +49,21 @@ export default function ConteneursPage() {
   const updateConteneur = useUpdateConteneur();
   const { toast } = useToast();
 
+  const availableYears = Array.from(new Set(
+    (conteneurs || [])
+      .map(c => c.dateDepart ? new Date(c.dateDepart).getFullYear() : null)
+      .filter((y): y is number => y !== null)
+  )).sort((a, b) => b - a);
+
   const filteredConteneurs = (conteneurs || []).filter((conteneur) => {
     const matchesSearch =
       conteneur.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (conteneur.dossier?.reference?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
     const matchesStatus = statusFilter === 'all' || conteneur.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const depDate = conteneur.dateDepart ? new Date(conteneur.dateDepart) : null;
+    const matchesMonth = monthFilter === 'all' || (depDate && (depDate.getMonth() + 1).toString() === monthFilter);
+    const matchesYear = yearFilter === 'all' || (depDate && depDate.getFullYear().toString() === yearFilter);
+    return matchesSearch && matchesStatus && matchesMonth && matchesYear;
   });
 
   const { paginatedItems: paginatedConteneurs, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredConteneurs);
