@@ -214,6 +214,7 @@ export default function DossierDetailPage() {
                     <TableHead>Numéro</TableHead>
                     <TableHead>Départ</TableHead>
                     <TableHead>Arrivée</TableHead>
+                    <TableHead>Total Achat (USD)</TableHead>
                     {isDossierFullyPaid && <TableHead>Prix Total</TableHead>}
                     <TableHead className="text-center">Véhicules</TableHead>
                     <TableHead>Statut</TableHead>
@@ -251,6 +252,9 @@ export default function DossierDetailPage() {
                             {conteneur.dateArrivee
                               ? new Date(conteneur.dateArrivee).toLocaleDateString('fr-FR')
                               : '-'}
+                          </TableCell>
+                          <TableCell>
+                            {((conteneur.vehicles || []).reduce((sum: number, v: any) => sum + Number(v.purchasePrice || 0) + Number(v.transportCost || 0), 0)).toLocaleString('fr-FR')} USD
                           </TableCell>
                           {isDossierFullyPaid && <TableCell>{formatCurrencyDZD((conteneur.vehicles || []).reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0))}</TableCell>}
                           <TableCell className="text-center">{conteneur.vehicles?.length || 0}</TableCell>
