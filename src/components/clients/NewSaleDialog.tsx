@@ -250,6 +250,9 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
                             {vehicle.color && (
                               <span className="ml-2 text-xs text-muted-foreground">• {vehicle.color}</span>
                             )}
+                            {vehicle.transmission && (
+                              <span className="ml-1 text-xs text-muted-foreground">• {vehicle.transmission === 'automatic' ? 'Auto' : 'Manuel'}</span>
+                            )}
                           </div>
                           <div className="text-xs text-muted-foreground truncate">VIN: {vehicle.vin}</div>
                         </div>
