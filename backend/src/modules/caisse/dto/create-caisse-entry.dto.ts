@@ -24,4 +24,8 @@ export class CreateCaisseEntryDto {
   @IsUUID()
   @IsOptional()
   vehicleId?: string;
+
+  @IsEnum(['versement', 'virement'])
+  @IsOptional()
+  paymentMethod?: 'versement' | 'virement';
 }
