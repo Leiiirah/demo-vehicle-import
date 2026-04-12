@@ -5,34 +5,30 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useClients, useDeleteClient } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
-import { MoreVertical, Eye, Phone, Search, ShoppingCart, AlertCircle, Trash2, Car } from 'lucide-react';
+import { ShoppingCart, Search, AlertCircle, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { AddClientDialog } from '@/components/clients/AddClientDialog';
-import { Skeleton } from '@/components/ui/skeleton';
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
+import { AddClientDialog } from '@/components/clients/AddClientDialog';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 const ClientsPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [clientToDelete, setClientToDelete] = useState<{ id: string; name: string } | null>(null);
   const navigate = useNavigate();
 
   const { data: clients, isLoading, error } = useClients();
   const deleteClient = useDeleteClient();
-  const { toast } = useToast();
 
-  const filteredClients = (clients || []).filter(c => 
+  const filteredClients = (clients || []).filter(c =>
     c.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.prenom.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.telephone.includes(searchQuery)
@@ -40,12 +36,17 @@ const ClientsPage = () => {
 
   const { paginatedItems: paginatedClients, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredClients);
 
-
-  const totalVehicles = (clients || []).reduce((sum, c) => sum + (c.vehicles?.length || 0), 0);
-  const totalPrixVente = (clients || []).reduce((sum, c) => {
+  // KPI calculations
+  const clientsList = clients || [];
+  const totalVentes = clientsList.reduce((sum, c) => {
     const sold = (c.vehicles || []).filter((v: any) => v.sellingPrice != null);
     return sum + sold.reduce((s: number, v: any) => s + Number(v.sellingPrice || 0), 0);
   }, 0);
+  const totalPaye = clientsList.reduce((sum, c) => {
+    const sold = (c.vehicles || []).filter((v: any) => v.sellingPrice != null);
+    return sum + sold.reduce((s: number, v: any) => s + Number(v.amountPaid || 0), 0);
+  }, 0);
+  const resteAPayer = totalVentes - totalPaye;
 
   if (error) {
     return (
@@ -63,18 +64,17 @@ const ClientsPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* En-tête de page */}
+        {/* En-tête */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Clients</h1>
-            <p className="text-muted-foreground">
-              Acheteurs avec pourcentage sur bénéfice
-            </p>
+            <p className="text-muted-foreground">Gérez vos clients et le suivi des créances</p>
           </div>
-          <Button 
+          <Button
             className="bg-success text-success-foreground hover:bg-success/90"
             onClick={() => setIsDialogOpen(true)}
           >
+            <ShoppingCart className="h-4 w-4 mr-2" />
             Ajouter client
           </Button>
         </div>
@@ -90,150 +90,165 @@ const ClientsPage = () => {
           />
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* KPIs — 4 cartes alignées sur fournisseurs */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {isLoading ? (
             <>
-              {[...Array(3)].map((_, i) => (
-                <Skeleton key={i} className="h-24" />
-              ))}
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
             </>
           ) : (
             <>
               <div className="kpi-card">
                 <p className="kpi-label">Total clients</p>
-                <p className="kpi-value">{(clients || []).length}</p>
+                <p className="kpi-value">{clientsList.length}</p>
               </div>
-              <div className="kpi-card">
-                <p className="kpi-label">Véhicules vendus</p>
-                <p className="kpi-value text-primary">{totalVehicles}</p>
+              <div className="kpi-card border-l-4 border-l-primary">
+                <p className="kpi-label">Total ventes</p>
+                <p className="kpi-value text-primary">{formatCurrency(totalVentes)}</p>
               </div>
-              <div className="kpi-card">
-                <p className="kpi-label">Prix vente total</p>
-                <p className="kpi-value text-success">{formatCurrency(totalPrixVente)}</p>
+              <div className="kpi-card border-l-4 border-l-success">
+                <p className="kpi-label">Total payé</p>
+                <p className="kpi-value text-success">{formatCurrency(totalPaye)}</p>
               </div>
+              {(() => {
+                return (
+                  <div className={`kpi-card border-l-4 ${resteAPayer > 0 ? 'border-l-danger' : resteAPayer < 0 ? 'border-l-success' : 'border-l-muted'}`}>
+                    <p className="kpi-label">{resteAPayer > 0 ? 'Créances totales' : resteAPayer < 0 ? 'Crédit total' : 'Solde'}</p>
+                    <p className={`kpi-value ${resteAPayer > 0 ? 'text-danger' : resteAPayer < 0 ? 'text-success' : 'text-muted-foreground'}`}>
+                      {resteAPayer > 0 ? '-' : resteAPayer < 0 ? '+' : ''}{formatCurrency(Math.abs(resteAPayer))}
+                    </p>
+                  </div>
+                );
+              })()}
             </>
           )}
         </div>
 
-        {/* Tableau */}
-        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            {isLoading ? (
-              <div className="p-6 space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-16" />
-                ))}
-              </div>
-            ) : (
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Client</th>
-                    <th>Téléphone</th>
-                    <th>Véhicules vendus</th>
-                    <th>Prix vente total</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
+        {/* Tableau clients */}
+        {isLoading ? (
+          <div className="space-y-2">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : filteredClients.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            {searchQuery ? `Aucun client trouvé pour "${searchQuery}"` : 'Aucun client'}
+          </div>
+        ) : (
+          <>
+            <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Téléphone</TableHead>
+                    <TableHead className="text-right">Véhicules</TableHead>
+                    <TableHead className="text-right">Total ventes</TableHead>
+                    <TableHead className="text-right">Total payé</TableHead>
+                    <TableHead className="text-right">Reste à payer</TableHead>
+                    <TableHead className="w-[100px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {paginatedClients.map((client) => {
-                    const vehicleCount = client.vehicles?.length || 0;
+                    const soldVehicles = (client.vehicles || []).filter((v: any) => v.sellingPrice != null);
+                    const clientTotalVentes = soldVehicles.reduce((s: number, v: any) => s + Number(v.sellingPrice || 0), 0);
+                    const clientTotalPaye = soldVehicles.reduce((s: number, v: any) => s + Number(v.amountPaid || 0), 0);
+                    const clientReste = clientTotalVentes - clientTotalPaye;
+
                     return (
-                      <tr 
+                      <TableRow
                         key={client.id}
+                        className="cursor-pointer hover:bg-muted/50"
                         onClick={() => navigate(`/clients/${client.id}`)}
-                        className="cursor-pointer hover:bg-accent/50"
                       >
-                        <td>
+                        <TableCell>
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
-                              <ShoppingCart className="h-5 w-5 text-success" />
+                            <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center shrink-0">
+                              <ShoppingCart className="h-4 w-4 text-success" />
                             </div>
-                            <div>
-                              <p className="font-medium text-foreground">{client.nom} {client.prenom}</p>
-                            </div>
+                            <span className="font-medium text-foreground">{client.nom} {client.prenom}</span>
                           </div>
-                        </td>
-                        <td>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Phone className="h-3 w-3" />
-                            {client.telephone || '-'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{client.telephone || '-'}</TableCell>
+                        <TableCell className="text-right">{soldVehicles.length}</TableCell>
+                        <TableCell className="text-right text-primary font-medium">
+                          {formatCurrency(clientTotalVentes)}
+                        </TableCell>
+                        <TableCell className="text-right text-success font-medium">
+                          {formatCurrency(clientTotalPaye)}
+                        </TableCell>
+                        <TableCell className={`text-right font-semibold ${
+                          clientReste > 0 ? 'text-danger' : clientReste < 0 ? 'text-success' : 'text-muted-foreground'
+                        }`}>
+                          {clientReste > 0 ? '-' : clientReste < 0 ? '+' : ''}{formatCurrency(Math.abs(clientReste))}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => navigate(`/clients/${client.id}`)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              onClick={() => setClientToDelete({ id: client.id, name: `${client.nom} ${client.prenom}` })}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
-                        </td>
-                        <td>
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary">
-                            <Car className="h-3 w-3" />
-                            {vehicleCount}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="font-medium">
-                            {formatCurrency((client.vehicles || []).filter((v: any) => v.sellingPrice != null).reduce((s: number, v: any) => s + Number(v.sellingPrice || 0), 0))}
-                          </span>
-                        </td>
-                        <td>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}`)}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                Voir le détail
-                              </DropdownMenuItem>
-                              <AlertDialog>
-                                 <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                   <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                     <Trash2 className="h-4 w-4 mr-2" />
-                                     Supprimer
-                                   </DropdownMenuItem>
-                                 </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Supprimer ce client ?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Cette action est irréversible. Le client {client.nom} {client.prenom} sera définitivement supprimé.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                     <AlertDialogAction onClick={(e) => {
-                                      e.stopPropagation();
-                                      deleteClient.mutate(client.id, {
-                                        onSuccess: () => toast({ title: 'Client supprimé' }),
-                                        onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
-                                      });
-                                    }}>
-                                      Supprimer
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
-                  {paginatedClients.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="text-center py-8 text-muted-foreground">
-                        {searchQuery ? `Aucun client trouvé pour "${searchQuery}"` : 'Aucun client'}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            )}
+                </TableBody>
+              </Table>
+            </div>
             <TablePagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} startIndex={startIndex} endIndex={endIndex} onPageChange={goToPage} />
-          </div>
-        </div>
+          </>
+        )}
       </div>
 
       <AddClientDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
+
+      <AlertDialog open={!!clientToDelete} onOpenChange={(open) => !open && setClientToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer le client</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer <strong>{clientToDelete?.name}</strong> ? Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (clientToDelete) {
+                  deleteClient.mutate(clientToDelete.id, {
+                    onSuccess: () => {
+                      toast.success('Client supprimé avec succès');
+                      setClientToDelete(null);
+                    },
+                    onError: () => toast.error('Erreur lors de la suppression'),
+                  });
+                }
+              }}
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 };
