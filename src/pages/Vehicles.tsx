@@ -491,7 +491,7 @@ const VehiclesPage = () => {
                           </p>
                         </div>
                       </div>
-                      <VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} />
+                      
                     </div>
 
                     <div className="space-y-2 text-sm">
