@@ -53,6 +53,8 @@ const CaissePage = () => {
 
   const filteredEntries = useMemo(() => {
     return (entries as any[]).filter((e) => {
+      // Exclude virements from caisse view — they belong to Banque
+      if (e.paymentMethod === 'virement') return false;
       const term = searchTerm.toLowerCase();
       const searchMatch =
         !term ||
