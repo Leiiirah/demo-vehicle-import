@@ -40,6 +40,8 @@ export default function ConteneursPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [monthFilter, setMonthFilter] = useState<string>('all');
+  const [yearFilter, setYearFilter] = useState<string>('all');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   const { data: conteneurs, isLoading, error } = useConteneurs();
@@ -47,12 +49,21 @@ export default function ConteneursPage() {
   const updateConteneur = useUpdateConteneur();
   const { toast } = useToast();
 
+  const availableYears = Array.from(new Set(
+    (conteneurs || [])
+      .map(c => c.dateDepart ? new Date(c.dateDepart).getFullYear() : null)
+      .filter((y): y is number => y !== null)
+  )).sort((a, b) => b - a);
+
   const filteredConteneurs = (conteneurs || []).filter((conteneur) => {
     const matchesSearch =
       conteneur.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (conteneur.dossier?.reference?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
     const matchesStatus = statusFilter === 'all' || conteneur.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const depDate = conteneur.dateDepart ? new Date(conteneur.dateDepart) : null;
+    const matchesMonth = monthFilter === 'all' || (depDate && (depDate.getMonth() + 1).toString() === monthFilter);
+    const matchesYear = yearFilter === 'all' || (depDate && depDate.getFullYear().toString() === yearFilter);
+    return matchesSearch && matchesStatus && matchesMonth && matchesYear;
   });
 
   const { paginatedItems: paginatedConteneurs, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage } = usePagination(filteredConteneurs);
@@ -173,13 +184,44 @@ export default function ConteneursPage() {
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filtrer par statut" />
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Statut" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les statuts</SelectItem>
                   <SelectItem value="charge">Chargée</SelectItem>
                   <SelectItem value="arrivee">Arrivée</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Mois" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les mois</SelectItem>
+                  <SelectItem value="1">Janvier</SelectItem>
+                  <SelectItem value="2">Février</SelectItem>
+                  <SelectItem value="3">Mars</SelectItem>
+                  <SelectItem value="4">Avril</SelectItem>
+                  <SelectItem value="5">Mai</SelectItem>
+                  <SelectItem value="6">Juin</SelectItem>
+                  <SelectItem value="7">Juillet</SelectItem>
+                  <SelectItem value="8">Août</SelectItem>
+                  <SelectItem value="9">Septembre</SelectItem>
+                  <SelectItem value="10">Octobre</SelectItem>
+                  <SelectItem value="11">Novembre</SelectItem>
+                  <SelectItem value="12">Décembre</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={yearFilter} onValueChange={setYearFilter}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Année" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes</SelectItem>
+                  {availableYears.map(y => (
+                    <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
