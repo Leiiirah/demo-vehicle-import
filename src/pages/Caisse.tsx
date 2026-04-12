@@ -372,9 +372,9 @@ const CaissePage = () => {
                   <TableHead>Date</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Description</TableHead>
-                  <TableHead>Véhicule / Client</TableHead>
+                  <TableHead>Véhicule</TableHead>
+                  <TableHead>Client</TableHead>
                   <TableHead className="text-right">Montant</TableHead>
-                  <TableHead className="text-right">Bénéfice</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -413,7 +413,12 @@ const CaissePage = () => {
                             <div className="font-medium">{entry.vehicle.brand} {entry.vehicle.model}</div>
                             <div className="text-xs text-muted-foreground">{entry.vehicle.vin}</div>
                           </button>
-                        ) : entry.client ? (
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {entry.client ? (
                           <button
                             className="text-left hover:underline text-primary"
                             onClick={() => navigate(`/clients/${entry.clientId}`)}
@@ -428,15 +433,6 @@ const CaissePage = () => {
                         <span className={entry.type === 'charge' ? 'text-red-600' : 'text-emerald-600'}>
                           {entry.type === 'charge' ? '-' : '+'}{formatCurrency(Number(entry.montant))}
                         </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {entry.type === 'vente_auto' && entry.benefice != null ? (
-                          <span className={`font-medium ${Number(entry.benefice) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                            {formatCurrency(Number(entry.benefice))}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
                       </TableCell>
                       <TableCell>
                          {entry._source !== 'vehicle_sale' && (
