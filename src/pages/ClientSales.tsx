@@ -485,11 +485,23 @@ const ClientSalesPage = () => {
                                           <span className="text-success">0 DZD</span>
                                         )}
                                       </TableCell>
-                                      <TableCell className="text-center">
-                                        <Button variant="ghost" size="sm" onClick={() => navigate(`/vehicles/${vehicle.id}`)}>
-                                          <ExternalLink className="h-4 w-4 mr-1" />
-                                          Voir
-                                        </Button>
+                                     <TableCell className="text-center">
+                                        <div className="flex items-center justify-center gap-1">
+                                          {remaining > 0 && (
+                                            <Button variant="outline" size="sm" className="gap-1" onClick={() => {
+                                              setVersementVehicle(vehicle);
+                                              setVersementAmount('');
+                                              setVersementMode('versement');
+                                              setVersementDialogOpen(true);
+                                            }}>
+                                              <Wallet className="h-3.5 w-3.5" />
+                                              Payer
+                                            </Button>
+                                          )}
+                                          <Button variant="ghost" size="sm" onClick={() => navigate(`/vehicles/${vehicle.id}`)}>
+                                            <ExternalLink className="h-4 w-4" />
+                                          </Button>
+                                        </div>
                                       </TableCell>
                                     </TableRow>
                                   );
