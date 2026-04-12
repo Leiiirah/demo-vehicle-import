@@ -70,8 +70,24 @@ export class CaisseService {
     // Transform sold vehicles into sale entries
     // Only include vehicles that DON'T have payment tracking (paymentStatus)
     // Vehicles with paymentStatus have their payments tracked via caisse entries
-    const saleEntries = soldVehicles
-      .filter((v) => v.clientId && !v.paymentStatus)
+    // Additionally, exclude sales with no associated payment (block unpaid sales from caisse)
+    const candidateVehicles = soldVehicles.filter((v) => v.clientId && !v.paymentStatus);
+
+    // Check which candidate vehicles have at least one payment in caisse_entries
+    const vehicleIdsWithPayments = new Set<string>();
+    if (candidateVehicles.length > 0) {
+      const vehiclePayments = await this.caisseRepo
+        .createQueryBuilder('ce')
+        .select('ce.vehicleId')
+        .where('ce.vehicleId IN (:...ids)', { ids: candidateVehicles.map((v) => v.id) })
+        .andWhere('ce.type = :type', { type: 'entree' })
+        .groupBy('ce.vehicleId')
+        .getRawMany();
+      vehiclePayments.forEach((row) => vehicleIdsWithPayments.add(row.ce_vehicleId));
+    }
+
+    const saleEntries = candidateVehicles
+      .filter((v) => vehicleIdsWithPayments.has(v.id))
       .map((v) => {
         const prixVente = Number(v.sellingPrice || 0);
         const prixRevient = Number(v.totalCost || 0);
