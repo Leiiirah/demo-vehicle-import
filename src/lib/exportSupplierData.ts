@@ -167,13 +167,51 @@ function addDossiersSection(doc: jsPDF, y: number, dossiers: DossierWithConteneu
 
 function addTransactionsSection(doc: jsPDF, y: number, payments: Payment[], supplier: { totalPaid?: number; remainingDebt?: number; creditBalance?: number }, totalInvestment: number): number {
   // Continue on same page, no addPage
-  y = checkPage(doc, y, 60);
+  y = checkPage(doc, y, 30);
 
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('Transactions', 14, y);
   y += 10;
 
+  if (payments.length === 0) {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Aucune transaction pour ce fournisseur.', 14, y);
+    y += 10;
+  } else {
+    const cols = [14, 45, 85, 125, 155];
+    const headers = ['Date', 'Référence', 'Type', 'Montant', 'Devise'];
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setFillColor(230, 230, 235);
+    doc.rect(14, y - 3.5, 182, 6, 'F');
+    headers.forEach((h, i) => doc.text(h, cols[i], y));
+    y += 6;
+
+    doc.setFont('helvetica', 'normal');
+    for (const p of payments) {
+      y = checkPage(doc, y, 8);
+      if (y === 20) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFillColor(230, 230, 235);
+        doc.rect(14, y - 3.5, 182, 6, 'F');
+        headers.forEach((h, i) => doc.text(h, cols[i], y));
+        y += 6;
+        doc.setFont('helvetica', 'normal');
+      }
+      doc.text(formatPdfDate(p.date), cols[0], y);
+      doc.text(p.reference?.slice(0, 18) || '', cols[1], y);
+      doc.text(typeLabels[p.type] || p.type, cols[2], y);
+      doc.text(formatPdfNumber(Number(p.amount || 0), { minimumFractionDigits: 0, maximumFractionDigits: 2 }), cols[3], y);
+      doc.text(p.currency, cols[4], y);
+      y += 5;
+    }
+    y += 6;
+  }
+
+  // Résumé Financier after the transactions table
+  y = checkPage(doc, y, 30);
   doc.setFillColor(245, 245, 250);
   doc.roundedRect(14, y, 182, 28, 3, 3, 'F');
   doc.setFontSize(10);
@@ -185,39 +223,6 @@ function addTransactionsSection(doc: jsPDF, y: number, payments: Payment[], supp
   doc.text(`Total Payé: ${formatPdfCurrency(supplier.totalPaid || 0, 'USD')}`, 100, y + 14);
   doc.text(`Dette Restante: ${formatPdfCurrency(supplier.remainingDebt || 0, 'USD')}`, 20, y + 21);
   y += 36;
-
-  if (payments.length === 0) {
-    doc.text('Aucune transaction pour ce fournisseur.', 14, y);
-    return y + 10;
-  }
-
-  const cols = [14, 45, 85, 125, 155];
-  const headers = ['Date', 'Référence', 'Type', 'Montant', 'Devise'];
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'bold');
-  doc.setFillColor(230, 230, 235);
-  doc.rect(14, y - 3.5, 182, 6, 'F');
-  headers.forEach((h, i) => doc.text(h, cols[i], y));
-  y += 6;
-
-  doc.setFont('helvetica', 'normal');
-  for (const p of payments) {
-    y = checkPage(doc, y, 8);
-    if (y === 20) {
-      doc.setFont('helvetica', 'bold');
-      doc.setFillColor(230, 230, 235);
-      doc.rect(14, y - 3.5, 182, 6, 'F');
-      headers.forEach((h, i) => doc.text(h, cols[i], y));
-      y += 6;
-      doc.setFont('helvetica', 'normal');
-    }
-    doc.text(formatPdfDate(p.date), cols[0], y);
-    doc.text(p.reference?.slice(0, 18) || '', cols[1], y);
-    doc.text(typeLabels[p.type] || p.type, cols[2], y);
-    doc.text(formatPdfNumber(Number(p.amount || 0), { minimumFractionDigits: 0, maximumFractionDigits: 2 }), cols[3], y);
-    doc.text(p.currency, cols[4], y);
-    y += 5;
-  }
 
   return y;
 }
