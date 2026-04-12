@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
-import { ProfitChart } from '@/components/dashboard/ProfitChart';
+
 import { TopVehiclesTable } from '@/components/dashboard/TopVehiclesTable';
 import { TopVehiclesByCount } from '@/components/dashboard/RecentVehicles';
 import { useDashboardStats } from '@/hooks/useApi';
@@ -179,8 +179,6 @@ const Index = () => {
         </div>
 
 
-        {/* Graphique */}
-        <ProfitChart filterParams={filterParams} />
 
         {/* Tableaux */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
