@@ -47,9 +47,6 @@ const Index = () => {
 
   const { data: stats, isLoading, error } = useDashboardStats(filterParams);
 
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
-    },
-  });
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
