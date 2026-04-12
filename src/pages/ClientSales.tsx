@@ -164,18 +164,20 @@ const ClientSalesPage = () => {
       },
       {
         onSuccess: () => {
-          // Create caisse entry for the versement
+          // Create caisse entry for the versement with payment method
           createCaisseEntry.mutate({
             type: 'entree',
             montant: amount,
             date: new Date().toISOString().split('T')[0],
-            description: `Versement ${versementVehicle.brand} ${versementVehicle.model} ${versementVehicle.year} — ${versementVehicle.client?.nom || ''} ${versementVehicle.client?.prenom || ''}`.trim(),
+            description: `${versementMode === 'virement' ? 'Virement' : 'Versement'} ${versementVehicle.brand} ${versementVehicle.model} ${versementVehicle.year} — ${versementVehicle.client?.nom || ''} ${versementVehicle.client?.prenom || ''}`.trim(),
             vehicleId: versementVehicle.id,
+            paymentMethod: versementMode,
           });
           toast({ title: isFull ? 'Paiement complet — véhicule soldé' : 'Versement enregistré' });
           setVersementDialogOpen(false);
           setVersementVehicle(null);
           setVersementAmount('');
+          setVersementMode('versement');
         },
         onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
       },
