@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CaisseEntry, CaisseEntryType } from '../../entities/caisse-entry.entity';
+import { CaisseEntry, CaisseEntryType, CaissePaymentMethod } from '../../entities/caisse-entry.entity';
 import { Vehicle, VehicleStatus } from '../../entities/vehicle.entity';
 import { VehicleCharge } from '../../entities/vehicle-charge.entity';
 import { Payment } from '../../entities/payment.entity';
