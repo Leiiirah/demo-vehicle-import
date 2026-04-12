@@ -739,6 +739,7 @@ export interface CaisseEntry {
   prixVente?: number;
   prixRevient?: number;
   benefice?: number;
+  paymentMethod?: 'versement' | 'virement';
   createdAt?: string;
 }
 
@@ -749,6 +750,7 @@ export interface CreateCaisseEntryData {
   description?: string;
   reference?: string;
   vehicleId?: string;
+  paymentMethod?: 'versement' | 'virement';
 }
 
 export interface CaisseSummary {
@@ -756,6 +758,7 @@ export interface CaisseSummary {
   totalCharges: number;
   totalBenefices: number;
   soldeActuel: number;
+  totalVirements: number;
 }
 
 export interface CaisseBalanceData {
