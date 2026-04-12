@@ -74,7 +74,7 @@ export default function StockPage() {
       const payments = data.payments || [];
       const totalPaid = payments.reduce((s: number, p: any) => s + Number(p.amount), 0);
       const weightedRate = totalPaid > 0
-        ? Math.round(payments.reduce((s: number, p: any) => s + Number(p.amount) * Number(p.exchangeRate), 0) / totalPaid * 100) / 100
+        ? Math.round(payments.reduce((s: number, p: any) => s + Number(p.amount) * Number(p.exchangeRate), 0) / totalPaid)
         : 0;
       map[id] = { paid: data.progress >= 100, weightedRate };
     });
