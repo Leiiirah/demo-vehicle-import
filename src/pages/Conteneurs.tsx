@@ -40,6 +40,8 @@ export default function ConteneursPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [monthFilter, setMonthFilter] = useState<string>('all');
+  const [yearFilter, setYearFilter] = useState<string>('all');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   const { data: conteneurs, isLoading, error } = useConteneurs();
