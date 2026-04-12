@@ -328,7 +328,7 @@ const VehiclesPage = () => {
                     <th>Transit (DZD)</th>
                     <th>Charges divers (DZD)</th>
                     <th>Total (DZD)</th>
-                    <th>Statut</th>
+                    
                     <th></th>
                   </tr>
                 </thead>
