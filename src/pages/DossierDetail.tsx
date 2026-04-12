@@ -253,6 +253,9 @@ export default function DossierDetailPage() {
                               ? new Date(conteneur.dateArrivee).toLocaleDateString('fr-FR')
                               : '-'}
                           </TableCell>
+                          <TableCell>
+                            {((conteneur.vehicles || []).reduce((sum: number, v: any) => sum + Number(v.purchasePrice || 0) + Number(v.transportCost || 0), 0)).toLocaleString('fr-FR')} USD
+                          </TableCell>
                           {isDossierFullyPaid && <TableCell>{formatCurrencyDZD((conteneur.vehicles || []).reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0))}</TableCell>}
                           <TableCell className="text-center">{conteneur.vehicles?.length || 0}</TableCell>
                           <TableCell>
