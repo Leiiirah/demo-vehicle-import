@@ -206,6 +206,17 @@ export default function ZakatPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
+                              {!isPaid && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="text-success"
+                                  title="Retrait Zakat"
+                                  onClick={() => setRetraitRecord(record)}
+                                >
+                                  <Banknote className="h-4 w-4" />
+                                </Button>
+                              )}
                               <Button size="icon" variant="ghost" onClick={() => handleEdit(record)}>
                                 <Pencil className="h-4 w-4" />
                               </Button>
