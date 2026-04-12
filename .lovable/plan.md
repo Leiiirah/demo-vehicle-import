@@ -1,32 +1,33 @@
-## Plan: Système de Ventes Groupées
 
-### 1. Backend - Nouvelle entité Sale
-- Créer `backend/src/entities/sale.entity.ts` avec: id, clientId, date, totalSellingPrice, totalCost, totalProfit, amountPaid, debt, status
-- Relation OneToMany avec Vehicle (un Sale peut avoir plusieurs véhicules)
-- Ajouter `saleId` sur Vehicle entity
 
-### 2. Backend - Migration
-- Créer table `sales` avec les champs nécessaires
-- Ajouter colonne `saleId` sur `vehicles`
+## Taux de Change — Arrondi à l'entier
 
-### 3. Backend - Module Sales
-- Controller, Service, DTOs pour CRUD des ventes
-- Endpoint POST /sales pour créer une vente groupée (client + véhicules + prix)
-- Calcul automatique de la dette: prix total vente - montant payé + dettes des ventes précédentes
+**Objectif**: Arrondir le taux de change moyen pondéré à l'entier le plus proche (au lieu de 2 décimales) avant tout calcul USD → DZD.
 
-### 4. Frontend - Mise à jour NewSaleDialog
-- Au lieu d'updater chaque véhicule individuellement, créer une Sale via l'API
-- Le backend gère l'affectation des véhicules au client et au sale
+**Changement**: Remplacer `Math.round(... * 100) / 100` par `Math.round(...)` dans 5 fichiers :
 
-### 5. Frontend - Page Client
-- Afficher les ventes comme lignes résumées dans le tableau principal
-- Section détaillée expandable montrant les véhicules de chaque vente
-- Afficher la dette cumulée
+### Fichiers à modifier
 
-### 6. Frontend - Page Client Sales
-- Grouper les véhicules par vente
-- Afficher le cumul de dette entre ventes
+1. **`backend/src/modules/payments/payments.service.ts`** (ligne 206) — C'est le calcul principal côté serveur qui persiste `theoreticalRate` et `totalCost` sur chaque véhicule. Arrondir à l'entier ici impacte tous les coûts stockés en base.
 
-### Logique de dette
-- À l'affectation: dette = prix vente total - 0 (pas encore payé) + dette précédente
-- Quand un paiement est fait, il réduit la dette de la vente la plus ancienne d'abord
+2. **`src/pages/Vehicles.tsx`** (ligne 103) — Affichage du taux sur la page véhicules.
+
+3. **`src/pages/Stock.tsx`** (ligne 77) — Affichage du taux sur la page stock.
+
+4. **`src/pages/VehicleDetail.tsx`** (ligne 92) — Affichage du taux sur le détail véhicule.
+
+5. **`src/components/dossiers/DossierAnalytics.tsx`** (ligne 36) — Calcul du taux pour l'analytique dossier.
+
+### Détail technique
+
+Dans chaque fichier, le pattern :
+```typescript
+Math.round(weightedSum / totalPaid * 100) / 100
+```
+devient :
+```typescript
+Math.round(weightedSum / totalPaid)
+```
+
+Après déploiement, un appel à `POST /api/payments/recalculate-all-costs` (déclenché automatiquement au montage des pages Vehicles/Stock) recalculera tous les coûts avec le nouveau taux arrondi.
+
