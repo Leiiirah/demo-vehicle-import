@@ -157,7 +157,7 @@ export function DossierPaymentLedger({ dossierId }: DossierPaymentLedgerProps) {
                 <TableHead className="text-right">Montant USD</TableHead>
                 <TableHead className="text-right">Taux</TableHead>
                 <TableHead className="text-right">Équiv. DZD</TableHead>
-                <TableHead>Statut</TableHead>
+                
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -177,32 +177,6 @@ export function DossierPaymentLedger({ dossierId }: DossierPaymentLedgerProps) {
                     </TableCell>
                     <TableCell className="text-right font-mono">
                       {formatCurrency(dzdAmount, 'DZD')}
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={payment.status}
-                        onValueChange={(val) =>
-                          updateStatusMutation.mutate({ id: payment.id, status: val })
-                        }
-                      >
-                        <SelectTrigger className="h-8 w-[140px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">
-                            <span className="flex items-center gap-1.5">
-                              <span className="h-2 w-2 rounded-full bg-warning" />
-                              En attente
-                            </span>
-                          </SelectItem>
-                          <SelectItem value="completed">
-                            <span className="flex items-center gap-1.5">
-                              <span className="h-2 w-2 rounded-full bg-success" />
-                              Complété
-                            </span>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
                     </TableCell>
                   </TableRow>
                 );
