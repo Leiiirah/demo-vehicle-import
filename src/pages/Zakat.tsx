@@ -78,6 +78,40 @@ export default function ZakatPage() {
     });
   };
 
+  const handleRetraitZakat = () => {
+    if (!retraitRecord) return;
+    const remaining = Number(retraitRecord.zakatAmount) - Number(retraitRecord.amountPaid);
+    if (remaining <= 0) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    createCaisseEntry.mutate(
+      {
+        type: 'retrait',
+        montant: remaining,
+        date: today,
+        description: `Retrait Zakat — Année ${retraitRecord.year}`,
+        reference: `ZAKAT-${retraitRecord.year}`,
+      },
+      {
+        onSuccess: () => {
+          // Also update the zakat record as fully paid
+          updateMutation.mutate(
+            {
+              id: retraitRecord.id,
+              data: { amountPaid: Number(retraitRecord.zakatAmount) },
+            },
+            {
+              onSuccess: () => {
+                setRetraitRecord(null);
+                toast({ title: 'Retrait Zakat effectué', description: `${formatCurrency(remaining)} déduit de la caisse` });
+              },
+            },
+          );
+        },
+      },
+    );
+  };
+
   const totalZakat = records.reduce((sum, r) => sum + Number(r.zakatAmount), 0);
   const totalPaid = records.reduce((sum, r) => sum + Number(r.amountPaid), 0);
 
