@@ -652,7 +652,35 @@ const ClientSalesPage = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="versementAmount">Montant du versement (DZD)</Label>
+                <Label>Mode de paiement</Label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={versementMode === 'versement' ? 'default' : 'outline'}
+                    className="flex-1 gap-2"
+                    onClick={() => setVersementMode('versement')}
+                  >
+                    <Wallet className="h-4 w-4" />
+                    Versement
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={versementMode === 'virement' ? 'default' : 'outline'}
+                    className="flex-1 gap-2"
+                    onClick={() => setVersementMode('virement')}
+                  >
+                    <Landmark className="h-4 w-4" />
+                    Virement
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {versementMode === 'versement'
+                    ? 'Le montant sera ajouté au solde de la caisse.'
+                    : 'Le montant sera enregistré dans l\'onglet Banque (sans impact sur la caisse).'}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="versementAmount">Montant du paiement (DZD)</Label>
                 <FormattedNumberInput
                   id="versementAmount"
                   placeholder="0"
