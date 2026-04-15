@@ -50,11 +50,11 @@ const ClientSalesPage = () => {
   const [newSaleDialogOpen, setNewSaleDialogOpen] = useState(false);
   const [selectedClientForAssign, setSelectedClientForAssign] = useState<any>(null);
 
-  // Versement dialog state
-  const [versementDialogOpen, setVersementDialogOpen] = useState(false);
-  const [versementVehicle, setVersementVehicle] = useState<any>(null);
-  const [versementAmount, setVersementAmount] = useState('');
-  const [versementMode, setVersementMode] = useState<'versement' | 'virement'>('versement');
+  // Payment dialog state (per-sale)
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [paymentSale, setPaymentSale] = useState<any>(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMode, setPaymentMode] = useState<'versement' | 'virement'>('versement');
 
   const isLoading = clientsLoading || vehiclesLoading || salesLoading;
 
@@ -138,46 +138,33 @@ const ClientSalesPage = () => {
     }
   };
 
-  const handleVersementSubmit = () => {
-    if (!versementVehicle || !versementAmount) return;
-    const amount = Number(versementAmount);
+  const handleSalePaymentSubmit = () => {
+    if (!paymentSale || !paymentAmount) return;
+    const amount = Number(paymentAmount);
     if (amount <= 0) return;
 
-    const currentPaid = Number(versementVehicle.amountPaid || 0);
-    const newAmountPaid = currentPaid + amount;
-    const sellingPrice = Number(versementVehicle.sellingPrice || 0);
+    const saleDebt = Number(paymentSale.debt) || 0;
+    const isFull = amount >= saleDebt;
 
-    // Check if this versement completes the payment
-    const isFull = newAmountPaid >= sellingPrice;
-
-    updateVehicle.mutate(
-      {
-        id: versementVehicle.id,
-        data: {
-          paymentStatus: isFull ? 'solde' : 'versement',
-          amountPaid: isFull ? sellingPrice : newAmountPaid,
-          ...(isFull ? {
-            status: 'sold',
-            soldDate: versementVehicle.soldDate || new Date().toISOString().split('T')[0],
-          } : {}),
-        },
-      },
+    addSalePayment.mutate(
+      { saleId: paymentSale.id, amount },
       {
         onSuccess: () => {
-          // Create caisse entry for the versement with payment method
+          const saleVehicles = paymentSale.vehicles || [];
+          const vehicleDesc = saleVehicles.map((v: any) => `${v.brand} ${v.model}`).join(', ');
+          const clientName = paymentSale.client ? `${paymentSale.client.nom} ${paymentSale.client.prenom}` : '';
           createCaisseEntry.mutate({
             type: 'entree',
             montant: amount,
             date: new Date().toISOString().split('T')[0],
-            description: `${versementMode === 'virement' ? 'Virement' : 'Versement'} ${versementVehicle.brand} ${versementVehicle.model} ${versementVehicle.year} — ${versementVehicle.client?.nom || ''} ${versementVehicle.client?.prenom || ''}`.trim(),
-            vehicleId: versementVehicle.id,
-            paymentMethod: versementMode,
+            description: `${paymentMode === 'virement' ? 'Virement' : 'Versement'} vente — ${clientName} (${vehicleDesc})`.trim(),
+            paymentMethod: paymentMode,
           });
-          toast({ title: isFull ? 'Paiement complet — véhicule soldé' : 'Versement enregistré' });
-          setVersementDialogOpen(false);
-          setVersementVehicle(null);
-          setVersementAmount('');
-          setVersementMode('versement');
+          toast({ title: isFull ? 'Vente soldée' : 'Paiement enregistré' });
+          setPaymentDialogOpen(false);
+          setPaymentSale(null);
+          setPaymentAmount('');
+          setPaymentMode('versement');
         },
         onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
       },
