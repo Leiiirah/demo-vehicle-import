@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useClient, useDeleteClient, useSalesByClient, useUpdateVehicle } from '@/hooks/useApi';
+import { useClient, useDeleteClient, useSalesByClient, useAddSalePayment } from '@/hooks/useApi';
 import { useCreateCaisseEntry } from '@/hooks/useCaisse';
 import { formatCurrency } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
@@ -74,14 +74,14 @@ const ClientDetailPage = () => {
   const { data: client, isLoading, error } = useClient(id || '');
   const { data: clientSales = [] } = useSalesByClient(id || '');
   const deleteClient = useDeleteClient();
-  const updateVehicle = useUpdateVehicle();
+  const addSalePayment = useAddSalePayment();
   const createCaisseEntry = useCreateCaisseEntry();
 
-  // Versement dialog state
-  const [versementDialogOpen, setVersementDialogOpen] = useState(false);
-  const [versementVehicle, setVersementVehicle] = useState<any>(null);
-  const [versementAmount, setVersementAmount] = useState('');
-  const [versementMode, setVersementMode] = useState<'versement' | 'virement'>('versement');
+  // Payment dialog state (per-sale)
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [paymentSale, setPaymentSale] = useState<any>(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMode, setPaymentMode] = useState<'versement' | 'virement'>('versement');
 
   const monthOptions = useMemo(() => getMonthOptions(), []);
 
@@ -96,43 +96,34 @@ const ClientDetailPage = () => {
     });
   };
 
-  const handleVersementSubmit = () => {
-    if (!versementVehicle || !versementAmount) return;
-    const amount = Number(versementAmount);
+  const handlePaymentSubmit = () => {
+    if (!paymentSale || !paymentAmount) return;
+    const amount = Number(paymentAmount);
     if (amount <= 0) return;
 
-    const currentPaid = Number(versementVehicle.amountPaid || 0);
-    const newAmountPaid = currentPaid + amount;
-    const sellingPrice = Number(versementVehicle.sellingPrice || 0);
-    const isFull = newAmountPaid >= sellingPrice;
+    const saleDebt = Number(paymentSale.debt) || 0;
+    const isFull = amount >= saleDebt;
 
-    updateVehicle.mutate(
-      {
-        id: versementVehicle.id,
-        data: {
-          paymentStatus: isFull ? 'solde' : 'versement',
-          amountPaid: isFull ? sellingPrice : newAmountPaid,
-          ...(isFull ? {
-            status: 'sold',
-            soldDate: versementVehicle.soldDate || new Date().toISOString().split('T')[0],
-          } : {}),
-        },
-      },
+    addSalePayment.mutate(
+      { saleId: paymentSale.id, amount },
       {
         onSuccess: () => {
+          // Create caisse entry for the payment
+          const saleVehicles = paymentSale.vehicles || [];
+          const vehicleDesc = saleVehicles.map((v: any) => `${v.brand} ${v.model}`).join(', ');
           createCaisseEntry.mutate({
             type: 'entree',
             montant: amount,
             date: new Date().toISOString().split('T')[0],
-            description: `${versementMode === 'virement' ? 'Virement' : 'Versement'} ${versementVehicle.brand} ${versementVehicle.model} ${versementVehicle.year} — ${client?.nom || ''} ${client?.prenom || ''}`.trim(),
-            vehicleId: versementVehicle.id,
-            paymentMethod: versementMode,
+            description: `${paymentMode === 'virement' ? 'Virement' : 'Versement'} vente — ${client?.nom || ''} ${client?.prenom || ''} (${vehicleDesc})`.trim(),
+            clientId: client?.id,
+            paymentMethod: paymentMode,
           });
-          toast.success(isFull ? 'Paiement complet — véhicule soldé' : 'Versement enregistré');
-          setVersementDialogOpen(false);
-          setVersementVehicle(null);
-          setVersementAmount('');
-          setVersementMode('versement');
+          toast.success(isFull ? 'Vente soldée' : 'Paiement enregistré');
+          setPaymentDialogOpen(false);
+          setPaymentSale(null);
+          setPaymentAmount('');
+          setPaymentMode('versement');
         },
         onError: () => toast.error('Erreur lors du paiement'),
       },
