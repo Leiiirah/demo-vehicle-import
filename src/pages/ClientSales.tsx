@@ -50,11 +50,11 @@ const ClientSalesPage = () => {
   const [newSaleDialogOpen, setNewSaleDialogOpen] = useState(false);
   const [selectedClientForAssign, setSelectedClientForAssign] = useState<any>(null);
 
-  // Versement dialog state
-  const [versementDialogOpen, setVersementDialogOpen] = useState(false);
-  const [versementVehicle, setVersementVehicle] = useState<any>(null);
-  const [versementAmount, setVersementAmount] = useState('');
-  const [versementMode, setVersementMode] = useState<'versement' | 'virement'>('versement');
+  // Payment dialog state (per-sale)
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [paymentSale, setPaymentSale] = useState<any>(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMode, setPaymentMode] = useState<'versement' | 'virement'>('versement');
 
   const isLoading = clientsLoading || vehiclesLoading || salesLoading;
 
@@ -99,9 +99,8 @@ const ClientSalesPage = () => {
 
   const handleStatusChange = (vehicle: any, newStatus: string) => {
     if (newStatus === 'versement') {
-      setVersementVehicle(vehicle);
-      setVersementAmount('');
-      setVersementDialogOpen(true);
+      // Per-vehicle versement no longer used — payments are per-sale now
+      return;
     } else if (newStatus === 'solde') {
       // Mark as soldé: set status to sold, paymentStatus to solde, amountPaid to sellingPrice
       const sellingPrice = Number(vehicle.sellingPrice || 0);
@@ -138,46 +137,33 @@ const ClientSalesPage = () => {
     }
   };
 
-  const handleVersementSubmit = () => {
-    if (!versementVehicle || !versementAmount) return;
-    const amount = Number(versementAmount);
+  const handleSalePaymentSubmit = () => {
+    if (!paymentSale || !paymentAmount) return;
+    const amount = Number(paymentAmount);
     if (amount <= 0) return;
 
-    const currentPaid = Number(versementVehicle.amountPaid || 0);
-    const newAmountPaid = currentPaid + amount;
-    const sellingPrice = Number(versementVehicle.sellingPrice || 0);
+    const saleDebt = Number(paymentSale.debt) || 0;
+    const isFull = amount >= saleDebt;
 
-    // Check if this versement completes the payment
-    const isFull = newAmountPaid >= sellingPrice;
-
-    updateVehicle.mutate(
-      {
-        id: versementVehicle.id,
-        data: {
-          paymentStatus: isFull ? 'solde' : 'versement',
-          amountPaid: isFull ? sellingPrice : newAmountPaid,
-          ...(isFull ? {
-            status: 'sold',
-            soldDate: versementVehicle.soldDate || new Date().toISOString().split('T')[0],
-          } : {}),
-        },
-      },
+    addSalePayment.mutate(
+      { saleId: paymentSale.id, amount },
       {
         onSuccess: () => {
-          // Create caisse entry for the versement with payment method
+          const saleVehicles = paymentSale.vehicles || [];
+          const vehicleDesc = saleVehicles.map((v: any) => `${v.brand} ${v.model}`).join(', ');
+          const clientName = paymentSale.client ? `${paymentSale.client.nom} ${paymentSale.client.prenom}` : '';
           createCaisseEntry.mutate({
             type: 'entree',
             montant: amount,
             date: new Date().toISOString().split('T')[0],
-            description: `${versementMode === 'virement' ? 'Virement' : 'Versement'} ${versementVehicle.brand} ${versementVehicle.model} ${versementVehicle.year} — ${versementVehicle.client?.nom || ''} ${versementVehicle.client?.prenom || ''}`.trim(),
-            vehicleId: versementVehicle.id,
-            paymentMethod: versementMode,
+            description: `${paymentMode === 'virement' ? 'Virement' : 'Versement'} vente — ${clientName} (${vehicleDesc})`.trim(),
+            paymentMethod: paymentMode,
           });
-          toast({ title: isFull ? 'Paiement complet — véhicule soldé' : 'Versement enregistré' });
-          setVersementDialogOpen(false);
-          setVersementVehicle(null);
-          setVersementAmount('');
-          setVersementMode('versement');
+          toast({ title: isFull ? 'Vente soldée' : 'Paiement enregistré' });
+          setPaymentDialogOpen(false);
+          setPaymentSale(null);
+          setPaymentAmount('');
+          setPaymentMode('versement');
         },
         onError: (err: any) => toast({ title: 'Erreur', description: err.message, variant: 'destructive' }),
       },
@@ -428,6 +414,17 @@ const ClientSalesPage = () => {
                             </button>
                           </CollapsibleTrigger>
                           <div className="flex gap-1 px-4 py-1 bg-muted/30 border-t border-border justify-end">
+                            {saleDebt > 0 && (
+                              <Button variant="outline" size="sm" className="gap-1" onClick={() => {
+                                setPaymentSale(sale);
+                                setPaymentAmount('');
+                                setPaymentMode('versement');
+                                setPaymentDialogOpen(true);
+                              }}>
+                                <Wallet className="h-3.5 w-3.5" />
+                                Payer
+                              </Button>
+                            )}
                             <Button variant="ghost" size="sm" onClick={() => {
                               if (sale.client) navigate(`/clients/${sale.client.id}`);
                             }}>
@@ -449,16 +446,12 @@ const ClientSalesPage = () => {
                                 <TableRow>
                                   <TableHead>Véhicule</TableHead>
                                   <TableHead className="text-right">Prix de vente</TableHead>
-                                  <TableHead className="text-right">Montant payé</TableHead>
-                                  <TableHead className="text-right">Montant restant</TableHead>
                                   <TableHead className="text-center">Action</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
                                 {saleVehicles.map((vehicle: any) => {
                                   const sp = Number(vehicle.sellingPrice || 0);
-                                  const ap = Number(vehicle.amountPaid || 0);
-                                  const remaining = Math.max(0, sp - ap);
                                   return (
                                     <TableRow key={vehicle.id}>
                                       <TableCell>
@@ -477,31 +470,10 @@ const ClientSalesPage = () => {
                                         </div>
                                       </TableCell>
                                       <TableCell className="text-right font-medium">{formatCurrency(sp)}</TableCell>
-                                      <TableCell className="text-right font-medium text-success">{formatCurrency(ap)}</TableCell>
-                                      <TableCell className="text-right font-medium">
-                                        {remaining > 0 ? (
-                                          <span className="text-destructive">{formatCurrency(remaining)}</span>
-                                        ) : (
-                                          <span className="text-success">0 DZD</span>
-                                        )}
-                                      </TableCell>
-                                     <TableCell className="text-center">
-                                        <div className="flex items-center justify-center gap-1">
-                                          {remaining > 0 && (
-                                            <Button variant="outline" size="sm" className="gap-1" onClick={() => {
-                                              setVersementVehicle(vehicle);
-                                              setVersementAmount('');
-                                              setVersementMode('versement');
-                                              setVersementDialogOpen(true);
-                                            }}>
-                                              <Wallet className="h-3.5 w-3.5" />
-                                              Payer
-                                            </Button>
-                                          )}
-                                          <Button variant="ghost" size="sm" onClick={() => navigate(`/vehicles/${vehicle.id}`)}>
-                                            <ExternalLink className="h-4 w-4" />
-                                          </Button>
-                                        </div>
+                                      <TableCell className="text-center">
+                                        <Button variant="ghost" size="sm" onClick={() => navigate(`/vehicles/${vehicle.id}`)}>
+                                          <ExternalLink className="h-4 w-4" />
+                                        </Button>
                                       </TableCell>
                                     </TableRow>
                                   );
@@ -638,77 +610,87 @@ const ClientSalesPage = () => {
         onOpenChange={setNewSaleDialogOpen}
       />
 
-      {/* Versement Dialog */}
-      <Dialog open={versementDialogOpen} onOpenChange={setVersementDialogOpen}>
+      {/* Sale Payment Dialog */}
+      <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Enregistrer un versement</DialogTitle>
+            <DialogTitle>Enregistrer un paiement</DialogTitle>
           </DialogHeader>
-          {versementVehicle && (
-            <div className="space-y-4">
-              <div className="p-3 rounded-lg border border-border bg-muted/30">
-                <div className="font-medium text-sm">
-                  {versementVehicle.brand} {versementVehicle.model} ({versementVehicle.year})
+          {paymentSale && (() => {
+            const salePaid = Number(paymentSale.amountPaid) || 0;
+            const saleTotalOwed = Number(paymentSale.totalSellingPrice) + Number(paymentSale.carriedDebt);
+            const saleRemaining = Math.max(0, saleTotalOwed - salePaid);
+            const saleVehicleNames = (paymentSale.vehicles || []).map((v: any) => `${v.brand} ${v.model}`).join(', ');
+            return (
+              <div className="space-y-4">
+                <div className="p-3 rounded-lg border border-border bg-muted/30">
+                  <div className="font-medium text-sm">
+                    Vente du {new Date(paymentSale.date).toLocaleDateString('fr-FR')}
+                    {paymentSale.client && ` — ${paymentSale.client.nom} ${paymentSale.client.prenom}`}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">{saleVehicleNames}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Total vente: {formatCurrency(Number(paymentSale.totalSellingPrice) || 0)}
+                  </div>
+                  {Number(paymentSale.carriedDebt) > 0 && (
+                    <div className="text-xs text-warning">
+                      + Dette reportée: {formatCurrency(Number(paymentSale.carriedDebt))}
+                    </div>
+                  )}
+                  <div className="text-xs text-muted-foreground">
+                    Déjà payé: {formatCurrency(salePaid)}
+                  </div>
+                  <div className="text-xs font-medium text-destructive">
+                    Reste à payer: {formatCurrency(saleRemaining)}
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  Client : {versementVehicle.client?.nom} {versementVehicle.client?.prenom}
+                <div className="space-y-2">
+                  <Label>Mode de paiement</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={paymentMode === 'versement' ? 'default' : 'outline'}
+                      className="flex-1 gap-2"
+                      onClick={() => setPaymentMode('versement')}
+                    >
+                      <Wallet className="h-4 w-4" />
+                      Versement
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={paymentMode === 'virement' ? 'default' : 'outline'}
+                      className="flex-1 gap-2"
+                      onClick={() => setPaymentMode('virement')}
+                    >
+                      <Landmark className="h-4 w-4" />
+                      Virement
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {paymentMode === 'versement'
+                      ? 'Le montant sera ajouté au solde de la caisse.'
+                      : 'Le montant sera enregistré dans l\'onglet Banque (sans impact sur la caisse).'}
+                  </p>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  Prix de vente : {formatCurrency(Number(versementVehicle.sellingPrice || 0))}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Déjà payé : {formatCurrency(Number(versementVehicle.amountPaid || 0))}
-                </div>
-                <div className="text-xs font-medium text-destructive">
-                  Restant : {formatCurrency(Math.max(0, Number(versementVehicle.sellingPrice || 0) - Number(versementVehicle.amountPaid || 0)))}
+                <div className="space-y-2">
+                  <Label htmlFor="paymentAmount">Montant du paiement (DZD)</Label>
+                  <FormattedNumberInput
+                    id="paymentAmount"
+                    placeholder="0"
+                    value={paymentAmount}
+                    onValueChange={(v) => setPaymentAmount(String(v))}
+                  />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Mode de paiement</Label>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant={versementMode === 'versement' ? 'default' : 'outline'}
-                    className="flex-1 gap-2"
-                    onClick={() => setVersementMode('versement')}
-                  >
-                    <Wallet className="h-4 w-4" />
-                    Versement
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={versementMode === 'virement' ? 'default' : 'outline'}
-                    className="flex-1 gap-2"
-                    onClick={() => setVersementMode('virement')}
-                  >
-                    <Landmark className="h-4 w-4" />
-                    Virement
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {versementMode === 'versement'
-                    ? 'Le montant sera ajouté au solde de la caisse.'
-                    : 'Le montant sera enregistré dans l\'onglet Banque (sans impact sur la caisse).'}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="versementAmount">Montant du paiement (DZD)</Label>
-                <FormattedNumberInput
-                  id="versementAmount"
-                  placeholder="0"
-                  value={versementAmount}
-                  onValueChange={(v) => setVersementAmount(String(v))}
-                />
-              </div>
-            </div>
-          )}
+            );
+          })()}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setVersementDialogOpen(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setPaymentDialogOpen(false)}>Annuler</Button>
             <Button
-              onClick={handleVersementSubmit}
-              disabled={!versementAmount || Number(versementAmount) <= 0 || updateVehicle.isPending}
+              onClick={handleSalePaymentSubmit}
+              disabled={!paymentAmount || Number(paymentAmount) <= 0 || addSalePayment.isPending}
             >
-              {updateVehicle.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {addSalePayment.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Enregistrer
             </Button>
           </DialogFooter>
