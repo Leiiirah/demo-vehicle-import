@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Passeport } from '../../entities/passeport.entity';
+import { Vehicle } from '../../entities/vehicle.entity';
 import { CreatePasseportDto } from './dto/create-passeport.dto';
 import { UpdatePasseportDto } from './dto/update-passeport.dto';
 
@@ -10,12 +11,31 @@ export class PasseportsService {
   constructor(
     @InjectRepository(Passeport)
     private passeportRepository: Repository<Passeport>,
+    @InjectRepository(Vehicle)
+    private vehicleRepository: Repository<Vehicle>,
   ) {}
 
   async findAll() {
-    return this.passeportRepository.find({
+    const passeports = await this.passeportRepository.find({
       order: { createdAt: 'DESC' },
     });
+    // Attach vehicle count for each passeport
+    const ids = passeports.map((p) => p.id);
+    let vehicleCounts: Record<string, number> = {};
+    if (ids.length > 0) {
+      const counts = await this.vehicleRepository
+        .createQueryBuilder('v')
+        .select('v.passeportId', 'passeportId')
+        .addSelect('COUNT(*)::int', 'count')
+        .where('v.passeportId IN (:...ids)', { ids })
+        .groupBy('v.passeportId')
+        .getRawMany();
+      vehicleCounts = Object.fromEntries(counts.map((c) => [c.passeportId, c.count]));
+    }
+    return passeports.map((p) => ({
+      ...p,
+      vehicleCount: vehicleCounts[p.id] || 0,
+    }));
   }
 
   async findOne(id: string) {
@@ -25,7 +45,13 @@ export class PasseportsService {
     if (!passeport) {
       throw new NotFoundException('Passeport not found');
     }
-    return passeport;
+    // Attach vehicles linked to this passeport
+    const vehicles = await this.vehicleRepository.find({
+      where: { passeportId: id },
+      relations: ['client'],
+      order: { createdAt: 'DESC' },
+    });
+    return { ...passeport, vehicles };
   }
 
   async create(createPasseportDto: CreatePasseportDto) {
