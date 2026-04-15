@@ -4,7 +4,8 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { usePasseports, useDeletePasseport } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
-import { MoreVertical, Eye, Phone, Search, BookUser, AlertCircle, Trash2, Download } from 'lucide-react';
+import { MoreVertical, Eye, Phone, Search, BookUser, AlertCircle, Trash2, Download, Car } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
