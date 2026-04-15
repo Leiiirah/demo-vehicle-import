@@ -36,6 +36,11 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { EditClientDialog } from '@/components/clients/EditClientDialog';
 import { AssignVehicleDialog } from '@/components/clients/AssignVehicleDialog';
 import {
