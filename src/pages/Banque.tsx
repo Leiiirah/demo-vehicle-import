@@ -12,7 +12,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  Landmark, Search, Loader2, TrendingUp, Car, Users,
+  Landmark, Search, Loader2, TrendingUp, TrendingDown, Car, Users, ArrowUpCircle, ArrowDownCircle,
 } from 'lucide-react';
 import { useCaisseEntries, useCaisseSummary } from '@/hooks/useCaisse';
 
@@ -21,24 +21,27 @@ const BanquePage = () => {
   const { data: summary } = useCaisseSummary();
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Filter only virement entries
-  const virementEntries = useMemo(() => {
-    return (entries as any[]).filter((e) => e.paymentMethod === 'virement');
+  // Bank entries: client virements (inflows) + supplier/dossier payments (outflows)
+  const banqueEntries = useMemo(() => {
+    return (entries as any[]).filter(
+      (e) => e.paymentMethod === 'virement' || e._source === 'dossier_payment'
+    );
   }, [entries]);
 
   const filteredEntries = useMemo(() => {
-    if (!searchTerm) return virementEntries;
+    if (!searchTerm) return banqueEntries;
     const term = searchTerm.toLowerCase();
-    return virementEntries.filter((e: any) =>
+    return banqueEntries.filter((e: any) =>
       (e.description || '').toLowerCase().includes(term) ||
       (e.reference || '').toLowerCase().includes(term) ||
       (e.client && `${e.client.nom} ${e.client.prenom}`.toLowerCase().includes(term)) ||
       (e.vehicle && `${e.vehicle.brand} ${e.vehicle.model}`.toLowerCase().includes(term))
     );
-  }, [virementEntries, searchTerm]);
+  }, [banqueEntries, searchTerm]);
 
-  const totalVirements = virementEntries.reduce((sum: number, e: any) => sum + Number(e.montant || 0), 0);
-  const totalEntries = virementEntries.length;
+  const totalVirements = summary?.totalVirements || 0;
+  const totalSupplierPayments = summary?.totalSupplierPayments || 0;
+  const soldeBanque = totalVirements - totalSupplierPayments;
 
   const {
     paginatedItems, currentPage, totalPages, totalItems, startIndex, endIndex, goToPage,
@@ -61,7 +64,7 @@ const BanquePage = () => {
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Banque</h1>
           <p className="text-muted-foreground">
-            Suivi des virements bancaires clients
+            Suivi des virements clients et paiements fournisseurs
           </p>
         </div>
 
@@ -69,38 +72,36 @@ const BanquePage = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total virements</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Entrées (virements clients)</CardTitle>
+              <ArrowUpCircle className="h-4 w-4 text-emerald-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-600">{formatCurrency(totalVirements)}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Sorties (paiements fournisseurs)</CardTitle>
+              <ArrowDownCircle className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                {formatCurrency(totalSupplierPayments)}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-primary/30 bg-primary/5">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Solde Banque</CardTitle>
               <Landmark className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{formatCurrency(totalVirements)}</div>
-              <p className="text-xs text-muted-foreground mt-1">{totalEntries} opération(s)</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Solde Caisse (hors virements)</CardTitle>
-              <TrendingUp className="h-4 w-4 text-success" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-success">
-                {formatCurrency(summary?.soldeActuel || 0)}
+              <div className={`text-2xl font-bold ${soldeBanque >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                {formatCurrency(soldeBanque)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Espèces uniquement</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total encaissé (global)</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency((summary?.soldeActuel || 0) + totalVirements)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Caisse + Banque</p>
+              <p className="text-xs text-muted-foreground mt-1">Virements - Paiements fournisseurs</p>
             </CardContent>
           </Card>
         </div>
@@ -123,14 +124,14 @@ const BanquePage = () => {
         {/* Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Historique des virements</CardTitle>
+            <CardTitle>Historique bancaire</CardTitle>
           </CardHeader>
           <CardContent>
             {filteredEntries.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Landmark className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium">Aucun virement enregistré</p>
-                <p className="text-sm">Les virements apparaîtront ici lors de l'enregistrement d'un paiement client par virement.</p>
+                <p className="text-lg font-medium">Aucune opération bancaire</p>
+                <p className="text-sm">Les virements clients et paiements fournisseurs apparaîtront ici.</p>
               </div>
             ) : (
               <>
@@ -138,42 +139,50 @@ const BanquePage = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
+                      <TableHead>Type</TableHead>
                       <TableHead>Description</TableHead>
-                      <TableHead>Client</TableHead>
-                      <TableHead>Véhicule</TableHead>
+                      <TableHead>Client / Fournisseur</TableHead>
                       <TableHead className="text-right">Montant</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedItems.map((entry: any) => (
-                      <TableRow key={entry.id}>
-                        <TableCell className="text-sm">
-                          {format(new Date(entry.date), 'dd/MM/yyyy')}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {entry.description || '—'}
-                        </TableCell>
-                        <TableCell>
-                          {entry.client ? (
-                            <div className="flex items-center gap-2">
-                              <Users className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">{entry.client.nom} {entry.client.prenom}</span>
-                            </div>
-                          ) : '—'}
-                        </TableCell>
-                        <TableCell>
-                          {entry.vehicle ? (
-                            <div className="flex items-center gap-2">
-                              <Car className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">{entry.vehicle.brand} {entry.vehicle.model}</span>
-                            </div>
-                          ) : '—'}
-                        </TableCell>
-                        <TableCell className="text-right font-medium text-primary">
-                          {formatCurrency(Number(entry.montant))}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {paginatedItems.map((entry: any) => {
+                      const isOutflow = entry._source === 'dossier_payment';
+                      return (
+                        <TableRow key={entry.id}>
+                          <TableCell className="text-sm whitespace-nowrap">
+                            {format(new Date(entry.date), 'dd/MM/yyyy')}
+                          </TableCell>
+                          <TableCell>
+                            {isOutflow ? (
+                              <Badge className="bg-red-500/15 text-red-700 border-red-200 gap-1">
+                                <ArrowDownCircle className="h-3 w-3" />Sortie
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-200 gap-1">
+                                <ArrowUpCircle className="h-3 w-3" />Entrée
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {entry.description || '—'}
+                          </TableCell>
+                          <TableCell>
+                            {entry.client ? (
+                              <div className="flex items-center gap-2">
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm">{entry.client.nom} {entry.client.prenom}</span>
+                              </div>
+                            ) : '—'}
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            <span className={isOutflow ? 'text-red-600' : 'text-emerald-600'}>
+                              {isOutflow ? '-' : '+'}{formatCurrency(Number(entry.montant))}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
                 <TablePagination

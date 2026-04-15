@@ -55,6 +55,8 @@ const CaissePage = () => {
     return (entries as any[]).filter((e) => {
       // Exclude virements from caisse view — they belong to Banque
       if (e.paymentMethod === 'virement') return false;
+      // Exclude supplier/dossier payments — they go through Banque
+      if (e._source === 'dossier_payment') return false;
       const term = searchTerm.toLowerCase();
       const searchMatch =
         !term ||
