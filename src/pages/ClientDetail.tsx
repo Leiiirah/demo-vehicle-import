@@ -491,6 +491,74 @@ const ClientDetailPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Versement Dialog */}
+      <Dialog open={versementDialogOpen} onOpenChange={setVersementDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enregistrer un paiement</DialogTitle>
+          </DialogHeader>
+          {versementVehicle && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
+                <p className="font-medium">{versementVehicle.brand} {versementVehicle.model} ({versementVehicle.year})</p>
+                <p className="text-muted-foreground">
+                  Prix de vente: {formatCurrency(Number(versementVehicle.sellingPrice || 0))}
+                </p>
+                <p className="text-muted-foreground">
+                  Déjà payé: {formatCurrency(Number(versementVehicle.amountPaid || 0))}
+                </p>
+                <p className="font-medium text-destructive">
+                  Reste: {formatCurrency(Math.max(0, Number(versementVehicle.sellingPrice || 0) - Number(versementVehicle.amountPaid || 0)))}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Mode de paiement</Label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={versementMode === 'versement' ? 'default' : 'outline'}
+                    className={versementMode === 'versement' ? 'flex-1' : 'flex-1'}
+                    onClick={() => setVersementMode('versement')}
+                  >
+                    <Wallet className="h-4 w-4 mr-2" />
+                    Versement (Caisse)
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={versementMode === 'virement' ? 'default' : 'outline'}
+                    className={versementMode === 'virement' ? 'flex-1' : 'flex-1'}
+                    onClick={() => setVersementMode('virement')}
+                  >
+                    <Landmark className="h-4 w-4 mr-2" />
+                    Virement (Banque)
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Montant (DZD)</Label>
+                <FormattedNumberInput
+                  value={versementAmount}
+                  onValueChange={(v) => setVersementAmount(String(v))}
+                  placeholder="Montant du paiement"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVersementDialogOpen(false)}>Annuler</Button>
+            <Button
+              onClick={handleVersementSubmit}
+              disabled={!versementAmount || Number(versementAmount) <= 0 || updateVehicle.isPending}
+            >
+              {updateVehicle.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Confirmer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
