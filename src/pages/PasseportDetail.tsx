@@ -137,32 +137,6 @@ const PasseportDetailPage = () => {
             </CardContent>
           </Card>
 
-          {/* Document */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Document</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {passeport.pdfPasseport ? (
-                <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-accent/30">
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-10 w-10 text-primary" />
-                    <div>
-                      <p className="font-medium">{passeport.pdfPasseport}</p>
-                      <p className="text-sm text-muted-foreground">PDF du passeport</p>
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Télécharger
-                  </Button>
-                </div>
-              ) : (
-                <p className="text-center text-muted-foreground py-4">
-                  Aucun document attaché
-                </p>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </div>
 
