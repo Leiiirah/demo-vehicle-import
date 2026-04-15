@@ -412,23 +412,49 @@ const ClientDetailPage = () => {
                         <TableRow>
                           <TableHead>Véhicule</TableHead>
                           <TableHead className="text-right">Prix de vente</TableHead>
-                          <TableHead className="text-right">Coût de revient</TableHead>
+                          <TableHead className="text-right">Montant payé</TableHead>
+                          <TableHead className="text-right">Reste</TableHead>
                           <TableHead className="text-right">Bénéfice</TableHead>
+                          <TableHead className="text-right">Action</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {saleVehicles.map((v: any) => {
                           const sp = Number(v.sellingPrice || 0);
                           const tc = Number(v.totalCost || 0);
+                          const ap = Number(v.amountPaid || 0);
+                          const remaining = Math.max(0, sp - ap);
                           return (
                             <TableRow key={v.id}>
                               <TableCell className="font-medium">{v.brand} {v.model} ({v.year})</TableCell>
                               <TableCell className="text-right">{formatCurrency(sp)}</TableCell>
-                              <TableCell className="text-right">{formatCurrency(tc)}</TableCell>
+                              <TableCell className="text-right text-success">{formatCurrency(ap)}</TableCell>
+                              <TableCell className="text-right">
+                                <span className={remaining > 0 ? 'text-destructive' : 'text-muted-foreground'}>
+                                  {formatCurrency(remaining)}
+                                </span>
+                              </TableCell>
                               <TableCell className="text-right">
                                 <span className={sp - tc >= 0 ? 'text-success' : 'text-destructive'}>
                                   {formatCurrency(sp - tc)}
                                 </span>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {remaining > 0 && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setVersementVehicle({ ...v, client });
+                                      setVersementAmount('');
+                                      setVersementMode('versement');
+                                      setVersementDialogOpen(true);
+                                    }}
+                                  >
+                                    <Wallet className="h-3 w-3 mr-1" />
+                                    Payer
+                                  </Button>
+                                )}
                               </TableCell>
                             </TableRow>
                           );
