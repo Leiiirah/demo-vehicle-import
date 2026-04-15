@@ -74,6 +74,14 @@ const ClientDetailPage = () => {
   const { data: client, isLoading, error } = useClient(id || '');
   const { data: clientSales = [] } = useSalesByClient(id || '');
   const deleteClient = useDeleteClient();
+  const updateVehicle = useUpdateVehicle();
+  const createCaisseEntry = useCreateCaisseEntry();
+
+  // Versement dialog state
+  const [versementDialogOpen, setVersementDialogOpen] = useState(false);
+  const [versementVehicle, setVersementVehicle] = useState<any>(null);
+  const [versementAmount, setVersementAmount] = useState('');
+  const [versementMode, setVersementMode] = useState<'versement' | 'virement'>('versement');
 
   const monthOptions = useMemo(() => getMonthOptions(), []);
 
