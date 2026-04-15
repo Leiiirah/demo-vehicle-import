@@ -144,6 +144,9 @@ export class CaisseService {
         description = `Paiement — ${p.reference}`;
       }
 
+      // Supplier payments go to Banque, client payments go to Caisse
+      const isSupplierPayment = p.type !== 'client_payment';
+
       return {
         id: `pay-${p.id}`,
         type: p.type === 'client_payment' ? ('entree' as const) : ('charge' as const),
@@ -160,7 +163,7 @@ export class CaisseService {
         benefice: null,
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
-        _source: 'payment',
+        _source: isSupplierPayment ? 'dossier_payment' : 'payment',
         _paymentStatus: p.status,
         _paymentCurrency: p.currency,
         _paymentAmountUSD: Number(p.amount),
@@ -224,12 +227,17 @@ export class CaisseService {
     let totalCharges = 0;
     let totalBenefices = 0;
     let totalVirements = 0;
+    let totalSupplierPayments = 0;
 
     for (const entry of allEntries) {
       const montant = Number(entry.montant) || 0;
       const isVirement = (entry as any).paymentMethod === 'virement';
+      const isDossierPayment = (entry as any)._source === 'dossier_payment';
 
-      if (entry.type === 'entree') {
+      if (isDossierPayment) {
+        // Supplier payments go to Banque, not Caisse
+        totalSupplierPayments += montant;
+      } else if (entry.type === 'entree') {
         if (isVirement) {
           totalVirements += montant;
         } else {
@@ -251,6 +259,7 @@ export class CaisseService {
       totalBenefices,
       soldeActuel,
       totalVirements,
+      totalSupplierPayments,
     };
   }
 }
