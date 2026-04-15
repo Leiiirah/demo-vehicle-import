@@ -759,6 +759,7 @@ export interface CaisseSummary {
   totalBenefices: number;
   soldeActuel: number;
   totalVirements: number;
+  totalSupplierPayments: number;
 }
 
 export interface CaisseBalanceData {
