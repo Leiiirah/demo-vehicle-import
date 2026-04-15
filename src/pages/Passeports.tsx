@@ -4,7 +4,8 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { usePasseports, useDeletePasseport } from '@/hooks/useApi';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/ui/table-pagination';
-import { MoreVertical, Eye, Phone, Search, BookUser, AlertCircle, Trash2, Download } from 'lucide-react';
+import { MoreVertical, Eye, Phone, Search, BookUser, AlertCircle, Trash2, Download, Car } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -114,6 +115,7 @@ const PasseportsPage = () => {
                     <th>Téléphone</th>
                     <th>N° Passeport</th>
                     <th>NIN</th>
+                    <th>Véhicules</th>
                     <th>Adresse</th>
                     <th></th>
                   </tr>
@@ -146,6 +148,11 @@ const PasseportsPage = () => {
                       </td>
                       <td>
                         <span className="font-mono text-sm">{passeport.nin || '-'}</span>
+                      </td>
+                      <td>
+                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                          {(passeport as any).vehicleCount || 0}
+                        </Badge>
                       </td>
                       <td>
                         <span className="text-sm text-muted-foreground truncate max-w-[200px] block">
@@ -206,7 +213,7 @@ const PasseportsPage = () => {
                   ))}
                   {paginatedPasseports.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="text-center py-8 text-muted-foreground">
+                       <td colSpan={7} className="text-center py-8 text-muted-foreground">
                         {searchQuery ? `Aucun passeport trouvé pour "${searchQuery}"` : 'Aucun passeport'}
                       </td>
                     </tr>

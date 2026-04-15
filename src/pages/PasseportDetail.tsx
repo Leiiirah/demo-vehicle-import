@@ -12,7 +12,8 @@ import {
   FileText,
   AlertCircle,
   Download,
-  CreditCard
+  CreditCard,
+  Car
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +31,8 @@ const PasseportDetailPage = () => {
   const handleExportPDF = () => {
     if (passeport) exportPasseportPDF(passeport);
   };
+
+  const vehicles = (passeport as any)?.vehicles || [];
 
   if (isLoading) {
     return (
@@ -164,6 +167,56 @@ const PasseportDetailPage = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Véhicules */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Car className="h-5 w-5" />
+              Véhicules ({vehicles.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {vehicles.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Véhicule</th>
+                      <th>VIN</th>
+                      <th>Couleur</th>
+                      <th>Client</th>
+                      <th>Statut</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {vehicles.map((v: any) => (
+                      <tr key={v.id}>
+                        <td className="font-medium">{v.brand} {v.model} {v.year}</td>
+                        <td className="font-mono text-sm">{v.vin}</td>
+                        <td>{v.color || '-'}</td>
+                        <td>{v.client ? `${v.client.nom} ${v.client.prenom}` : '-'}</td>
+                        <td>
+                          <Badge variant="outline">{v.status}</Badge>
+                        </td>
+                        <td>
+                          <Button variant="ghost" size="sm" onClick={() => navigate(`/vehicles/${v.id}`)}>
+                            Voir
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-4">
+                Aucun véhicule associé à ce passeport
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <EditPasseportDialog 
