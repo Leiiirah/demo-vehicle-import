@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useClient, useDeleteClient, useSalesByClient } from '@/hooks/useApi';
+import { useClient, useDeleteClient, useSalesByClient, useUpdateVehicle } from '@/hooks/useApi';
+import { useCreateCaisseEntry } from '@/hooks/useCaisse';
 import { formatCurrency } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -22,6 +23,8 @@ import {
   Car,
   CalendarIcon,
   Download,
+  Landmark,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
