@@ -99,9 +99,8 @@ const ClientSalesPage = () => {
 
   const handleStatusChange = (vehicle: any, newStatus: string) => {
     if (newStatus === 'versement') {
-      setVersementVehicle(vehicle);
-      setVersementAmount('');
-      setVersementDialogOpen(true);
+      // Per-vehicle versement no longer used — payments are per-sale now
+      return;
     } else if (newStatus === 'solde') {
       // Mark as soldé: set status to sold, paymentStatus to solde, amountPaid to sellingPrice
       const sellingPrice = Number(vehicle.sellingPrice || 0);
@@ -611,77 +610,87 @@ const ClientSalesPage = () => {
         onOpenChange={setNewSaleDialogOpen}
       />
 
-      {/* Versement Dialog */}
-      <Dialog open={versementDialogOpen} onOpenChange={setVersementDialogOpen}>
+      {/* Sale Payment Dialog */}
+      <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Enregistrer un versement</DialogTitle>
+            <DialogTitle>Enregistrer un paiement</DialogTitle>
           </DialogHeader>
-          {versementVehicle && (
-            <div className="space-y-4">
-              <div className="p-3 rounded-lg border border-border bg-muted/30">
-                <div className="font-medium text-sm">
-                  {versementVehicle.brand} {versementVehicle.model} ({versementVehicle.year})
+          {paymentSale && (() => {
+            const salePaid = Number(paymentSale.amountPaid) || 0;
+            const saleTotalOwed = Number(paymentSale.totalSellingPrice) + Number(paymentSale.carriedDebt);
+            const saleRemaining = Math.max(0, saleTotalOwed - salePaid);
+            const saleVehicleNames = (paymentSale.vehicles || []).map((v: any) => `${v.brand} ${v.model}`).join(', ');
+            return (
+              <div className="space-y-4">
+                <div className="p-3 rounded-lg border border-border bg-muted/30">
+                  <div className="font-medium text-sm">
+                    Vente du {new Date(paymentSale.date).toLocaleDateString('fr-FR')}
+                    {paymentSale.client && ` — ${paymentSale.client.nom} ${paymentSale.client.prenom}`}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">{saleVehicleNames}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Total vente: {formatCurrency(Number(paymentSale.totalSellingPrice) || 0)}
+                  </div>
+                  {Number(paymentSale.carriedDebt) > 0 && (
+                    <div className="text-xs text-warning">
+                      + Dette reportée: {formatCurrency(Number(paymentSale.carriedDebt))}
+                    </div>
+                  )}
+                  <div className="text-xs text-muted-foreground">
+                    Déjà payé: {formatCurrency(salePaid)}
+                  </div>
+                  <div className="text-xs font-medium text-destructive">
+                    Reste à payer: {formatCurrency(saleRemaining)}
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  Client : {versementVehicle.client?.nom} {versementVehicle.client?.prenom}
+                <div className="space-y-2">
+                  <Label>Mode de paiement</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={paymentMode === 'versement' ? 'default' : 'outline'}
+                      className="flex-1 gap-2"
+                      onClick={() => setPaymentMode('versement')}
+                    >
+                      <Wallet className="h-4 w-4" />
+                      Versement
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={paymentMode === 'virement' ? 'default' : 'outline'}
+                      className="flex-1 gap-2"
+                      onClick={() => setPaymentMode('virement')}
+                    >
+                      <Landmark className="h-4 w-4" />
+                      Virement
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {paymentMode === 'versement'
+                      ? 'Le montant sera ajouté au solde de la caisse.'
+                      : 'Le montant sera enregistré dans l\'onglet Banque (sans impact sur la caisse).'}
+                  </p>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  Prix de vente : {formatCurrency(Number(versementVehicle.sellingPrice || 0))}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Déjà payé : {formatCurrency(Number(versementVehicle.amountPaid || 0))}
-                </div>
-                <div className="text-xs font-medium text-destructive">
-                  Restant : {formatCurrency(Math.max(0, Number(versementVehicle.sellingPrice || 0) - Number(versementVehicle.amountPaid || 0)))}
+                <div className="space-y-2">
+                  <Label htmlFor="paymentAmount">Montant du paiement (DZD)</Label>
+                  <FormattedNumberInput
+                    id="paymentAmount"
+                    placeholder="0"
+                    value={paymentAmount}
+                    onValueChange={(v) => setPaymentAmount(String(v))}
+                  />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Mode de paiement</Label>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant={versementMode === 'versement' ? 'default' : 'outline'}
-                    className="flex-1 gap-2"
-                    onClick={() => setVersementMode('versement')}
-                  >
-                    <Wallet className="h-4 w-4" />
-                    Versement
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={versementMode === 'virement' ? 'default' : 'outline'}
-                    className="flex-1 gap-2"
-                    onClick={() => setVersementMode('virement')}
-                  >
-                    <Landmark className="h-4 w-4" />
-                    Virement
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {versementMode === 'versement'
-                    ? 'Le montant sera ajouté au solde de la caisse.'
-                    : 'Le montant sera enregistré dans l\'onglet Banque (sans impact sur la caisse).'}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="versementAmount">Montant du paiement (DZD)</Label>
-                <FormattedNumberInput
-                  id="versementAmount"
-                  placeholder="0"
-                  value={versementAmount}
-                  onValueChange={(v) => setVersementAmount(String(v))}
-                />
-              </div>
-            </div>
-          )}
+            );
+          })()}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setVersementDialogOpen(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setPaymentDialogOpen(false)}>Annuler</Button>
             <Button
-              onClick={handleVersementSubmit}
-              disabled={!versementAmount || Number(versementAmount) <= 0 || updateVehicle.isPending}
+              onClick={handleSalePaymentSubmit}
+              disabled={!paymentAmount || Number(paymentAmount) <= 0 || addSalePayment.isPending}
             >
-              {updateVehicle.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {addSalePayment.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Enregistrer
             </Button>
           </DialogFooter>
