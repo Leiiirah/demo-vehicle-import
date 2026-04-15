@@ -156,11 +156,12 @@ const ClientDetailPage = () => {
   }, [clientSales, dateFilter]);
 
   const filteredStats = useMemo(() => {
-    const totalVentes = filteredVehicles.reduce((sum: number, v: any) => sum + Number(v.sellingPrice || 0), 0);
-    const totalPaye = filteredVehicles.reduce((sum: number, v: any) => sum + Number(v.amountPaid || 0), 0);
-    const resteAPayer = totalVentes - totalPaye;
-    return { vehiclesCount: filteredVehicles.length, totalVentes, totalPaye, resteAPayer };
-  }, [filteredVehicles]);
+    const vehiclesCount = filteredSales.reduce((sum: number, s: any) => sum + (s.vehicles?.length || 0), 0);
+    const totalVentes = filteredSales.reduce((sum: number, s: any) => sum + Number(s.totalSellingPrice || 0), 0);
+    const totalPaye = filteredSales.reduce((sum: number, s: any) => sum + Number(s.amountPaid || 0), 0);
+    const resteAPayer = filteredSales.reduce((sum: number, s: any) => sum + Number(s.debt || 0), 0);
+    return { vehiclesCount, totalVentes, totalPaye, resteAPayer };
+  }, [filteredSales]);
 
   if (isLoading) {
     return (
