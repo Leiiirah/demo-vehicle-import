@@ -96,7 +96,50 @@ const ClientDetailPage = () => {
     });
   };
 
-  // Filter vehicles by date
+  const handleVersementSubmit = () => {
+    if (!versementVehicle || !versementAmount) return;
+    const amount = Number(versementAmount);
+    if (amount <= 0) return;
+
+    const currentPaid = Number(versementVehicle.amountPaid || 0);
+    const newAmountPaid = currentPaid + amount;
+    const sellingPrice = Number(versementVehicle.sellingPrice || 0);
+    const isFull = newAmountPaid >= sellingPrice;
+
+    updateVehicle.mutate(
+      {
+        id: versementVehicle.id,
+        data: {
+          paymentStatus: isFull ? 'solde' : 'versement',
+          amountPaid: isFull ? sellingPrice : newAmountPaid,
+          ...(isFull ? {
+            status: 'sold',
+            soldDate: versementVehicle.soldDate || new Date().toISOString().split('T')[0],
+          } : {}),
+        },
+      },
+      {
+        onSuccess: () => {
+          createCaisseEntry.mutate({
+            type: 'entree',
+            montant: amount,
+            date: new Date().toISOString().split('T')[0],
+            description: `${versementMode === 'virement' ? 'Virement' : 'Versement'} ${versementVehicle.brand} ${versementVehicle.model} ${versementVehicle.year} — ${client?.nom || ''} ${client?.prenom || ''}`.trim(),
+            vehicleId: versementVehicle.id,
+            paymentMethod: versementMode,
+          });
+          toast.success(isFull ? 'Paiement complet — véhicule soldé' : 'Versement enregistré');
+          setVersementDialogOpen(false);
+          setVersementVehicle(null);
+          setVersementAmount('');
+          setVersementMode('versement');
+        },
+        onError: () => toast.error('Erreur lors du paiement'),
+      },
+    );
+  };
+
+
   const allVehicles = useMemo(() => (client?.vehicles || []).filter((v: any) => v.sellingPrice != null), [client]);
 
   const filteredVehicles = useMemo(() => {
