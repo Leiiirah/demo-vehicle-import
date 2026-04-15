@@ -415,6 +415,17 @@ const ClientSalesPage = () => {
                             </button>
                           </CollapsibleTrigger>
                           <div className="flex gap-1 px-4 py-1 bg-muted/30 border-t border-border justify-end">
+                            {saleDebt > 0 && (
+                              <Button variant="outline" size="sm" className="gap-1" onClick={() => {
+                                setPaymentSale(sale);
+                                setPaymentAmount('');
+                                setPaymentMode('versement');
+                                setPaymentDialogOpen(true);
+                              }}>
+                                <Wallet className="h-3.5 w-3.5" />
+                                Payer
+                              </Button>
+                            )}
                             <Button variant="ghost" size="sm" onClick={() => {
                               if (sale.client) navigate(`/clients/${sale.client.id}`);
                             }}>
@@ -436,16 +447,12 @@ const ClientSalesPage = () => {
                                 <TableRow>
                                   <TableHead>Véhicule</TableHead>
                                   <TableHead className="text-right">Prix de vente</TableHead>
-                                  <TableHead className="text-right">Montant payé</TableHead>
-                                  <TableHead className="text-right">Montant restant</TableHead>
                                   <TableHead className="text-center">Action</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
                                 {saleVehicles.map((vehicle: any) => {
                                   const sp = Number(vehicle.sellingPrice || 0);
-                                  const ap = Number(vehicle.amountPaid || 0);
-                                  const remaining = Math.max(0, sp - ap);
                                   return (
                                     <TableRow key={vehicle.id}>
                                       <TableCell>
@@ -464,31 +471,10 @@ const ClientSalesPage = () => {
                                         </div>
                                       </TableCell>
                                       <TableCell className="text-right font-medium">{formatCurrency(sp)}</TableCell>
-                                      <TableCell className="text-right font-medium text-success">{formatCurrency(ap)}</TableCell>
-                                      <TableCell className="text-right font-medium">
-                                        {remaining > 0 ? (
-                                          <span className="text-destructive">{formatCurrency(remaining)}</span>
-                                        ) : (
-                                          <span className="text-success">0 DZD</span>
-                                        )}
-                                      </TableCell>
-                                     <TableCell className="text-center">
-                                        <div className="flex items-center justify-center gap-1">
-                                          {remaining > 0 && (
-                                            <Button variant="outline" size="sm" className="gap-1" onClick={() => {
-                                              setVersementVehicle(vehicle);
-                                              setVersementAmount('');
-                                              setVersementMode('versement');
-                                              setVersementDialogOpen(true);
-                                            }}>
-                                              <Wallet className="h-3.5 w-3.5" />
-                                              Payer
-                                            </Button>
-                                          )}
-                                          <Button variant="ghost" size="sm" onClick={() => navigate(`/vehicles/${vehicle.id}`)}>
-                                            <ExternalLink className="h-4 w-4" />
-                                          </Button>
-                                        </div>
+                                      <TableCell className="text-center">
+                                        <Button variant="ghost" size="sm" onClick={() => navigate(`/vehicles/${vehicle.id}`)}>
+                                          <ExternalLink className="h-4 w-4" />
+                                        </Button>
                                       </TableCell>
                                     </TableRow>
                                   );
