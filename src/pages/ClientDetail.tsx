@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useClient, useDeleteClient, useSalesByClient } from '@/hooks/useApi';
+import { useClient, useDeleteClient, useSalesByClient, useUpdateVehicle } from '@/hooks/useApi';
+import { useCreateCaisseEntry } from '@/hooks/useCaisse';
 import { formatCurrency } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -22,6 +23,8 @@ import {
   Car,
   CalendarIcon,
   Download,
+  Landmark,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,6 +36,11 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { EditClientDialog } from '@/components/clients/EditClientDialog';
 import { AssignVehicleDialog } from '@/components/clients/AssignVehicleDialog';
 import {
@@ -66,6 +74,14 @@ const ClientDetailPage = () => {
   const { data: client, isLoading, error } = useClient(id || '');
   const { data: clientSales = [] } = useSalesByClient(id || '');
   const deleteClient = useDeleteClient();
+  const updateVehicle = useUpdateVehicle();
+  const createCaisseEntry = useCreateCaisseEntry();
+
+  // Versement dialog state
+  const [versementDialogOpen, setVersementDialogOpen] = useState(false);
+  const [versementVehicle, setVersementVehicle] = useState<any>(null);
+  const [versementAmount, setVersementAmount] = useState('');
+  const [versementMode, setVersementMode] = useState<'versement' | 'virement'>('versement');
 
   const monthOptions = useMemo(() => getMonthOptions(), []);
 
@@ -80,7 +96,50 @@ const ClientDetailPage = () => {
     });
   };
 
-  // Filter vehicles by date
+  const handleVersementSubmit = () => {
+    if (!versementVehicle || !versementAmount) return;
+    const amount = Number(versementAmount);
+    if (amount <= 0) return;
+
+    const currentPaid = Number(versementVehicle.amountPaid || 0);
+    const newAmountPaid = currentPaid + amount;
+    const sellingPrice = Number(versementVehicle.sellingPrice || 0);
+    const isFull = newAmountPaid >= sellingPrice;
+
+    updateVehicle.mutate(
+      {
+        id: versementVehicle.id,
+        data: {
+          paymentStatus: isFull ? 'solde' : 'versement',
+          amountPaid: isFull ? sellingPrice : newAmountPaid,
+          ...(isFull ? {
+            status: 'sold',
+            soldDate: versementVehicle.soldDate || new Date().toISOString().split('T')[0],
+          } : {}),
+        },
+      },
+      {
+        onSuccess: () => {
+          createCaisseEntry.mutate({
+            type: 'entree',
+            montant: amount,
+            date: new Date().toISOString().split('T')[0],
+            description: `${versementMode === 'virement' ? 'Virement' : 'Versement'} ${versementVehicle.brand} ${versementVehicle.model} ${versementVehicle.year} — ${client?.nom || ''} ${client?.prenom || ''}`.trim(),
+            vehicleId: versementVehicle.id,
+            paymentMethod: versementMode,
+          });
+          toast.success(isFull ? 'Paiement complet — véhicule soldé' : 'Versement enregistré');
+          setVersementDialogOpen(false);
+          setVersementVehicle(null);
+          setVersementAmount('');
+          setVersementMode('versement');
+        },
+        onError: () => toast.error('Erreur lors du paiement'),
+      },
+    );
+  };
+
+
   const allVehicles = useMemo(() => (client?.vehicles || []).filter((v: any) => v.sellingPrice != null), [client]);
 
   const filteredVehicles = useMemo(() => {
@@ -353,23 +412,49 @@ const ClientDetailPage = () => {
                         <TableRow>
                           <TableHead>Véhicule</TableHead>
                           <TableHead className="text-right">Prix de vente</TableHead>
-                          <TableHead className="text-right">Coût de revient</TableHead>
+                          <TableHead className="text-right">Montant payé</TableHead>
+                          <TableHead className="text-right">Reste</TableHead>
                           <TableHead className="text-right">Bénéfice</TableHead>
+                          <TableHead className="text-right">Action</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {saleVehicles.map((v: any) => {
                           const sp = Number(v.sellingPrice || 0);
                           const tc = Number(v.totalCost || 0);
+                          const ap = Number(v.amountPaid || 0);
+                          const remaining = Math.max(0, sp - ap);
                           return (
                             <TableRow key={v.id}>
                               <TableCell className="font-medium">{v.brand} {v.model} ({v.year})</TableCell>
                               <TableCell className="text-right">{formatCurrency(sp)}</TableCell>
-                              <TableCell className="text-right">{formatCurrency(tc)}</TableCell>
+                              <TableCell className="text-right text-success">{formatCurrency(ap)}</TableCell>
+                              <TableCell className="text-right">
+                                <span className={remaining > 0 ? 'text-destructive' : 'text-muted-foreground'}>
+                                  {formatCurrency(remaining)}
+                                </span>
+                              </TableCell>
                               <TableCell className="text-right">
                                 <span className={sp - tc >= 0 ? 'text-success' : 'text-destructive'}>
                                   {formatCurrency(sp - tc)}
                                 </span>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {remaining > 0 && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setVersementVehicle({ ...v, client });
+                                      setVersementAmount('');
+                                      setVersementMode('versement');
+                                      setVersementDialogOpen(true);
+                                    }}
+                                  >
+                                    <Wallet className="h-3 w-3 mr-1" />
+                                    Payer
+                                  </Button>
+                                )}
                               </TableCell>
                             </TableRow>
                           );
@@ -406,6 +491,74 @@ const ClientDetailPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Versement Dialog */}
+      <Dialog open={versementDialogOpen} onOpenChange={setVersementDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enregistrer un paiement</DialogTitle>
+          </DialogHeader>
+          {versementVehicle && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
+                <p className="font-medium">{versementVehicle.brand} {versementVehicle.model} ({versementVehicle.year})</p>
+                <p className="text-muted-foreground">
+                  Prix de vente: {formatCurrency(Number(versementVehicle.sellingPrice || 0))}
+                </p>
+                <p className="text-muted-foreground">
+                  Déjà payé: {formatCurrency(Number(versementVehicle.amountPaid || 0))}
+                </p>
+                <p className="font-medium text-destructive">
+                  Reste: {formatCurrency(Math.max(0, Number(versementVehicle.sellingPrice || 0) - Number(versementVehicle.amountPaid || 0)))}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Mode de paiement</Label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={versementMode === 'versement' ? 'default' : 'outline'}
+                    className={versementMode === 'versement' ? 'flex-1' : 'flex-1'}
+                    onClick={() => setVersementMode('versement')}
+                  >
+                    <Wallet className="h-4 w-4 mr-2" />
+                    Versement (Caisse)
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={versementMode === 'virement' ? 'default' : 'outline'}
+                    className={versementMode === 'virement' ? 'flex-1' : 'flex-1'}
+                    onClick={() => setVersementMode('virement')}
+                  >
+                    <Landmark className="h-4 w-4 mr-2" />
+                    Virement (Banque)
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Montant (DZD)</Label>
+                <FormattedNumberInput
+                  value={versementAmount}
+                  onValueChange={(v) => setVersementAmount(String(v))}
+                  placeholder="Montant du paiement"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVersementDialogOpen(false)}>Annuler</Button>
+            <Button
+              onClick={handleVersementSubmit}
+              disabled={!versementAmount || Number(versementAmount) <= 0 || updateVehicle.isPending}
+            >
+              {updateVehicle.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Confirmer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
