@@ -116,7 +116,6 @@ const ClientDetailPage = () => {
             montant: amount,
             date: new Date().toISOString().split('T')[0],
             description: `${paymentMode === 'virement' ? 'Virement' : 'Versement'} vente — ${client?.nom || ''} ${client?.prenom || ''} (${vehicleDesc})`.trim(),
-            clientId: client?.id,
             paymentMethod: paymentMode,
           });
           toast.success(isFull ? 'Vente soldée' : 'Paiement enregistré');
