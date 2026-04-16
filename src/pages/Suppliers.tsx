@@ -129,7 +129,7 @@ const SuppliersPage = () => {
                 return (
                   <div className={`kpi-card border-l-4 ${netDebt > 0 ? 'border-l-danger' : netDebt < 0 ? 'border-l-success' : 'border-l-muted'}`}>
                     <p className="kpi-label">{netDebt > 0 ? 'Dette totale' : netDebt < 0 ? 'Crédit total' : 'Solde'}</p>
-                    <p className="kpi-value text-foreground">
+                    <p className="kpi-value text-danger">
                       {netDebt > 0 ? '-' : netDebt < 0 ? '+' : ''}{formatCurrency(Math.abs(netDebt))}
                     </p>
                   </div>
@@ -186,7 +186,7 @@ const SuppliersPage = () => {
                       <TableCell className="text-right text-success font-medium">
                         {formatCurrency(supplier.totalPaid || 0)}
                       </TableCell>
-                      <TableCell className="text-right font-semibold text-foreground">
+                      <TableCell className="text-right font-semibold text-danger">
                         {(supplier.remainingDebt || 0) > 0 ? '-' : (supplier.remainingDebt || 0) < 0 ? '+' : ''}{formatCurrency(Math.abs(supplier.remainingDebt || 0))}
                       </TableCell>
                       <TableCell>
