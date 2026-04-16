@@ -92,10 +92,10 @@ const BanquePage = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-primary/30 bg-primary/5">
+          <Card className="border-success/30 bg-success/5">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Solde Banque</CardTitle>
-              <Landmark className="h-4 w-4 text-primary" />
+              <Landmark className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
               <div className={`text-2xl font-bold ${soldeBanque >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
