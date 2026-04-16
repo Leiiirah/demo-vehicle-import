@@ -328,7 +328,7 @@ const VehiclesPage = () => {
                     <th>Transit (DZD)</th>
                     <th>Charges divers (DZD)</th>
                     <th>Total (DZD)</th>
-                    
+                    <th>Statut</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -403,7 +403,9 @@ const VehiclesPage = () => {
                             return total > 0 ? formatCurrency(total) : '-';
                           })()}
                         </td>
-                        
+                        <td onClick={(e) => e.stopPropagation()}>
+                          {getStatusBadge(vehicle.status)}
+                        </td>
                         <td>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
