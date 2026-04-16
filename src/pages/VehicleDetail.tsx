@@ -83,12 +83,17 @@ const VehicleDetailPage = () => {
 
   const isDossierSolde = (dossierPaymentStats?.progress ?? 0) >= 100;
 
-  // Calculate weighted average exchange rate from vehicle's own payments
+  // Calculate weighted average exchange rate from dossier-level supplier payments
   const tauxChangeFinal = (() => {
-    if (!vehiclePayments?.length) return 0;
-    const totalAmountUSD = vehiclePayments.reduce((sum: number, p: any) => sum + Number(p.amountUSD), 0);
+    const dossierPayments = dossierPaymentStats?.payments || [];
+    if (!dossierPayments.length) return 0;
+    const totalAmountUSD = dossierPayments.reduce(
+      (sum: number, p: any) => sum + Number(p.amount), 0
+    );
     if (totalAmountUSD === 0) return 0;
-    const weightedRate = vehiclePayments.reduce((sum: number, p: any) => sum + Number(p.amountUSD) * Number(p.exchangeRate), 0);
+    const weightedRate = dossierPayments.reduce(
+      (sum: number, p: any) => sum + Number(p.amount) * Number(p.exchangeRate), 0
+    );
     return Math.round(weightedRate / totalAmountUSD);
   })();
 
