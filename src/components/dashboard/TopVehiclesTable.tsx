@@ -93,7 +93,7 @@ export function TopVehiclesTable({ filterParams }: TopVehiclesTableProps) {
                   </span>
                 </td>
                 <td className="py-3 px-2 text-right">
-                  <span className="badge-profit">{vehicle.margin}%</span>
+                  <span className="badge-profit">{Math.round(vehicle.margin)}%</span>
                 </td>
               </tr>
             ))}
