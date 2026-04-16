@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Car, Package, DollarSign, TrendingUp } from 'lucide-react';
 import type { Conteneur, Vehicle, Payment } from '@/services/api';
-import { formatCurrency } from '@/lib/utils';
+import { api } from '@/services/api';
 import { formatCurrency } from '@/lib/utils';
 
 interface DossierAnalyticsProps {
