@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Car, Package, DollarSign, TrendingUp } from 'lucide-react';
 import type { Conteneur, Vehicle, Payment } from '@/services/api';
 import { api } from '@/services/api';
@@ -13,7 +12,7 @@ interface DossierAnalyticsProps {
 }
 
 export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProps) {
-  // Fetch dossier payment stats for real exchange rate
+  // Fetch dossier payment stats for progress check
   const { data: dossierPaymentStats } = useQuery<{
     totalDue: number;
     totalPaid: number;
@@ -27,18 +26,35 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
 
   const isDossierSolde = (dossierPaymentStats?.progress ?? 0) >= 100;
 
-  const tauxChangeFinal = useMemo(() => {
-    if (!dossierPaymentStats?.payments?.length) return 0;
-    const payments = dossierPaymentStats.payments;
-    const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount), 0);
-    if (totalAmount === 0) return 0;
-    const weightedRate = payments.reduce((sum, p) => sum + Number(p.amount) * Number(p.exchangeRate), 0);
-    return Math.round(weightedRate / totalAmount);
-  }, [dossierPaymentStats]);
+  // Collect all vehicle IDs to fetch their payments
+  const allVehicles: Vehicle[] = useMemo(
+    () => conteneurs.flatMap((c) => c.vehicles || []),
+    [conteneurs]
+  );
+
+  // Fetch vehicle payments for all vehicles in this dossier
+  const vehicleIds = useMemo(() => allVehicles.map((v) => v.id), [allVehicles]);
+
+  const { data: allVehiclePayments } = useQuery<Record<string, any[]>>({
+    queryKey: ['vehiclePayments', 'dossier', dossierId, vehicleIds],
+    queryFn: async () => {
+      const result: Record<string, any[]> = {};
+      await Promise.all(
+        vehicleIds.map(async (vid) => {
+          try {
+            const payments = await api.request(`/api/vehicles/${vid}/payments`);
+            result[vid] = payments;
+          } catch {
+            result[vid] = [];
+          }
+        })
+      );
+      return result;
+    },
+    enabled: vehicleIds.length > 0,
+  });
 
   const stats = useMemo(() => {
-    const allVehicles: Vehicle[] = conteneurs.flatMap((c) => c.vehicles || []);
-
     const soldCount = allVehicles.filter((v) => v.status === 'sold').length;
     const chargeCount = allVehicles.filter((v) => v.status === 'in_transit').length;
     const stockCount = allVehicles.filter((v) => v.status === 'ordered').length;
@@ -59,19 +75,27 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
       .filter((v) => v.status === 'sold' && v.sellingPrice)
       .reduce((sum, v) => sum + Number(v.sellingPrice || 0), 0);
 
-    // Only compute profit using vehicles that have a manually entered rate (theoreticalRate > 0)
-    const soldVehiclesWithRate = allVehicles.filter(
-      (v) => v.status === 'sold' && Number((v as any).theoreticalRate || 0) > 0
-    );
-    const soldVehiclesTotalCost = soldVehiclesWithRate.reduce((sum, v) => {
+    // Compute profit using each vehicle's own payment-based weighted average rate
+    const soldVehicles = allVehicles.filter((v) => v.status === 'sold');
+    let soldVehiclesTotalCost = 0;
+    let vehiclesWithRate = 0;
+
+    for (const v of soldVehicles) {
+      const payments = allVehiclePayments?.[v.id] || [];
+      if (payments.length === 0) continue;
+
+      const totalAmountUSD = payments.reduce((s: number, p: any) => s + Number(p.amountUSD), 0);
+      if (totalAmountUSD === 0) continue;
+
+      const weightedRate = payments.reduce((s: number, p: any) => s + Number(p.amountUSD) * Number(p.exchangeRate), 0);
+      const avgRate = Math.round(weightedRate / totalAmountUSD);
+
       const totalUSD = Number(v.purchasePrice || 0) + Number(v.transportCost || 0);
-      return sum + (totalUSD * Number((v as any).theoreticalRate)) + Number(v.localFees || 0);
-    }, 0);
+      soldVehiclesTotalCost += (totalUSD * avgRate) + Number(v.localFees || 0);
+      vehiclesWithRate++;
+    }
 
-    const profit = soldVehiclesWithRate.length > 0
-      ? recoveredFundsDZD - soldVehiclesTotalCost
-      : 0;
-
+    const profit = vehiclesWithRate > 0 ? recoveredFundsDZD - soldVehiclesTotalCost : 0;
 
     return {
       totalVehicles: allVehicles.length,
@@ -84,7 +108,7 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
       recoveredFundsDZD,
       profit,
     };
-  }, [conteneurs]);
+  }, [conteneurs, allVehicles, allVehiclePayments]);
 
 
   return (
