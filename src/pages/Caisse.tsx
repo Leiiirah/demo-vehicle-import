@@ -70,12 +70,14 @@ const CaissePage = () => {
       const dateToMatch = !dateTo || entryDate <= dateTo;
       return searchMatch && typeMatch && dateFromMatch && dateToMatch;
     }).sort((a: any, b: any) => {
-      const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
-      if (dateDiff !== 0) return dateDiff;
-      // Secondary sort by createdAt (time precision) for same-day entries
       const createdA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const createdB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return createdB - createdA;
+      if (createdA !== createdB) return createdB - createdA;
+
+      const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (dateDiff !== 0) return dateDiff;
+
+      return String(b.id).localeCompare(String(a.id));
     });
   }, [entries, searchTerm, typeFilter, dateFrom, dateTo]);
 

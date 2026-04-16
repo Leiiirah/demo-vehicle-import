@@ -16,10 +16,16 @@ import { useVehicles } from '@/hooks/useApi';
 import { useToast } from '@/hooks/use-toast';
 
 export function AddCaisseEntryDialog() {
+  const getLocalDateValue = () => {
+    const now = new Date();
+    const timezoneOffset = now.getTimezoneOffset() * 60 * 1000;
+    return new Date(now.getTime() - timezoneOffset).toISOString().split('T')[0];
+  };
+
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<'entree' | 'charge' | 'retrait'>('entree');
   const [montant, setMontant] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(getLocalDateValue());
   const [description, setDescription] = useState('');
   const [reference, setReference] = useState('');
   const [vehicleId, setVehicleId] = useState('');
@@ -31,7 +37,7 @@ export function AddCaisseEntryDialog() {
   const resetForm = () => {
     setType('entree');
     setMontant('');
-    setDate(new Date().toISOString().split('T')[0]);
+    setDate(getLocalDateValue());
     setDescription('');
     setReference('');
     setVehicleId('');
