@@ -76,20 +76,20 @@ const BanquePage = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Entrées (virements clients)</CardTitle>
-              <ArrowUpCircle className="h-4 w-4 text-emerald-600" />
+              <ArrowUpCircle className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-emerald-600">{formatCurrency(totalVirements)}</div>
+              <div className="text-2xl font-bold text-success">{formatCurrency(totalVirements)}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Sorties (paiements fournisseurs)</CardTitle>
-              <ArrowDownCircle className="h-4 w-4 text-red-600" />
+              <ArrowDownCircle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-2xl font-bold text-destructive">
                 {formatCurrency(totalSupplierPayments)}
               </div>
             </CardContent>
@@ -101,7 +101,7 @@ const BanquePage = () => {
               <Landmark className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${soldeBanque >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              <div className={`text-2xl font-bold ${soldeBanque >= 0 ? 'text-success' : 'text-destructive'}`}>
                 {formatCurrency(soldeBanque)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Virements - Paiements fournisseurs</p>
