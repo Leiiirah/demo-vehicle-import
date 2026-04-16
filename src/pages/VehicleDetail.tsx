@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useVehicle, useVehicleCharges, useCreateVehicleCharge, useDeleteVehicleCharge, useUpdateVehicleCharge, useDeleteVehicle } from '@/hooks/useApi';
+import { useVehicle, useVehicleCharges, useVehiclePayments, useCreateVehicleCharge, useDeleteVehicleCharge, useUpdateVehicleCharge, useDeleteVehicle } from '@/hooks/useApi';
 import { api, type Payment } from '@/services/api';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -52,6 +52,7 @@ const VehicleDetailPage = () => {
 
   const { data: vehicle, isLoading, error } = useVehicle(id || '');
   const { data: chargesData } = useVehicleCharges(id || '');
+  const { data: vehiclePayments } = useVehiclePayments(id || '');
   const deleteVehicle = useDeleteVehicle();
 
   const handleDelete = () => {
@@ -82,14 +83,13 @@ const VehicleDetailPage = () => {
 
   const isDossierSolde = (dossierPaymentStats?.progress ?? 0) >= 100;
 
-  // Calculate average exchange rate from all dossier payments
+  // Calculate weighted average exchange rate from vehicle's own payments
   const tauxChangeFinal = (() => {
-    if (!dossierPaymentStats?.payments?.length) return 0;
-    const payments = dossierPaymentStats.payments;
-    const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount), 0);
-    if (totalAmount === 0) return 0;
-    const weightedRate = payments.reduce((sum, p) => sum + Number(p.amount) * Number(p.exchangeRate), 0);
-    return Math.round(weightedRate / totalAmount);
+    if (!vehiclePayments?.length) return 0;
+    const totalAmountUSD = vehiclePayments.reduce((sum: number, p: any) => sum + Number(p.amountUSD), 0);
+    if (totalAmountUSD === 0) return 0;
+    const weightedRate = vehiclePayments.reduce((sum: number, p: any) => sum + Number(p.amountUSD) * Number(p.exchangeRate), 0);
+    return Math.round(weightedRate / totalAmountUSD);
   })();
 
   const createChargeMutation = useCreateVehicleCharge(id || '');
