@@ -114,7 +114,7 @@ const SuppliersPage = () => {
               </div>
               <div className="kpi-card border-l-4 border-l-primary">
                 <p className="kpi-label">Total achat</p>
-                <p className="kpi-value text-primary">
+                <p className="kpi-value text-foreground">
                   {formatCurrency(suppliersList.reduce((sum, s) => sum + (parseFloat(String(s.totalPaid)) || 0) + (parseFloat(String(s.remainingDebt)) || 0), 0))}
                 </p>
               </div>
@@ -129,7 +129,7 @@ const SuppliersPage = () => {
                 return (
                   <div className={`kpi-card border-l-4 ${netDebt > 0 ? 'border-l-danger' : netDebt < 0 ? 'border-l-success' : 'border-l-muted'}`}>
                     <p className="kpi-label">{netDebt > 0 ? 'Dette totale' : netDebt < 0 ? 'Crédit total' : 'Solde'}</p>
-                    <p className={`kpi-value ${netDebt > 0 ? 'text-danger' : netDebt < 0 ? 'text-success' : 'text-muted-foreground'}`}>
+                    <p className="kpi-value text-foreground">
                       {netDebt > 0 ? '-' : netDebt < 0 ? '+' : ''}{formatCurrency(Math.abs(netDebt))}
                     </p>
                   </div>
@@ -186,9 +186,7 @@ const SuppliersPage = () => {
                       <TableCell className="text-right text-success font-medium">
                         {formatCurrency(supplier.totalPaid || 0)}
                       </TableCell>
-                      <TableCell className={`text-right font-semibold ${
-                        (supplier.remainingDebt || 0) > 0 ? 'text-danger' : (supplier.remainingDebt || 0) < 0 ? 'text-success' : 'text-muted-foreground'
-                      }`}>
+                      <TableCell className="text-right font-semibold text-foreground">
                         {(supplier.remainingDebt || 0) > 0 ? '-' : (supplier.remainingDebt || 0) < 0 ? '+' : ''}{formatCurrency(Math.abs(supplier.remainingDebt || 0))}
                       </TableCell>
                       <TableCell>
