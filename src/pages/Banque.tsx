@@ -8,18 +8,34 @@ import { TablePagination } from '@/components/ui/table-pagination';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  Landmark, Search, Loader2, TrendingUp, TrendingDown, Car, Users, ArrowUpCircle, ArrowDownCircle, Building2,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  Landmark, Search, Loader2, TrendingUp, TrendingDown, Car, Users, ArrowUpCircle, ArrowDownCircle, Building2, Trash2,
 } from 'lucide-react';
 import { useCaisseEntries, useCaisseSummary } from '@/hooks/useCaisse';
+import { useDeleteBanqueEntry } from '@/hooks/useBanque';
+import { toast } from '@/components/ui/sonner';
 
 const BanquePage = () => {
   const { data: entries = [], isLoading } = useCaisseEntries();
   const { data: summary } = useCaisseSummary();
   const [searchTerm, setSearchTerm] = useState('');
+  const deleteMutation = useDeleteBanqueEntry();
+
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id, {
+      onSuccess: () => toast.success('Transaction supprimée'),
+      onError: () => toast.error('Erreur lors de la suppression'),
+    });
+  };
 
   // Bank entries: client virements (inflows) + supplier/dossier payments (outflows)
   const banqueEntries = useMemo(() => {
@@ -147,6 +163,7 @@ const BanquePage = () => {
                       <TableHead>Client</TableHead>
                       <TableHead>Fournisseur</TableHead>
                       <TableHead className="text-right">Montant</TableHead>
+                      <TableHead className="w-[60px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -191,6 +208,29 @@ const BanquePage = () => {
                             <span className={isOutflow ? 'text-destructive' : 'text-success'}>
                               {isOutflow ? '-' : '+'}{formatCurrency(Number(entry.montant))}
                             </span>
+                          </TableCell>
+                          <TableCell>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => e.stopPropagation()}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Supprimer cette transaction ?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Cette action est irréversible. La transaction sera supprimée définitivement de la base de données.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDelete(entry.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                    Supprimer
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </TableCell>
                         </TableRow>
                       );
