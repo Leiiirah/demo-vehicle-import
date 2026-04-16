@@ -69,7 +69,7 @@ const CaissePage = () => {
       const dateFromMatch = !dateFrom || entryDate >= dateFrom;
       const dateToMatch = !dateTo || entryDate <= dateTo;
       return searchMatch && typeMatch && dateFromMatch && dateToMatch;
-    });
+    }).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [entries, searchTerm, typeFilter, dateFrom, dateTo]);
 
   const {
