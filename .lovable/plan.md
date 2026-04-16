@@ -1,24 +1,27 @@
 
 
-## Plan: Add "Payer" action to Client Detail page (`/clients/:id`)
+## Problem
 
-### Goal
-Add the same payment functionality from `/client-sales` to the client detail page. Each vehicle in a sale with a remaining balance gets a "Payer" button. The payment dialog offers Versement (Caisse) vs Virement (Banque), identical to the supplier payment workflow.
+The "Taux de change (moyen pondéré)" on the Vehicle Detail page currently computes the weighted average from **dossier-level supplier payments** (`/api/payments/dossier/:id/stats`). This is incorrect — it should use the **vehicle's own payments** from the `vehicle_payments` table, which store per-vehicle `amountUSD` and `exchangeRate` values entered during vehicle creation (the "Versements" step).
 
-### Changes
+Since the dossier may have only 1 or 2 payments with different amounts, the weighted average ends up being dominated by (or equal to) the last payment's rate — which is exactly what the user is observing.
 
-**1. `src/pages/ClientDetail.tsx`**
+## Plan
 
-- Import missing dependencies: `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogFooter`, `Label`, `FormattedNumberInput`, `Landmark`, `Loader2`, `ExternalLink`, `useUpdateVehicle`, `useCreateCaisseEntry`
-- Add state variables: `versementDialogOpen`, `versementVehicle`, `versementAmount`, `versementMode`
-- Add `handleVersementSubmit` function (same logic as ClientSales): updates vehicle `amountPaid`/`paymentStatus`, creates caisse entry with appropriate `paymentMethod`
-- Modify the sales table in each sale card:
-  - Add columns: "Montant payé", "Montant restant", "Action"
-  - Add "Payer" button per vehicle row when `remaining > 0`
-- Add the Versement Dialog (copy from ClientSales): payment mode toggle (Versement/Virement), amount input, vehicle summary
+### 1. Fetch vehicle payments in VehicleDetail.tsx
+- Import and call `useVehiclePayments(id)` to get the vehicle's own payments from the `vehicle_payments` table.
 
-### Technical notes
-- Reuses the same `useUpdateVehicle` and `useCreateCaisseEntry` hooks already used in ClientSales
-- Payment method determines destination: `versement` → Caisse, `virement` → Banque
-- Auto-marks vehicle as `soldé` when cumulative payments reach selling price
+### 2. Recalculate `tauxChangeFinal` from vehicle payments
+- Replace the current calculation (based on dossier payments) with a weighted average from vehicle payments:
+  ```
+  Σ(amountUSD × exchangeRate) / Σ(amountUSD)
+  ```
+- Keep `Math.round()` per existing rounding rules.
+
+### 3. Update DossierAnalytics.tsx similarly
+- The same incorrect pattern exists in `DossierAnalytics.tsx` for computing per-vehicle theoretical rates. This will also be corrected to use vehicle-level payments when computing profit for sold vehicles.
+
+### Files to modify
+- `src/pages/VehicleDetail.tsx` — switch from dossier payments to vehicle payments for rate calculation
+- `src/components/dossiers/DossierAnalytics.tsx` — use vehicle-level payment rates for profit calculation
 
