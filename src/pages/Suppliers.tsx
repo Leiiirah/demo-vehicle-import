@@ -129,7 +129,7 @@ const SuppliersPage = () => {
                 return (
                   <div className={`kpi-card border-l-4 ${netDebt > 0 ? 'border-l-danger' : netDebt < 0 ? 'border-l-success' : 'border-l-muted'}`}>
                     <p className="kpi-label">{netDebt > 0 ? 'Dette totale' : netDebt < 0 ? 'Crédit total' : 'Solde'}</p>
-                    <p className="kpi-value text-danger">
+                    <p className="kpi-value" style={{ color: 'hsl(0, 72%, 51%)' }}>
                       {netDebt > 0 ? '-' : netDebt < 0 ? '+' : ''}{formatCurrency(Math.abs(netDebt))}
                     </p>
                   </div>
@@ -180,13 +180,13 @@ const SuppliersPage = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">{supplier.vehiclesSupplied || 0}</TableCell>
-                      <TableCell className="text-right text-primary font-medium">
+                      <TableCell className="text-right font-medium" style={{ color: 'hsl(0, 0%, 9%)' }}>
                         {formatCurrency((parseFloat(String(supplier.totalPaid)) || 0) + (parseFloat(String(supplier.remainingDebt)) || 0))}
                       </TableCell>
                       <TableCell className="text-right text-success font-medium">
                         {formatCurrency(supplier.totalPaid || 0)}
                       </TableCell>
-                      <TableCell className="text-right font-semibold text-danger">
+                      <TableCell className="text-right font-semibold" style={{ color: 'hsl(0, 72%, 51%)' }}>
                         {(supplier.remainingDebt || 0) > 0 ? '-' : (supplier.remainingDebt || 0) < 0 ? '+' : ''}{formatCurrency(Math.abs(supplier.remainingDebt || 0))}
                       </TableCell>
                       <TableCell>
