@@ -63,27 +63,18 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
       .filter((v) => v.status === 'sold' && v.sellingPrice)
       .reduce((sum, v) => sum + Number(v.sellingPrice || 0), 0);
 
-    // Compute profit using each vehicle's own payment-based weighted average rate
+    // Compute profit using dossier-level weighted average rate
     const soldVehicles = allVehicles.filter((v) => v.status === 'sold');
     let soldVehiclesTotalCost = 0;
-    let vehiclesWithRate = 0;
 
-    for (const v of soldVehicles) {
-      const payments = allVehiclePayments?.[v.id] || [];
-      if (payments.length === 0) continue;
-
-      const totalAmountUSD = payments.reduce((s: number, p: any) => s + Number(p.amountUSD), 0);
-      if (totalAmountUSD === 0) continue;
-
-      const weightedRate = payments.reduce((s: number, p: any) => s + Number(p.amountUSD) * Number(p.exchangeRate), 0);
-      const avgRate = Math.round(weightedRate / totalAmountUSD);
-
-      const totalUSD = Number(v.purchasePrice || 0) + Number(v.transportCost || 0);
-      soldVehiclesTotalCost += (totalUSD * avgRate) + Number(v.localFees || 0);
-      vehiclesWithRate++;
+    if (dossierWeightedRate > 0) {
+      for (const v of soldVehicles) {
+        const totalUSD = Number(v.purchasePrice || 0) + Number(v.transportCost || 0);
+        soldVehiclesTotalCost += (totalUSD * dossierWeightedRate) + Number(v.localFees || 0);
+      }
     }
 
-    const profit = vehiclesWithRate > 0 ? recoveredFundsDZD - soldVehiclesTotalCost : 0;
+    const profit = dossierWeightedRate > 0 ? recoveredFundsDZD - soldVehiclesTotalCost : 0;
 
     return {
       totalVehicles: allVehicles.length,
@@ -96,7 +87,7 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
       recoveredFundsDZD,
       profit,
     };
-  }, [conteneurs, allVehicles, allVehiclePayments]);
+  }, [conteneurs, allVehicles, dossierWeightedRate]);
 
 
   return (
