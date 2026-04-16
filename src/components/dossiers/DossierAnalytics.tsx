@@ -32,27 +32,15 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
     [conteneurs]
   );
 
-  // Fetch vehicle payments for all vehicles in this dossier
-  const vehicleIds = useMemo(() => allVehicles.map((v) => v.id), [allVehicles]);
-
-  const { data: allVehiclePayments } = useQuery({
-    queryKey: ['vehiclePayments', 'dossier', dossierId, vehicleIds],
-    queryFn: async () => {
-      const result: Record<string, any[]> = {};
-      await Promise.all(
-        vehicleIds.map(async (vid) => {
-          try {
-            const payments = await api.request(`/api/vehicles/${vid}/payments`) as any[];
-            result[vid] = payments;
-          } catch {
-            result[vid] = [];
-          }
-        })
-      );
-      return result;
-    },
-    enabled: vehicleIds.length > 0,
-  });
+  // Compute weighted average rate from dossier-level supplier payments
+  const dossierPayments = dossierPaymentStats?.payments || [];
+  const dossierWeightedRate = useMemo(() => {
+    const totalPaidUSD = dossierPayments.reduce((s: number, p: any) => s + Number(p.amount), 0);
+    if (totalPaidUSD === 0) return 0;
+    return Math.round(
+      dossierPayments.reduce((s: number, p: any) => s + Number(p.amount) * Number(p.exchangeRate), 0) / totalPaidUSD
+    );
+  }, [dossierPayments]);
 
   const stats = useMemo(() => {
     const soldCount = allVehicles.filter((v) => v.status === 'sold').length;
