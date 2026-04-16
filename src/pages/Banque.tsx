@@ -23,9 +23,11 @@ const BanquePage = () => {
 
   // Bank entries: client virements (inflows) + supplier/dossier payments (outflows)
   const banqueEntries = useMemo(() => {
-    return (entries as any[]).filter(
+    const filtered = (entries as any[]).filter(
       (e) => e.paymentMethod === 'virement' || e._source === 'dossier_payment'
     );
+    // Sort newest first
+    return filtered.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [entries]);
 
   const filteredEntries = useMemo(() => {
@@ -35,6 +37,7 @@ const BanquePage = () => {
       (e.description || '').toLowerCase().includes(term) ||
       (e.reference || '').toLowerCase().includes(term) ||
       (e.client && `${e.client.nom} ${e.client.prenom}`.toLowerCase().includes(term)) ||
+      (e.supplier && (e.supplier.name || '').toLowerCase().includes(term)) ||
       (e.vehicle && `${e.vehicle.brand} ${e.vehicle.model}`.toLowerCase().includes(term))
     );
   }, [banqueEntries, searchTerm]);
