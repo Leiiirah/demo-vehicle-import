@@ -28,6 +28,14 @@ const BanquePage = () => {
   const { data: entries = [], isLoading } = useCaisseEntries();
   const { data: summary } = useCaisseSummary();
   const [searchTerm, setSearchTerm] = useState('');
+  const deleteMutation = useDeleteBanqueEntry();
+
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id, {
+      onSuccess: () => toast.success('Transaction supprimée'),
+      onError: () => toast.error('Erreur lors de la suppression'),
+    });
+  };
 
   // Bank entries: client virements (inflows) + supplier/dossier payments (outflows)
   const banqueEntries = useMemo(() => {
