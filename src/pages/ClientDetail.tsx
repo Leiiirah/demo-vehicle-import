@@ -145,14 +145,17 @@ const ClientDetailPage = () => {
 
   // Filter sales by date
   const filteredSales = useMemo(() => {
-    if (dateFilter === 'all') return clientSales;
-    const [year, month] = dateFilter.split('-').map(Number);
-    const start = startOfMonth(new Date(year, month - 1));
-    const end = endOfMonth(new Date(year, month - 1));
-    return clientSales.filter((s: any) => {
-      const d = new Date(s.date);
-      return d >= start && d <= end;
-    });
+    let sales = [...clientSales];
+    if (dateFilter !== 'all') {
+      const [year, month] = dateFilter.split('-').map(Number);
+      const start = startOfMonth(new Date(year, month - 1));
+      const end = endOfMonth(new Date(year, month - 1));
+      sales = sales.filter((s: any) => {
+        const d = new Date(s.date);
+        return d >= start && d <= end;
+      });
+    }
+    return sales.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [clientSales, dateFilter]);
 
   const filteredStats = useMemo(() => {
