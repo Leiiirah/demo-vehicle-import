@@ -12,7 +12,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  Landmark, Search, Loader2, TrendingUp, TrendingDown, Car, Users, ArrowUpCircle, ArrowDownCircle,
+  Landmark, Search, Loader2, TrendingUp, TrendingDown, Car, Users, ArrowUpCircle, ArrowDownCircle, Building2,
 } from 'lucide-react';
 import { useCaisseEntries, useCaisseSummary } from '@/hooks/useCaisse';
 
@@ -23,9 +23,11 @@ const BanquePage = () => {
 
   // Bank entries: client virements (inflows) + supplier/dossier payments (outflows)
   const banqueEntries = useMemo(() => {
-    return (entries as any[]).filter(
+    const filtered = (entries as any[]).filter(
       (e) => e.paymentMethod === 'virement' || e._source === 'dossier_payment'
     );
+    // Sort newest first
+    return filtered.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [entries]);
 
   const filteredEntries = useMemo(() => {
@@ -35,6 +37,7 @@ const BanquePage = () => {
       (e.description || '').toLowerCase().includes(term) ||
       (e.reference || '').toLowerCase().includes(term) ||
       (e.client && `${e.client.nom} ${e.client.prenom}`.toLowerCase().includes(term)) ||
+      (e.supplier && (e.supplier.name || '').toLowerCase().includes(term)) ||
       (e.vehicle && `${e.vehicle.brand} ${e.vehicle.model}`.toLowerCase().includes(term))
     );
   }, [banqueEntries, searchTerm]);
@@ -73,20 +76,20 @@ const BanquePage = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Entrées (virements clients)</CardTitle>
-              <ArrowUpCircle className="h-4 w-4 text-emerald-600" />
+              <ArrowUpCircle className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-emerald-600">{formatCurrency(totalVirements)}</div>
+              <div className="text-2xl font-bold text-success">{formatCurrency(totalVirements)}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Sorties (paiements fournisseurs)</CardTitle>
-              <ArrowDownCircle className="h-4 w-4 text-red-600" />
+              <ArrowDownCircle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-2xl font-bold text-destructive">
                 {formatCurrency(totalSupplierPayments)}
               </div>
             </CardContent>
@@ -98,7 +101,7 @@ const BanquePage = () => {
               <Landmark className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${soldeBanque >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              <div className={`text-2xl font-bold ${soldeBanque >= 0 ? 'text-success' : 'text-destructive'}`}>
                 {formatCurrency(soldeBanque)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Virements - Paiements fournisseurs</p>
@@ -141,7 +144,8 @@ const BanquePage = () => {
                       <TableHead>Date</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Description</TableHead>
-                      <TableHead>Client / Fournisseur</TableHead>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Fournisseur</TableHead>
                       <TableHead className="text-right">Montant</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -155,11 +159,11 @@ const BanquePage = () => {
                           </TableCell>
                           <TableCell>
                             {isOutflow ? (
-                              <Badge className="bg-red-500/15 text-red-700 border-red-200 gap-1">
+                              <Badge className="bg-destructive/15 text-destructive border-destructive/20 gap-1">
                                 <ArrowDownCircle className="h-3 w-3" />Sortie
                               </Badge>
                             ) : (
-                              <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-200 gap-1">
+                              <Badge className="bg-success/15 text-success border-success/20 gap-1">
                                 <ArrowUpCircle className="h-3 w-3" />Entrée
                               </Badge>
                             )}
@@ -175,8 +179,16 @@ const BanquePage = () => {
                               </div>
                             ) : '—'}
                           </TableCell>
+                          <TableCell>
+                            {entry.supplier ? (
+                              <div className="flex items-center gap-2">
+                                <Building2 className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm">{entry.supplier.name}</span>
+                              </div>
+                            ) : '—'}
+                          </TableCell>
                           <TableCell className="text-right font-medium">
-                            <span className={isOutflow ? 'text-red-600' : 'text-emerald-600'}>
+                            <span className={isOutflow ? 'text-destructive' : 'text-success'}>
                               {isOutflow ? '-' : '+'}{formatCurrency(Number(entry.montant))}
                             </span>
                           </TableCell>
