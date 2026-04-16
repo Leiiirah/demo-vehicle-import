@@ -176,7 +176,13 @@ export class CaisseService {
 
     // Combine and sort by date DESC
     const all = [...manual, ...chargeEntries, ...saleEntries, ...paymentEntries];
-    all.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    all.sort((a, b) => {
+      const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (dateDiff !== 0) return dateDiff;
+      const ca = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const cb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return cb - ca;
+    });
 
     return all;
   }
