@@ -163,6 +163,7 @@ const BanquePage = () => {
                       <TableHead>Client</TableHead>
                       <TableHead>Fournisseur</TableHead>
                       <TableHead className="text-right">Montant</TableHead>
+                      <TableHead className="w-[60px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -207,6 +208,29 @@ const BanquePage = () => {
                             <span className={isOutflow ? 'text-destructive' : 'text-success'}>
                               {isOutflow ? '-' : '+'}{formatCurrency(Number(entry.montant))}
                             </span>
+                          </TableCell>
+                          <TableCell>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => e.stopPropagation()}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Supprimer cette transaction ?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Cette action est irréversible. La transaction sera supprimée définitivement de la base de données.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDelete(entry.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                    Supprimer
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </TableCell>
                         </TableRow>
                       );
