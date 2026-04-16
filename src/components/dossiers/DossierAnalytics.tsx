@@ -42,7 +42,7 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
       await Promise.all(
         vehicleIds.map(async (vid) => {
           try {
-            const payments = await api.request(`/api/vehicles/${vid}/payments`);
+            const payments = await api.request(`/api/vehicles/${vid}/payments`) as any[];
             result[vid] = payments;
           } catch {
             result[vid] = [];
