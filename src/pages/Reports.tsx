@@ -94,29 +94,6 @@ const ReportsPage = () => {
           </div>
         </div>
 
-        {/* Types de rapports */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <button onClick={() => scrollToSection('section-client')} className="kpi-card hover:border-primary transition-colors text-left cursor-pointer">
-            <FileText className="h-5 w-5 text-primary mb-2" />
-            <p className="font-medium text-foreground">Par client</p>
-            <p className="text-sm text-muted-foreground">Profit par client</p>
-          </button>
-          <button onClick={() => scrollToSection('section-supplier')} className="kpi-card hover:border-primary transition-colors text-left cursor-pointer">
-            <FileText className="h-5 w-5 text-success mb-2" />
-            <p className="font-medium text-foreground">Par fournisseur</p>
-            <p className="text-sm text-muted-foreground">Récap paiements</p>
-          </button>
-          <button onClick={() => scrollToSection('section-vehicle')} className="kpi-card hover:border-primary transition-colors text-left cursor-pointer">
-            <FileText className="h-5 w-5 text-warning mb-2" />
-            <p className="font-medium text-foreground">Par véhicule</p>
-            <p className="text-sm text-muted-foreground">Marges individuelles</p>
-          </button>
-          <button onClick={() => scrollToSection('section-profit')} className="kpi-card hover:border-primary transition-colors text-left cursor-pointer">
-            <FileText className="h-5 w-5 text-danger mb-2" />
-            <p className="font-medium text-foreground">Historique profit</p>
-            <p className="text-sm text-muted-foreground">Tendances mensuelles</p>
-          </button>
-        </div>
 
         {/* Grille graphiques */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
