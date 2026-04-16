@@ -432,8 +432,21 @@ const ClientSalesPage = () => {
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => {
                               if (sale.client) {
-                                const clientVehicles = soldVehicles.filter((v: any) => v.clientId === sale.client.id);
-                                exportClientTransactionsPDF(sale.client, clientVehicles);
+                                exportClientTransactionsPDF(sale.client, saleVehicles.map((v: any) => ({
+                                  brand: v.brand,
+                                  model: v.model,
+                                  year: v.year,
+                                  vin: v.vin,
+                                  sellingPrice: v.sellingPrice,
+                                  amountPaid: null,
+                                  paymentStatus: null,
+                                })), {
+                                  saleDate: sale.date,
+                                  totalSellingPrice: saleTotalSelling,
+                                  amountPaid: salePaid,
+                                  debt: saleDebt,
+                                  carriedDebt: saleCarriedDebt,
+                                });
                                 toast({ title: 'PDF généré' });
                               }
                             }}>
