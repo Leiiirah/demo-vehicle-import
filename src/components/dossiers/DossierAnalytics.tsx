@@ -35,7 +35,7 @@ export function DossierAnalytics({ conteneurs, dossierId }: DossierAnalyticsProp
   // Fetch vehicle payments for all vehicles in this dossier
   const vehicleIds = useMemo(() => allVehicles.map((v) => v.id), [allVehicles]);
 
-  const { data: allVehiclePayments } = useQuery<Record<string, any[]>>({
+  const { data: allVehiclePayments } = useQuery({
     queryKey: ['vehiclePayments', 'dossier', dossierId, vehicleIds],
     queryFn: async () => {
       const result: Record<string, any[]> = {};
