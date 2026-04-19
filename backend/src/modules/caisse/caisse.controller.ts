@@ -75,6 +75,11 @@ export class CaisseController {
     return this.caisseService.purgeAll();
   }
 
+  @Delete('purge/banque')
+  purgeBanque() {
+    return this.caisseService.purgeBanque();
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.caisseService.remove(id);
