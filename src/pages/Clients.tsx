@@ -117,7 +117,7 @@ const ClientsPage = () => {
                 return (
                   <div className={`kpi-card border-l-4 ${resteAPayer !== 0 ? 'border-l-danger' : 'border-l-muted'}`}>
                     <p className="kpi-label">{resteAPayer > 0 ? 'Créances totales' : resteAPayer < 0 ? 'Crédit total' : 'Solde'}</p>
-                    <p className={`kpi-value ${resteAPayer !== 0 ? 'text-danger' : 'text-muted-foreground'}`}>
+                    <p className="kpi-value" style={{ color: resteAPayer !== 0 ? 'hsl(0, 72%, 51%)' : undefined }}>
                       {resteAPayer > 0 ? '-' : resteAPayer < 0 ? '+' : ''}{formatCurrency(Math.abs(resteAPayer))}
                     </p>
                   </div>
@@ -182,9 +182,10 @@ const ClientsPage = () => {
                         <TableCell className="text-right text-success font-medium">
                           {formatCurrency(clientTotalPaye)}
                         </TableCell>
-                        <TableCell className={`text-right font-semibold ${
-                          clientReste !== 0 ? 'text-danger' : 'text-muted-foreground'
-                        }`}>
+                        <TableCell
+                          className="text-right font-semibold"
+                          style={{ color: clientReste !== 0 ? 'hsl(0, 72%, 51%)' : undefined }}
+                        >
                           {clientReste > 0 ? '-' : clientReste < 0 ? '+' : ''}{formatCurrency(Math.abs(clientReste))}
                         </TableCell>
                         <TableCell>
