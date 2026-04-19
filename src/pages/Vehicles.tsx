@@ -404,7 +404,7 @@ const VehiclesPage = () => {
                           })()}
                         </td>
                         <td onClick={(e) => e.stopPropagation()}>
-                          {getStatusBadge(vehicle.status)}
+                          <VehicleStatusSelect vehicleId={vehicle.id} currentStatus={vehicle.status} />
                         </td>
                         <td>
                           <DropdownMenu>
