@@ -18,11 +18,12 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
-  Landmark, Search, Loader2, TrendingUp, TrendingDown, Car, Users, ArrowUpCircle, ArrowDownCircle, Building2, Trash2,
+  Landmark, Search, Loader2, TrendingUp, TrendingDown, Car, Users, ArrowUpCircle, ArrowDownCircle, Building2, Trash2, AlertTriangle,
 } from 'lucide-react';
 import { useCaisseEntries, useCaisseSummary } from '@/hooks/useCaisse';
-import { useDeleteBanqueEntry } from '@/hooks/useBanque';
+import { useDeleteBanqueEntry, usePurgeBanque } from '@/hooks/useBanque';
 import { BanqueBalanceCard } from '@/components/banque/BanqueBalanceCard';
+import { AddBanqueEntryDialog } from '@/components/banque/AddBanqueEntryDialog';
 import { toast } from '@/components/ui/sonner';
 
 const BanquePage = () => {
