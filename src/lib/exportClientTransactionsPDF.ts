@@ -27,10 +27,20 @@ interface SaleInfo {
   carriedDebt: number;
 }
 
+interface SaleGroup {
+  date: string | Date;
+  totalSellingPrice: number;
+  amountPaid: number;
+  debt: number;
+  carriedDebt: number;
+  vehicles: VehicleTransaction[];
+}
+
 export function exportClientTransactionsPDF(
   client: ClientInfo,
   vehicles: VehicleTransaction[],
-  saleInfo?: SaleInfo
+  saleInfo?: SaleInfo,
+  sales?: SaleGroup[]
 ) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
