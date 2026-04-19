@@ -105,9 +105,9 @@ const ClientsPage = () => {
                 <p className="kpi-label">Total clients</p>
                 <p className="kpi-value">{clientsList.length}</p>
               </div>
-              <div className="kpi-card border-l-4 border-l-primary">
+              <div className="kpi-card border-l-4 border-l-foreground">
                 <p className="kpi-label">Total ventes</p>
-                <p className="kpi-value text-primary">{formatCurrency(totalVentes)}</p>
+                <p className="kpi-value text-foreground">{formatCurrency(totalVentes)}</p>
               </div>
               <div className="kpi-card border-l-4 border-l-success">
                 <p className="kpi-label">Total payé</p>
