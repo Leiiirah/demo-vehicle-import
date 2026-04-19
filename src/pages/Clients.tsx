@@ -115,9 +115,9 @@ const ClientsPage = () => {
               </div>
               {(() => {
                 return (
-                  <div className={`kpi-card border-l-4 ${resteAPayer > 0 ? 'border-l-danger' : resteAPayer < 0 ? 'border-l-success' : 'border-l-muted'}`}>
+                  <div className={`kpi-card border-l-4 ${resteAPayer !== 0 ? 'border-l-danger' : 'border-l-muted'}`}>
                     <p className="kpi-label">{resteAPayer > 0 ? 'Créances totales' : resteAPayer < 0 ? 'Crédit total' : 'Solde'}</p>
-                    <p className={`kpi-value ${resteAPayer > 0 ? 'text-danger' : resteAPayer < 0 ? 'text-success' : 'text-muted-foreground'}`}>
+                    <p className={`kpi-value ${resteAPayer !== 0 ? 'text-danger' : 'text-muted-foreground'}`}>
                       {resteAPayer > 0 ? '-' : resteAPayer < 0 ? '+' : ''}{formatCurrency(Math.abs(resteAPayer))}
                     </p>
                   </div>
