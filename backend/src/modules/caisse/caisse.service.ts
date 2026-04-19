@@ -278,10 +278,10 @@ export class CaisseService {
     // Get all consolidated entries
     const allEntries = await this.findAll();
 
-    let totalEntrees = 0;
-    let totalCharges = 0;
-    let totalBenefices = 0;
-    let totalVirements = 0;
+    let totalEntrees = 0;       // Cash entries only (caisse versement) — excludes virements & banque
+    let totalCharges = 0;       // All charges paid from caisse: manual charges + vehicle charges
+    let totalBenefices = 0;     // Profit on sales (informational only)
+    let totalVirements = 0;     // Banque (virement) entries — separate from caisse
     let totalSupplierPayments = 0;
 
     for (const entry of allEntries) {
@@ -292,16 +292,24 @@ export class CaisseService {
       if (isDossierPayment) {
         // Supplier payments go to Banque, not Caisse
         totalSupplierPayments += montant;
-      } else if (entry.type === 'entree') {
-        if (isVirement) {
-          totalVirements += montant;
-        } else {
-          totalEntrees += montant;
-        }
-      } else if (entry.type === 'vente_auto') {
+        continue;
+      }
+
+      // Skip virement entries — they belong to Banque, not Caisse
+      if (isVirement) {
+        if (entry.type === 'entree') totalVirements += montant;
+        continue;
+      }
+
+      if (entry.type === 'entree') {
+        // Manual cash entries only (vente_auto excluded to avoid double-counting
+        // since each sale already has its own 'entree' caisse entries)
         totalEntrees += montant;
+      } else if (entry.type === 'vente_auto') {
+        // Informational only — actual cash already counted via 'entree' entries
         totalBenefices += Number(entry.benefice) || 0;
-      } else if (entry.type === 'charge') {
+      } else if (entry.type === 'charge' || entry.type === 'retrait') {
+        // Includes manual charges + vehicle_charges (frais véhicule) + retraits
         totalCharges += montant;
       }
     }
