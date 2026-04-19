@@ -20,19 +20,20 @@ import { toast } from 'sonner';
 interface NewSaleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  presetClient?: any;
 }
 
 type Step = 'client' | 'vehicle' | 'price';
 
-export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
+export function NewSaleDialog({ open, onOpenChange, presetClient }: NewSaleDialogProps) {
   const { data: clients = [], isLoading: clientsLoading } = useClients();
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles();
   const createSale = useCreateSale();
 
-  const [step, setStep] = useState<Step>('client');
+  const [step, setStep] = useState<Step>(presetClient ? 'vehicle' : 'client');
   const [clientSearch, setClientSearch] = useState('');
   const [vehicleSearch, setVehicleSearch] = useState('');
-  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [selectedClient, setSelectedClient] = useState<any>(presetClient ?? null);
   const [selectedVehicleIds, setSelectedVehicleIds] = useState<string[]>([]);
   const [vehiclePrices, setVehiclePrices] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
