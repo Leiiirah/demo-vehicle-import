@@ -32,6 +32,11 @@ export function VehicleStatusSelect({ vehicleId, currentStatus }: VehicleStatusS
 
   const current = statusOptions.find((s) => s.value === currentStatus);
 
+  // Admin can switch to any status EXCEPT "Chargée" (in_transit) — that one is set automatically on creation.
+  const selectableOptions = statusOptions.filter(
+    (opt) => opt.value === currentStatus || opt.value !== 'in_transit'
+  );
+
   return (
     <Select value={currentStatus} onValueChange={handleChange}>
       <SelectTrigger
@@ -41,8 +46,8 @@ export function VehicleStatusSelect({ vehicleId, currentStatus }: VehicleStatusS
         <SelectValue />
       </SelectTrigger>
       <SelectContent onClick={(e) => e.stopPropagation()}>
-        {statusOptions.map((opt) => (
-          <SelectItem key={opt.value} value={opt.value}>
+        {selectableOptions.map((opt) => (
+          <SelectItem key={opt.value} value={opt.value} disabled={opt.value === 'in_transit'}>
             {opt.label}
           </SelectItem>
         ))}
