@@ -42,6 +42,33 @@ export class CaisseService {
       order: { createdAt: 'DESC' },
     });
 
+    // 2b. Charges Transit (vehicle.localFees) — stored on the vehicle itself
+    const vehiclesWithTransit = await this.vehicleRepo
+      .createQueryBuilder('v')
+      .leftJoinAndSelect('v.supplier', 'supplier')
+      .leftJoinAndSelect('v.conteneur', 'conteneur')
+      .where('v.localFees IS NOT NULL AND v.localFees > 0')
+      .getMany();
+
+    const transitEntries = vehiclesWithTransit.map((v) => ({
+      id: `vt-${v.id}`,
+      type: 'charge' as const,
+      montant: Number(v.localFees),
+      date: v.updatedAt,
+      description: `Charges Transit — ${v.brand || ''} ${v.model || ''} ${v.year || ''}`.trim(),
+      reference: v.vin || null,
+      vehicleId: v.id,
+      vehicle: v,
+      client: null,
+      clientId: null,
+      prixVente: null,
+      prixRevient: null,
+      benefice: null,
+      createdAt: v.updatedAt,
+      updatedAt: v.updatedAt,
+      _source: 'vehicle_transit',
+    }));
+
     // 3. Sold vehicles (status = sold AND has a client)
     const soldVehicles = await this.vehicleRepo.find({
       where: { status: VehicleStatus.SOLD },
@@ -177,7 +204,7 @@ export class CaisseService {
     });
 
     // Combine and sort by date DESC
-    const all = [...manual, ...chargeEntries, ...saleEntries, ...paymentEntries];
+    const all = [...manual, ...chargeEntries, ...transitEntries, ...saleEntries, ...paymentEntries];
     all.sort((a, b) => {
       const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
       if (dateDiff !== 0) return dateDiff;
