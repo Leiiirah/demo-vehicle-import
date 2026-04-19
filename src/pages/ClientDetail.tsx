@@ -219,30 +219,21 @@ const ClientDetailPage = () => {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => {
-              // Build vehicle list from sales so paye/payment status reflects sale-level data
-              const vehiclesWithStatus: any[] = [];
-              (clientSales || []).forEach((sale: any) => {
-                const saleVehicles = sale.vehicles || [];
-                const saleTotal = Number(sale.totalSellingPrice) || 0;
-                const salePaid = Number(sale.amountPaid) || 0;
-                const saleDebt = Number(sale.debt) || 0;
-                const status = saleDebt <= 0 ? 'solde' : salePaid > 0 ? 'versement' : 'en_attente';
-                saleVehicles.forEach((v: any) => {
-                  const sp = Number(v.sellingPrice) || 0;
-                  // Allocate paid amount proportionally to this vehicle
-                  const ap = saleTotal > 0 ? (sp / saleTotal) * salePaid : 0;
-                  vehiclesWithStatus.push({
-                    brand: v.brand,
-                    model: v.model,
-                    year: v.year,
-                    vin: v.vin,
-                    sellingPrice: sp,
-                    amountPaid: ap,
-                    paymentStatus: status,
-                  });
-                });
-              });
-              exportClientTransactionsPDF(client, vehiclesWithStatus);
+              const salesForPdf = (clientSales || []).map((sale: any) => ({
+                date: sale.date,
+                totalSellingPrice: Number(sale.totalSellingPrice) || 0,
+                amountPaid: Number(sale.amountPaid) || 0,
+                debt: Number(sale.debt) || 0,
+                carriedDebt: Number(sale.carriedDebt) || 0,
+                vehicles: (sale.vehicles || []).map((v: any) => ({
+                  brand: v.brand,
+                  model: v.model,
+                  year: v.year,
+                  vin: v.vin,
+                  sellingPrice: Number(v.sellingPrice) || 0,
+                })),
+              }));
+              exportClientTransactionsPDF(client, [], undefined, salesForPdf);
               toast.success('Rapport exporté');
             }}>
               <Download className="h-4 w-4 mr-2" />
