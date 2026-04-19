@@ -10,6 +10,7 @@ export * from './vehicle-payment.entity';
 export * from './vehicle-charge.entity';
 export * from './caisse-entry.entity';
 export * from './caisse-balance.entity';
+export * from './banque-balance.entity';
 export * from './car-model.entity';
 export * from './zakat-record.entity';
 export * from './sale.entity';
