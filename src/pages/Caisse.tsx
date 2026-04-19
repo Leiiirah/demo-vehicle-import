@@ -86,9 +86,26 @@ const CaissePage = () => {
   } = usePagination(filteredEntries);
 
 
-  const getTypeBadge = (type: string, source?: string) => {
-    if (source === 'payment') {
-      return <Badge className="bg-purple-500/15 text-purple-700 border-purple-200 gap-1"><CreditCard className="h-3 w-3" />Paiement</Badge>;
+  const getChargeSubLabel = (description?: string): string | null => {
+    const desc = (description || '').toLowerCase();
+    if (desc.includes('transit') || desc.includes('transport')) return 'Transit';
+    if (desc.includes('frais véhicule') || desc.includes('frais vehicule') || desc.includes('charge véhicule') || desc.includes('charge vehicule')) return 'Frais véhicule';
+    if (desc.includes('frais')) return 'Frais';
+    return null;
+  };
+
+  const getTypeBadge = (type: string, source?: string, description?: string) => {
+    if (source === 'payment' && type === 'entree') {
+      return <Badge className="bg-purple-500/15 text-purple-700 border-purple-200 gap-1"><CreditCard className="h-3 w-3" />Paiement client</Badge>;
+    }
+    if (type === 'charge') {
+      const sub = getChargeSubLabel(description);
+      return (
+        <Badge className="bg-red-500/15 text-red-700 border-red-200 gap-1">
+          <ArrowDownCircle className="h-3 w-3" />
+          Charge{sub ? ` · ${sub}` : ''}
+        </Badge>
+      );
     }
     switch (type) {
       case 'entree':
