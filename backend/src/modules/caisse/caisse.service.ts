@@ -66,7 +66,7 @@ export class CaisseService {
       benefice: null,
       createdAt: v.updatedAt,
       updatedAt: v.updatedAt,
-      _source: 'vehicle_transit',
+      _source: 'payment',
     }));
 
     // 3. Sold vehicles (status = sold AND has a client)
