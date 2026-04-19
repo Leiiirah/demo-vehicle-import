@@ -71,10 +71,10 @@ export function NewSaleDialog({ open, onOpenChange, presetClient }: NewSaleDialo
   };
 
   const handleReset = () => {
-    setStep('client');
+    setStep(presetClient ? 'vehicle' : 'client');
     setClientSearch('');
     setVehicleSearch('');
-    setSelectedClient(null);
+    setSelectedClient(presetClient ?? null);
     setSelectedVehicleIds([]);
     setVehiclePrices({});
     setIsSubmitting(false);
