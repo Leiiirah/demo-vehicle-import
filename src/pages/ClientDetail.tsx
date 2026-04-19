@@ -42,7 +42,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { EditClientDialog } from '@/components/clients/EditClientDialog';
-import { AssignVehicleDialog } from '@/components/clients/AssignVehicleDialog';
+import { NewSaleDialog } from '@/components/clients/NewSaleDialog';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -477,7 +477,7 @@ const ClientDetailPage = () => {
       </div>
 
       <EditClientDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} client={client} />
-      <AssignVehicleDialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen} clientId={client.id} clientName={`${client.nom} ${client.prenom}`} />
+      <NewSaleDialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen} presetClient={client} />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

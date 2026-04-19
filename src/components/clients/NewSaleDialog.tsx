@@ -20,19 +20,20 @@ import { toast } from 'sonner';
 interface NewSaleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  presetClient?: any;
 }
 
 type Step = 'client' | 'vehicle' | 'price';
 
-export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
+export function NewSaleDialog({ open, onOpenChange, presetClient }: NewSaleDialogProps) {
   const { data: clients = [], isLoading: clientsLoading } = useClients();
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles();
   const createSale = useCreateSale();
 
-  const [step, setStep] = useState<Step>('client');
+  const [step, setStep] = useState<Step>(presetClient ? 'vehicle' : 'client');
   const [clientSearch, setClientSearch] = useState('');
   const [vehicleSearch, setVehicleSearch] = useState('');
-  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [selectedClient, setSelectedClient] = useState<any>(presetClient ?? null);
   const [selectedVehicleIds, setSelectedVehicleIds] = useState<string[]>([]);
   const [vehiclePrices, setVehiclePrices] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,10 +71,10 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
   };
 
   const handleReset = () => {
-    setStep('client');
+    setStep(presetClient ? 'vehicle' : 'client');
     setClientSearch('');
     setVehicleSearch('');
-    setSelectedClient(null);
+    setSelectedClient(presetClient ?? null);
     setSelectedVehicleIds([]);
     setVehiclePrices({});
     setIsSubmitting(false);
@@ -133,8 +134,12 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
           </DialogTitle>
           <DialogDescription>
             {step === 'client' && 'Étape 1/3 — Choisissez le client acheteur'}
-            {step === 'vehicle' && `Étape 2/3 — Sélectionnez un ou plusieurs véhicules pour ${selectedClient?.nom} ${selectedClient?.prenom}`}
-            {step === 'price' && `Étape 3/3 — Définissez le prix de vente pour ${selectedVehicleIds.length} véhicule(s)`}
+            {step === 'vehicle' && (presetClient
+              ? `Étape 1/2 — Sélectionnez un ou plusieurs véhicules pour ${selectedClient?.nom} ${selectedClient?.prenom}`
+              : `Étape 2/3 — Sélectionnez un ou plusieurs véhicules pour ${selectedClient?.nom} ${selectedClient?.prenom}`)}
+            {step === 'price' && (presetClient
+              ? `Étape 2/2 — Définissez le prix de vente pour ${selectedVehicleIds.length} véhicule(s)`
+              : `Étape 3/3 — Définissez le prix de vente pour ${selectedVehicleIds.length} véhicule(s)`)}
           </DialogDescription>
         </DialogHeader>
 
@@ -265,9 +270,13 @@ export function NewSaleDialog({ open, onOpenChange }: NewSaleDialogProps) {
               )}
             </ScrollArea>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setStep('client')} className="gap-2">
-                <ArrowLeft className="h-4 w-4" /> Retour
-              </Button>
+              {presetClient ? (
+                <Button variant="outline" onClick={() => handleClose(false)}>Annuler</Button>
+              ) : (
+                <Button variant="outline" onClick={() => setStep('client')} className="gap-2">
+                  <ArrowLeft className="h-4 w-4" /> Retour
+                </Button>
+              )}
               <Button onClick={() => setStep('price')} disabled={selectedVehicleIds.length === 0} className="gap-2">
                 Suivant <ArrowRight className="h-4 w-4" />
               </Button>
