@@ -87,6 +87,14 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
   }, [open, nextReference, setValue]);
 
   const currency = watch('currency');
+  const amount = watch('amount') || 0;
+  const exchangeRate = watch('exchangeRate') || 0;
+
+  const { data: banqueData } = useBanqueBalance();
+  const banqueBalance = Number(banqueData?.balance ?? 0);
+  const requiredDZD = Number(amount) * Number(exchangeRate || 1);
+  const remainingAfter = banqueBalance - requiredDZD;
+  const insufficientFunds = requiredDZD > 0 && requiredDZD > banqueBalance;
 
   const createPaymentMutation = useMutation({
     mutationFn: (data: { date: string; amount: number; currency: 'USD' | 'DZD'; exchangeRate: number; type: 'supplier_payment'; reference: string; status: 'completed'; supplierId?: string; dossierId?: string }) => api.createPayment(data),
