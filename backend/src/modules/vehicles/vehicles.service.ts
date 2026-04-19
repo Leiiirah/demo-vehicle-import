@@ -135,6 +135,9 @@ export class VehiclesService {
       throw new NotFoundException('Vehicle not found');
     }
 
+    // Track localFees delta to sync caisse balance (Charges Transit = cash outflow)
+    const previousLocalFees = Number(vehicle.localFees) || 0;
+
     // Auto-set status to sold when assigning a client
     if (updateVehicleDto.clientId) {
       updateVehicleDto.status = 'sold' as any;
@@ -189,6 +192,18 @@ export class VehiclesService {
 
     Object.assign(vehicle, normalizedUpdates);
     await this.vehicleRepository.save(vehicle);
+
+    // Sync caisse balance for Charges Transit delta (treated as cash payment)
+    if (updateVehicleDto.localFees !== undefined) {
+      const newLocalFees = Number(updateVehicleDto.localFees) || 0;
+      const delta = newLocalFees - previousLocalFees;
+      if (delta > 0) {
+        await this.caisseBalanceService.deduct(delta);
+      } else if (delta < 0) {
+        await this.caisseBalanceService.add(-delta);
+      }
+    }
+
     return this.findOne(id);
   }
 
