@@ -12,6 +12,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CaisseService } from './caisse.service';
 import { CaisseBalanceService } from './caisse-balance.service';
+import { BanqueBalanceService } from './banque-balance.service';
 import { CreateCaisseEntryDto } from './dto/create-caisse-entry.dto';
 import { UpdateCaisseEntryDto } from './dto/update-caisse-entry.dto';
 
@@ -21,6 +22,7 @@ export class CaisseController {
   constructor(
     private readonly caisseService: CaisseService,
     private readonly caisseBalanceService: CaisseBalanceService,
+    private readonly banqueBalanceService: BanqueBalanceService,
   ) {}
 
   @Get()
@@ -41,6 +43,16 @@ export class CaisseController {
   @Put('balance')
   setBalance(@Body('balance') balance: number) {
     return this.caisseBalanceService.setBalance(balance);
+  }
+
+  @Get('banque-balance')
+  getBanqueBalance() {
+    return this.banqueBalanceService.getBalance();
+  }
+
+  @Put('banque-balance')
+  setBanqueBalance(@Body('balance') balance: number) {
+    return this.banqueBalanceService.setBalance(balance);
   }
 
   @Get(':id')
