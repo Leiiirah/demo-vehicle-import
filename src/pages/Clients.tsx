@@ -105,9 +105,9 @@ const ClientsPage = () => {
                 <p className="kpi-label">Total clients</p>
                 <p className="kpi-value">{clientsList.length}</p>
               </div>
-              <div className="kpi-card border-l-4 border-l-primary">
+              <div className="kpi-card border-l-4 border-l-foreground">
                 <p className="kpi-label">Total ventes</p>
-                <p className="kpi-value text-primary">{formatCurrency(totalVentes)}</p>
+                <p className="kpi-value text-foreground">{formatCurrency(totalVentes)}</p>
               </div>
               <div className="kpi-card border-l-4 border-l-success">
                 <p className="kpi-label">Total payé</p>
@@ -115,9 +115,9 @@ const ClientsPage = () => {
               </div>
               {(() => {
                 return (
-                  <div className={`kpi-card border-l-4 ${resteAPayer > 0 ? 'border-l-danger' : resteAPayer < 0 ? 'border-l-success' : 'border-l-muted'}`}>
+                  <div className={`kpi-card border-l-4 ${resteAPayer !== 0 ? 'border-l-danger' : 'border-l-muted'}`}>
                     <p className="kpi-label">{resteAPayer > 0 ? 'Créances totales' : resteAPayer < 0 ? 'Crédit total' : 'Solde'}</p>
-                    <p className={`kpi-value ${resteAPayer > 0 ? 'text-danger' : resteAPayer < 0 ? 'text-success' : 'text-muted-foreground'}`}>
+                    <p className={`kpi-value ${resteAPayer !== 0 ? 'text-danger' : 'text-muted-foreground'}`}>
                       {resteAPayer > 0 ? '-' : resteAPayer < 0 ? '+' : ''}{formatCurrency(Math.abs(resteAPayer))}
                     </p>
                   </div>
@@ -176,14 +176,14 @@ const ClientsPage = () => {
                         </TableCell>
                         <TableCell className="text-muted-foreground">{client.telephone || '-'}</TableCell>
                         <TableCell className="text-right">{soldVehicles.length}</TableCell>
-                        <TableCell className="text-right text-primary font-medium">
+                        <TableCell className="text-right text-foreground font-medium">
                           {formatCurrency(clientTotalVentes)}
                         </TableCell>
                         <TableCell className="text-right text-success font-medium">
                           {formatCurrency(clientTotalPaye)}
                         </TableCell>
                         <TableCell className={`text-right font-semibold ${
-                          clientReste > 0 ? 'text-danger' : clientReste < 0 ? 'text-success' : 'text-muted-foreground'
+                          clientReste !== 0 ? 'text-danger' : 'text-muted-foreground'
                         }`}>
                           {clientReste > 0 ? '-' : clientReste < 0 ? '+' : ''}{formatCurrency(Math.abs(clientReste))}
                         </TableCell>
