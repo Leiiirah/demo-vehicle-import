@@ -31,11 +31,19 @@ const BanquePage = () => {
   const { data: summary } = useCaisseSummary();
   const [searchTerm, setSearchTerm] = useState('');
   const deleteMutation = useDeleteBanqueEntry();
+  const purgeMutation = usePurgeBanque();
 
   const handleDelete = (id: string) => {
     deleteMutation.mutate(id, {
       onSuccess: () => toast.success('Transaction supprimée'),
       onError: () => toast.error('Erreur lors de la suppression'),
+    });
+  };
+
+  const handlePurge = () => {
+    purgeMutation.mutate(undefined, {
+      onSuccess: (data: any) => toast.success(`${data.deleted} mouvement(s) bancaire(s) supprimé(s)`),
+      onError: (err: any) => toast.error(err.message || 'Erreur lors de la purge'),
     });
   };
 
