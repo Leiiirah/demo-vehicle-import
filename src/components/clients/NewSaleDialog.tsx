@@ -270,9 +270,13 @@ export function NewSaleDialog({ open, onOpenChange, presetClient }: NewSaleDialo
               )}
             </ScrollArea>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setStep('client')} className="gap-2">
-                <ArrowLeft className="h-4 w-4" /> Retour
-              </Button>
+              {presetClient ? (
+                <Button variant="outline" onClick={() => handleClose(false)}>Annuler</Button>
+              ) : (
+                <Button variant="outline" onClick={() => setStep('client')} className="gap-2">
+                  <ArrowLeft className="h-4 w-4" /> Retour
+                </Button>
+              )}
               <Button onClick={() => setStep('price')} disabled={selectedVehicleIds.length === 0} className="gap-2">
                 Suivant <ArrowRight className="h-4 w-4" />
               </Button>
