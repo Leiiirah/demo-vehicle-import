@@ -146,12 +146,20 @@ export class CaisseService {
         description = `Paiement — ${p.reference}`;
       }
 
-      // Supplier payments go to Banque, client payments go to Caisse
-      const isSupplierPayment = p.type !== 'client_payment';
+      // Transport & fees are real caisse charges (like vehicle charges).
+      // Supplier payments go to Banque. Client payments are caisse entries.
+      const isTransitOrFees = p.type === 'transport' || p.type === 'fees';
+      const isClientPayment = p.type === 'client_payment';
+      const isSupplierPayment = !isTransitOrFees && !isClientPayment;
+
+      let source: string;
+      if (isSupplierPayment) source = 'dossier_payment';
+      else if (isTransitOrFees) source = 'payment'; // counted in caisse charges
+      else source = 'payment';
 
       return {
         id: `pay-${p.id}`,
-        type: p.type === 'client_payment' ? ('entree' as const) : ('charge' as const),
+        type: isClientPayment ? ('entree' as const) : ('charge' as const),
         montant: amountDZD,
         date: p.date,
         description,
@@ -168,7 +176,7 @@ export class CaisseService {
         benefice: null,
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
-        _source: isSupplierPayment ? 'dossier_payment' : 'payment',
+        _source: source,
         _paymentStatus: p.status,
         _paymentCurrency: p.currency,
         _paymentAmountUSD: Number(p.amount),
