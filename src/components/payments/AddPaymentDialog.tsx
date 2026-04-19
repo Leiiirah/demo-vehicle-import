@@ -101,6 +101,8 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.invalidateQueries({ queryKey: ['dossiers'] });
+      queryClient.invalidateQueries({ queryKey: ['banque'] });
+      queryClient.invalidateQueries({ queryKey: ['caisse'] });
       toast({
         title: 'Paiement ajouté',
         description: 'Le paiement a été enregistré avec succès.',
