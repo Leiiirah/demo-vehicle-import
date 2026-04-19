@@ -204,7 +204,7 @@ export class CaisseService {
     });
 
     // Combine and sort by date DESC
-    const all = [...manual, ...chargeEntries, ...saleEntries, ...paymentEntries];
+    const all = [...manual, ...chargeEntries, ...transitEntries, ...saleEntries, ...paymentEntries];
     all.sort((a, b) => {
       const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
       if (dateDiff !== 0) return dateDiff;
