@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
 
 /**
@@ -14,14 +14,32 @@ export function useDeleteBanqueEntry() {
         const realId = compositeId.replace('pay-', '');
         return api.deletePayment(realId);
       }
-      // Manual caisse entry
       return api.deleteCaisseEntry(compositeId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['caisse'] });
+      queryClient.invalidateQueries({ queryKey: ['banque'] });
       queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.invalidateQueries({ queryKey: ['dossiers'] });
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+    },
+  });
+}
+
+export function useBanqueBalance() {
+  return useQuery({
+    queryKey: ['banque', 'balance'],
+    queryFn: () => api.getBanqueBalance(),
+  });
+}
+
+export function useSetBanqueBalance() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (balance: number) => api.setBanqueBalance(balance),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banque'] });
+      queryClient.invalidateQueries({ queryKey: ['caisse'] });
     },
   });
 }
