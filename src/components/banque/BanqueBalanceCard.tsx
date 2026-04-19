@@ -54,7 +54,7 @@ export function BanqueBalanceCard() {
   const balance = balanceData?.balance ?? 0;
 
   return (
-    <Card className="border-primary/30 bg-primary/5">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">Solde Banque (Disponible)</CardTitle>
         <div className="flex items-center gap-1">

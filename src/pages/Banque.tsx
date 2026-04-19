@@ -124,11 +124,9 @@ const BanquePage = () => {
           </div>
         </div>
 
-        {/* Banque balance — prominent */}
-        <BanqueBalanceCard />
-
-        {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* KPIs + Solde Banque on the same row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <BanqueBalanceCard />
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Entrées (virements clients)</CardTitle>
