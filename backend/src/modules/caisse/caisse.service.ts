@@ -7,6 +7,7 @@ import { VehicleCharge } from '../../entities/vehicle-charge.entity';
 import { Payment } from '../../entities/payment.entity';
 import { CreateCaisseEntryDto } from './dto/create-caisse-entry.dto';
 import { UpdateCaisseEntryDto } from './dto/update-caisse-entry.dto';
+import { BanqueBalanceService } from './banque-balance.service';
 
 @Injectable()
 export class CaisseService {
@@ -19,6 +20,7 @@ export class CaisseService {
     private vehicleChargeRepo: Repository<VehicleCharge>,
     @InjectRepository(Payment)
     private paymentRepo: Repository<Payment>,
+    private banqueBalanceService: BanqueBalanceService,
   ) {}
 
   /**
@@ -204,7 +206,19 @@ export class CaisseService {
         ? (dto.paymentMethod as unknown as CaissePaymentMethod)
         : undefined,
     });
-    return this.caisseRepo.save(entry);
+    const saved = await this.caisseRepo.save(entry);
+
+    // Sync banque balance for virement entries (these flow through /banque, not cash caisse)
+    if (saved.paymentMethod === CaissePaymentMethod.VIREMENT && saved.reference !== 'SOLDE_BANQUE') {
+      const amount = Number(saved.montant);
+      if (saved.type === CaisseEntryType.ENTREE) {
+        await this.banqueBalanceService.add(amount);
+      } else if (saved.type === CaisseEntryType.CHARGE || saved.type === CaisseEntryType.RETRAIT) {
+        await this.banqueBalanceService.deduct(amount);
+      }
+    }
+
+    return saved;
   }
 
   async update(id: string, dto: UpdateCaisseEntryDto): Promise<CaisseEntry> {
@@ -215,6 +229,17 @@ export class CaisseService {
 
   async remove(id: string): Promise<void> {
     const entry = await this.findOne(id);
+
+    // Refund/reverse banque balance for virement entries
+    if (entry.paymentMethod === CaissePaymentMethod.VIREMENT && entry.reference !== 'SOLDE_BANQUE') {
+      const amount = Number(entry.montant);
+      if (entry.type === CaisseEntryType.ENTREE) {
+        await this.banqueBalanceService.deduct(amount);
+      } else if (entry.type === CaisseEntryType.CHARGE || entry.type === CaisseEntryType.RETRAIT) {
+        await this.banqueBalanceService.add(amount);
+      }
+    }
+
     await this.caisseRepo.delete(id);
   }
 
