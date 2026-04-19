@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useCaisseEntries, useCaisseSummary } from '@/hooks/useCaisse';
 import { useDeleteBanqueEntry } from '@/hooks/useBanque';
+import { BanqueBalanceCard } from '@/components/banque/BanqueBalanceCard';
 import { toast } from '@/components/ui/sonner';
 
 const BanquePage = () => {
@@ -87,6 +88,9 @@ const BanquePage = () => {
           </p>
         </div>
 
+        {/* Banque balance — prominent */}
+        <BanqueBalanceCard />
+
         {/* KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
@@ -113,7 +117,7 @@ const BanquePage = () => {
 
           <Card className="border-success/30 bg-success/5">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Solde Banque</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Flux net (historique)</CardTitle>
               <Landmark className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>

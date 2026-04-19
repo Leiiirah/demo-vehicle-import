@@ -316,6 +316,17 @@ class ApiClient {
     });
   }
 
+  async getBanqueBalance() {
+    return this.request<CaisseBalanceData>('/api/caisse/banque-balance');
+  }
+
+  async setBanqueBalance(balance: number) {
+    return this.request<CaisseBalanceData>('/api/caisse/banque-balance', {
+      method: 'PUT',
+      body: { balance },
+    });
+  }
+
   async createCaisseEntry(data: CreateCaisseEntryData) {
     return this.request<CaisseEntry>('/api/caisse', { method: 'POST', body: data });
   }
