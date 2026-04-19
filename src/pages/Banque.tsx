@@ -90,11 +90,38 @@ const BanquePage = () => {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Banque</h1>
-          <p className="text-muted-foreground">
-            Suivi des virements clients et paiements fournisseurs
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">Banque</h1>
+            <p className="text-muted-foreground">
+              Suivi des virements clients et paiements fournisseurs
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <AddBanqueEntryDialog />
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Purger la banque
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Purger tous les mouvements bancaires ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Cette action supprimera définitivement tous les mouvements de la banque (virements clients et entrées manuelles) et remettra le solde bancaire à zéro. Les paiements fournisseurs déjà enregistrés ne seront pas affectés. Cette action est irréversible.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={handlePurge} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Purger tout
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
 
         {/* Banque balance — prominent */}
@@ -105,20 +132,20 @@ const BanquePage = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Entrées (virements clients)</CardTitle>
-              <ArrowUpCircle className="h-4 w-4 text-success" />
+              <ArrowUpCircle className="h-4 w-4 text-emerald-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">{formatCurrency(totalVirements)}</div>
+              <div className="text-2xl font-bold text-emerald-600">{formatCurrency(totalVirements)}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Sorties (paiements fournisseurs)</CardTitle>
-              <ArrowDownCircle className="h-4 w-4 text-destructive" />
+              <ArrowDownCircle className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-destructive">
+              <div className="text-2xl font-bold text-red-600">
                 {formatCurrency(totalSupplierPayments)}
               </div>
             </CardContent>
@@ -130,7 +157,7 @@ const BanquePage = () => {
               <Landmark className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${soldeBanque >= 0 ? 'text-success' : 'text-destructive'}`}>
+              <div className={`text-2xl font-bold ${soldeBanque >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                 {formatCurrency(soldeBanque)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Virements - Paiements fournisseurs</p>
