@@ -1,53 +1,26 @@
 
+Regroup the client PDF export by **sale** instead of by vehicle, so the "Payé" / "Reste" amounts reflect real per-sale payments rather than fictional proportional allocations.
 
-## Problem
+## Changes
 
-Two issues:
+**1. `src/lib/exportClientTransactionsPDF.ts`** — extend the legacy "all transactions" branch to accept grouped sales:
 
-1. **Taux de change (moyen pondéré)** on VehicleDetail page uses `vehiclePayments` (from `VehiclePayment` table — per-vehicle payments) instead of the **dossier-level supplier payments** (from `Payment` table). The VehiclePayment entries don't represent supplier installments — they're a different concept. The weighted average exchange rate should come from `dossierPaymentStats.payments`, which contains the actual supplier payments with exchange rates.
+- New input shape: `sales: Array<{ date, totalSellingPrice, amountPaid, debt, carriedDebt, vehicles: VehicleTransaction[] }>` (alongside the existing single-sale path which stays untouched).
+- For each sale, render a block:
+  - Sale header line: `Vente du JJ/MM/AAAA` + sale totals on the right.
+  - Indented vehicle rows underneath: `Désignation | VIN | Prix de vente` (no Payé/Reste/Statut per vehicle).
+  - Sale footer line: `Total vente | Payé | Reste | Statut` (status derived from sale-level debt: Soldé / Versement / En attente).
+- Page-break safety: if a sale block won't fit, push to next page; long sales paginate normally.
+- Global summary at the end: total ventes count, total facturé, total payé, total reste.
 
-2. **"Broke everything"** — likely a downstream effect: since the rate is wrong, all cost calculations (prix de revient, totalCost) display incorrectly.
+**2. `src/pages/ClientDetail.tsx`** — replace the proportional allocation (lines ~222-244) in the export handler:
 
-## Fix
+- Build the `sales` array directly from the client's `sales` relation (already loaded with `vehicles` per the backend `findOne`).
+- Drop the per-vehicle `vehiclePaid = (price/total)*salePaid` math entirely.
+- Pass `sales` to the new PDF function path.
+- Keep the existing single-sale invoice path (used by "Facture" buttons) unchanged.
 
-### File: `src/pages/VehicleDetail.tsx`
-
-**Change the `tauxChangeFinal` calculation (lines 86-93)** to use `dossierPaymentStats.payments` instead of `vehiclePayments`:
-
-```typescript
-const tauxChangeFinal = (() => {
-  const dossierPayments = dossierPaymentStats?.payments || [];
-  if (!dossierPayments.length) return 0;
-  const totalAmountUSD = dossierPayments.reduce(
-    (sum: number, p: any) => sum + Number(p.amount), 0
-  );
-  if (totalAmountUSD === 0) return 0;
-  const weightedRate = dossierPayments.reduce(
-    (sum: number, p: any) => sum + Number(p.amount) * Number(p.exchangeRate), 0
-  );
-  return Math.round(weightedRate / totalAmountUSD);
-})();
-```
-
-This uses the **dossier supplier payments** (which have `amount` and `exchangeRate` fields) to compute the true weighted average, matching what the backend does in `recalculateVehicleCosts`.
-
-### File: `src/components/dossiers/DossierAnalytics.tsx`
-
-**Same fix for profit calculation (lines 83-96)** — replace `vehiclePayments` usage with dossier payments:
-
-```typescript
-// Use dossier-level payments for weighted average rate
-const dossierPayments = dossierPaymentStats?.payments || [];
-const totalPaidUSD = dossierPayments.reduce((s, p) => s + Number(p.amount), 0);
-const weightedRate = totalPaidUSD > 0
-  ? Math.round(dossierPayments.reduce((s, p) => s + Number(p.amount) * Number(p.exchangeRate), 0) / totalPaidUSD)
-  : 0;
-```
-
-Then use this single `weightedRate` for all sold vehicle cost calculations instead of per-vehicle payment lookups.
-
-### Summary
-- **1 root cause**: wrong data source for exchange rate (vehicle payments vs dossier payments)
-- **2 files** to update
-- No backend changes needed — the backend `recalculateVehicleCosts` already uses dossier payments correctly
-
+## Out of scope
+- No backend changes (sale data already exposed via `clients/:id`).
+- The single-sale invoice PDF (`saleInfo` branch) stays as-is.
+- On-screen vehicle table in `ClientDetail` is not modified — only the PDF export.
