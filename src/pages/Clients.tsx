@@ -176,14 +176,14 @@ const ClientsPage = () => {
                         </TableCell>
                         <TableCell className="text-muted-foreground">{client.telephone || '-'}</TableCell>
                         <TableCell className="text-right">{soldVehicles.length}</TableCell>
-                        <TableCell className="text-right text-primary font-medium">
+                        <TableCell className="text-right text-foreground font-medium">
                           {formatCurrency(clientTotalVentes)}
                         </TableCell>
                         <TableCell className="text-right text-success font-medium">
                           {formatCurrency(clientTotalPaye)}
                         </TableCell>
                         <TableCell className={`text-right font-semibold ${
-                          clientReste > 0 ? 'text-danger' : clientReste < 0 ? 'text-success' : 'text-muted-foreground'
+                          clientReste !== 0 ? 'text-danger' : 'text-muted-foreground'
                         }`}>
                           {clientReste > 0 ? '-' : clientReste < 0 ? '+' : ''}{formatCurrency(Math.abs(clientReste))}
                         </TableCell>
