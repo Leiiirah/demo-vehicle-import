@@ -64,7 +64,7 @@ const CaissePage = () => {
         (e.reference || '').toLowerCase().includes(term) ||
         (e.vehicle && `${e.vehicle.brand} ${e.vehicle.model}`.toLowerCase().includes(term)) ||
         (e.client && `${e.client.nom} ${e.client.prenom}`.toLowerCase().includes(term));
-      const typeMatch = typeFilter === 'all' || e.type === typeFilter || (typeFilter === 'payment' && e._source === 'payment');
+      const typeMatch = typeFilter === 'all' || e.type === typeFilter || (typeFilter === 'payment' && e._source === 'payment' && e.type === 'entree');
       const entryDate = new Date(e.date);
       const dateFromMatch = !dateFrom || entryDate >= dateFrom;
       const dateToMatch = !dateTo || entryDate <= dateTo;
@@ -86,9 +86,26 @@ const CaissePage = () => {
   } = usePagination(filteredEntries);
 
 
-  const getTypeBadge = (type: string, source?: string) => {
-    if (source === 'payment') {
-      return <Badge className="bg-purple-500/15 text-purple-700 border-purple-200 gap-1"><CreditCard className="h-3 w-3" />Paiement</Badge>;
+  const getChargeSubLabel = (description?: string): string | null => {
+    const desc = (description || '').toLowerCase();
+    if (desc.includes('transit') || desc.includes('transport')) return 'Transit';
+    if (desc.includes('frais véhicule') || desc.includes('frais vehicule') || desc.includes('charge véhicule') || desc.includes('charge vehicule')) return 'Frais véhicule';
+    if (desc.includes('frais')) return 'Frais';
+    return null;
+  };
+
+  const getTypeBadge = (type: string, source?: string, description?: string) => {
+    if (source === 'payment' && type === 'entree') {
+      return <Badge className="bg-purple-500/15 text-purple-700 border-purple-200 gap-1"><CreditCard className="h-3 w-3" />Paiement client</Badge>;
+    }
+    if (type === 'charge') {
+      const sub = getChargeSubLabel(description);
+      return (
+        <Badge className="bg-red-500/15 text-red-700 border-red-200 gap-1">
+          <ArrowDownCircle className="h-3 w-3" />
+          Charge{sub ? ` · ${sub}` : ''}
+        </Badge>
+      );
     }
     switch (type) {
       case 'entree':
@@ -310,7 +327,7 @@ const CaissePage = () => {
                   <SelectItem value="charge">Charges</SelectItem>
                   <SelectItem value="retrait">Retraits</SelectItem>
                   <SelectItem value="vente_auto">Ventes auto</SelectItem>
-                  <SelectItem value="payment">Paiements</SelectItem>
+                  <SelectItem value="payment">Paiements clients</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -408,7 +425,7 @@ const CaissePage = () => {
                           day: '2-digit', month: 'short', year: 'numeric',
                         })}
                       </TableCell>
-                      <TableCell>{getTypeBadge(entry.type, entry._source)}</TableCell>
+                      <TableCell>{getTypeBadge(entry.type, entry._source, entry.description)}</TableCell>
                       <TableCell>
                         <div className="max-w-[250px]">
                           <div className="font-medium truncate">{entry.description || '-'}</div>
