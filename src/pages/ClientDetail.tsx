@@ -317,10 +317,10 @@ const ClientDetailPage = () => {
                     <FileText className={`h-5 w-5 ${filteredStats.resteAPayer > 0 ? 'text-danger' : filteredStats.resteAPayer < 0 ? 'text-success' : 'text-muted-foreground'}`} />
                   </div>
                   <div>
-                    <p className={`text-sm ${filteredStats.resteAPayer > 0 ? 'text-danger' : filteredStats.resteAPayer < 0 ? 'text-success' : 'text-muted-foreground'}`}>
+                    <p className="text-sm !text-danger">
                       {filteredStats.resteAPayer > 0 ? 'Reste à payer' : filteredStats.resteAPayer < 0 ? 'Crédit client' : 'Solde'}
                     </p>
-                    <p className={`text-2xl font-bold ${filteredStats.resteAPayer > 0 ? 'text-danger' : filteredStats.resteAPayer < 0 ? 'text-success' : 'text-muted-foreground'}`}>
+                    <p className="text-2xl font-bold !text-danger">
                       {filteredStats.resteAPayer > 0 ? '-' : filteredStats.resteAPayer < 0 ? '+' : ''}{formatCurrency(Math.abs(filteredStats.resteAPayer))}
                     </p>
                   </div>
