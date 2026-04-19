@@ -8,6 +8,7 @@ import { Dossier, DossierStatus } from '../../entities/dossier.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { CaisseService } from '../caisse/caisse.service';
+import { BanqueBalanceService } from '../caisse/banque-balance.service';
 
 @Injectable()
 export class PaymentsService {
@@ -21,6 +22,7 @@ export class PaymentsService {
     @InjectRepository(Dossier)
     private dossierRepository: Repository<Dossier>,
     private caisseService: CaisseService,
+    private banqueBalanceService: BanqueBalanceService,
   ) {}
 
   async findAll() {
@@ -50,23 +52,22 @@ export class PaymentsService {
   }
 
   async create(createPaymentDto: CreatePaymentDto) {
-    // Overpayment is allowed — excess becomes supplier credit
-
-    // Calculate DZD amount to deduct
+    // Calculate DZD amount
     const deductAmount = Number(createPaymentDto.amount) * Number(createPaymentDto.exchangeRate || 1);
 
-    // Check caisse balance using dynamic summary (soldeActuel)
-    const summary = await this.caisseService.getSummary();
-    if (deductAmount > summary.soldeActuel) {
-      throw new BadRequestException(
-        `Solde caisse insuffisant. Solde actuel: ${summary.soldeActuel.toLocaleString('fr-FR')} DZD, Montant requis: ${deductAmount.toLocaleString('fr-FR')} DZD`,
-      );
+    // Supplier payments are paid from the BANQUE (bank), not the cash caisse.
+    const isSupplierPayment = (createPaymentDto.type as any) === 'supplier_payment';
+    if (isSupplierPayment) {
+      await this.banqueBalanceService.assertSufficient(deductAmount);
     }
 
     const payment = this.paymentRepository.create(createPaymentDto);
     const saved = await this.paymentRepository.save(payment);
 
-    // Auto-update dossier status and recalculate vehicle costs
+    if (isSupplierPayment) {
+      await this.banqueBalanceService.deduct(deductAmount);
+    }
+
     if (saved.dossierId) {
       await this.autoUpdateDossierStatus(saved.dossierId);
       await this.recalculateVehicleCosts(saved.dossierId);
@@ -98,10 +99,15 @@ export class PaymentsService {
       throw new NotFoundException('Payment not found');
     }
     const dossierId = payment.dossierId;
+    const refundAmount = Number(payment.amount) * Number(payment.exchangeRate || 1);
+    const wasSupplierPayment = (payment.type as any) === 'supplier_payment';
 
     await this.paymentRepository.remove(payment);
 
-    // Auto-update dossier status and recalculate vehicle costs after deletion
+    if (wasSupplierPayment) {
+      await this.banqueBalanceService.add(refundAmount);
+    }
+
     if (dossierId) {
       await this.autoUpdateDossierStatus(dossierId);
       await this.recalculateVehicleCosts(dossierId);
