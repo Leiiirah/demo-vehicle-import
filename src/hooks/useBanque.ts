@@ -43,3 +43,14 @@ export function useSetBanqueBalance() {
     },
   });
 }
+
+export function usePurgeBanque() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.purgeBanque(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banque'] });
+      queryClient.invalidateQueries({ queryKey: ['caisse'] });
+    },
+  });
+}
