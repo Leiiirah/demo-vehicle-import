@@ -42,6 +42,33 @@ export class CaisseService {
       order: { createdAt: 'DESC' },
     });
 
+    // 2b. Charges Transit (vehicle.localFees) — stored on the vehicle itself
+    const vehiclesWithTransit = await this.vehicleRepo
+      .createQueryBuilder('v')
+      .leftJoinAndSelect('v.supplier', 'supplier')
+      .leftJoinAndSelect('v.conteneur', 'conteneur')
+      .where('v.localFees IS NOT NULL AND v.localFees > 0')
+      .getMany();
+
+    const transitEntries = vehiclesWithTransit.map((v) => ({
+      id: `vt-${v.id}`,
+      type: 'charge' as const,
+      montant: Number(v.localFees),
+      date: v.updatedAt,
+      description: `Charges Transit — ${v.brand || ''} ${v.model || ''} ${v.year || ''}`.trim(),
+      reference: v.vin || null,
+      vehicleId: v.id,
+      vehicle: v,
+      client: null,
+      clientId: null,
+      prixVente: null,
+      prixRevient: null,
+      benefice: null,
+      createdAt: v.updatedAt,
+      updatedAt: v.updatedAt,
+      _source: 'vehicle_transit',
+    }));
+
     // 3. Sold vehicles (status = sold AND has a client)
     const soldVehicles = await this.vehicleRepo.find({
       where: { status: VehicleStatus.SOLD },
