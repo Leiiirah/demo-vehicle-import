@@ -7,9 +7,6 @@ import { Input } from '@/components/ui/input';
 import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
 import { Plus, Loader2 } from 'lucide-react';
 import { useCreateCaisseEntry } from '@/hooks/useCaisse';
 import { useToast } from '@/hooks/use-toast';
@@ -22,7 +19,6 @@ export function AddBanqueEntryDialog() {
   };
 
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState<'entree' | 'charge' | 'retrait'>('entree');
   const [montant, setMontant] = useState('');
   const [date, setDate] = useState(getLocalDateValue());
   const [description, setDescription] = useState('');
@@ -31,7 +27,6 @@ export function AddBanqueEntryDialog() {
   const createMutation = useCreateCaisseEntry();
 
   const resetForm = () => {
-    setType('entree');
     setMontant('');
     setDate(getLocalDateValue());
     setDescription('');
@@ -43,15 +38,15 @@ export function AddBanqueEntryDialog() {
 
     createMutation.mutate(
       {
-        type,
+        type: 'entree',
         montant: Number(montant),
         date,
-        description: description || undefined,
+        description: description || 'Approvisionnement',
         paymentMethod: 'virement',
       } as any,
       {
         onSuccess: () => {
-          toast({ title: 'Mouvement bancaire ajouté' });
+          toast({ title: 'Approvisionnement enregistré', description: 'Le solde bancaire a été mis à jour.' });
           resetForm();
           setOpen(false);
         },
@@ -72,23 +67,9 @@ export function AddBanqueEntryDialog() {
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Nouveau mouvement bancaire</DialogTitle>
+          <DialogTitle>Nouvel approvisionnement bancaire</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Type</Label>
-            <Select value={type} onValueChange={(v) => setType(v as 'entree' | 'charge' | 'retrait')}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="entree">Entrée (virement reçu)</SelectItem>
-                <SelectItem value="charge">Charge (dépense)</SelectItem>
-                <SelectItem value="retrait">Retrait</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="space-y-2">
             <Label>Montant (DZD)</Label>
             <FormattedNumberInput
@@ -97,6 +78,7 @@ export function AddBanqueEntryDialog() {
               placeholder="0"
               required
             />
+            <p className="text-xs text-muted-foreground">Ce montant sera ajouté au solde de la banque.</p>
           </div>
 
           <div className="space-y-2">
@@ -109,7 +91,7 @@ export function AddBanqueEntryDialog() {
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Description du mouvement..."
+              placeholder="Ex: Dépôt bancaire, virement reçu..."
               rows={2}
             />
           </div>
@@ -120,7 +102,7 @@ export function AddBanqueEntryDialog() {
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>
               {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Ajouter
+              Approvisionner
             </Button>
           </div>
         </form>
