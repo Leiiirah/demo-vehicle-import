@@ -134,8 +134,12 @@ export function NewSaleDialog({ open, onOpenChange, presetClient }: NewSaleDialo
           </DialogTitle>
           <DialogDescription>
             {step === 'client' && 'Étape 1/3 — Choisissez le client acheteur'}
-            {step === 'vehicle' && `Étape 2/3 — Sélectionnez un ou plusieurs véhicules pour ${selectedClient?.nom} ${selectedClient?.prenom}`}
-            {step === 'price' && `Étape 3/3 — Définissez le prix de vente pour ${selectedVehicleIds.length} véhicule(s)`}
+            {step === 'vehicle' && (presetClient
+              ? `Étape 1/2 — Sélectionnez un ou plusieurs véhicules pour ${selectedClient?.nom} ${selectedClient?.prenom}`
+              : `Étape 2/3 — Sélectionnez un ou plusieurs véhicules pour ${selectedClient?.nom} ${selectedClient?.prenom}`)}
+            {step === 'price' && (presetClient
+              ? `Étape 2/2 — Définissez le prix de vente pour ${selectedVehicleIds.length} véhicule(s)`
+              : `Étape 3/3 — Définissez le prix de vente pour ${selectedVehicleIds.length} véhicule(s)`)}
           </DialogDescription>
         </DialogHeader>
 
