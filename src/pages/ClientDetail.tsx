@@ -292,7 +292,7 @@ const ClientDetailPage = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Total ventes</p>
-                    <p className="text-2xl font-bold text-primary">{formatCurrency(filteredStats.totalVentes)}</p>
+                    <p className="text-2xl font-bold text-foreground">{formatCurrency(filteredStats.totalVentes)}</p>
                   </div>
                 </div>
               </CardContent>
