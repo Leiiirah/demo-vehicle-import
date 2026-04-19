@@ -1,33 +1,26 @@
 
+Regroup the client PDF export by **sale** instead of by vehicle, so the "Payé" / "Reste" amounts reflect real per-sale payments rather than fictional proportional allocations.
 
-## Problem
+## Changes
 
-The summary correctly aggregates charges (manual + vehicle charges + transit/fees payments + retraits = `totalCharges`), but in the **/caisse table** these rows are confusing or hidden:
+**1. `src/lib/exportClientTransactionsPDF.ts`** — extend the legacy "all transactions" branch to accept grouped sales:
 
-| Source | `_source` | `type` | Badge shown | Visible? |
-|---|---|---|---|---|
-| Manual charge | `manual` | `charge` | red "Charge" | ✅ |
-| Vehicle charge (frais véhicule) | `payment` | `charge` | **purple "Paiement"** | ✅ but mislabeled |
-| Transit / Frais payment | `payment` | `charge` | **purple "Paiement"** | ✅ but mislabeled |
-| Supplier payment | `dossier_payment` | `charge` | — | ❌ filtered out (correct, belongs to Banque) |
-| Retrait | `manual` | `retrait` | orange "Retrait" | ✅ |
+- New input shape: `sales: Array<{ date, totalSellingPrice, amountPaid, debt, carriedDebt, vehicles: VehicleTransaction[] }>` (alongside the existing single-sale path which stays untouched).
+- For each sale, render a block:
+  - Sale header line: `Vente du JJ/MM/AAAA` + sale totals on the right.
+  - Indented vehicle rows underneath: `Désignation | VIN | Prix de vente` (no Payé/Reste/Statut per vehicle).
+  - Sale footer line: `Total vente | Payé | Reste | Statut` (status derived from sale-level debt: Soldé / Versement / En attente).
+- Page-break safety: if a sale block won't fit, push to next page; long sales paginate normally.
+- Global summary at the end: total ventes count, total facturé, total payé, total reste.
 
-Two issues:
-1. Vehicle charges and transit/fees rows show the **purple "Paiement"** badge (because `_source === 'payment'` triggers it in `getTypeBadge`) instead of the red "Charge" badge — even though they ARE charges in the summary.
-2. The "Type" filter dropdown has no way to isolate them as charges — selecting "Charges" misses these rows because the badge logic short-circuits.
+**2. `src/pages/ClientDetail.tsx`** — replace the proportional allocation (lines ~222-244) in the export handler:
 
-## Fix
-
-**File: `src/pages/Caisse.tsx`** — adjust the badge + filter logic so that any row with `type === 'charge'` is treated as a charge regardless of `_source`:
-
-1. **`getTypeBadge`** (line ~91): only return the purple "Paiement" badge when `_source === 'payment'` **AND** `type === 'entree'` (i.e. real client payments). For `type === 'charge'`, fall through to the red "Charge" badge — and append a sub-label ("Frais véhicule", "Transit", "Frais") derived from the description so the user can distinguish them visually.
-
-2. **Type filter** (line ~76): the `'payment'` filter currently matches `_source === 'payment'` — keep that for `entree` (client payments) but also ensure the `'charge'` filter catches vehicle charges and transit/fees rows (it already does since they have `type === 'charge'`, so this works once the badge is fixed — the rows are already visible, just mislabeled).
-
-3. **Optional clarity**: in the Type filter, rename "Paiements" → "Paiements clients" to remove ambiguity.
+- Build the `sales` array directly from the client's `sales` relation (already loaded with `vehicles` per the backend `findOne`).
+- Drop the per-vehicle `vehiclePaid = (price/total)*salePaid` math entirely.
+- Pass `sales` to the new PDF function path.
+- Keep the existing single-sale invoice path (used by "Facture" buttons) unchanged.
 
 ## Out of scope
-
-- No backend changes — the ledger and summary logic is already correct.
-- Supplier payments stay filtered out (they live in /banque).
-
+- No backend changes (sale data already exposed via `clients/:id`).
+- The single-sale invoice PDF (`saleInfo` branch) stays as-is.
+- On-screen vehicle table in `ClientDetail` is not modified — only the PDF export.
