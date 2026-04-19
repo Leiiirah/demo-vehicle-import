@@ -25,6 +25,9 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/services/api';
+import { useBanqueBalance } from '@/hooks/useBanque';
+import { formatCurrency } from '@/lib/utils';
+import { AlertCircle } from 'lucide-react';
 
 const paymentSchema = z.object({
   date: z.string().min(1, 'La date est requise'),
@@ -209,6 +212,34 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
                 <Input value="Paiement fournisseur" disabled className="bg-muted" />
               </div>
             </div>
+
+            {/* Banque balance preview */}
+            <div className={`rounded-md border p-3 text-sm ${insufficientFunds ? 'border-destructive/50 bg-destructive/5' : 'border-primary/30 bg-primary/5'}`}>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Solde banque disponible</span>
+                <span className="font-semibold">{formatCurrency(banqueBalance)}</span>
+              </div>
+              {requiredDZD > 0 && (
+                <>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-muted-foreground">Montant requis</span>
+                    <span className="font-semibold">{formatCurrency(requiredDZD)}</span>
+                  </div>
+                  <div className="flex items-center justify-between mt-1 pt-2 border-t">
+                    <span className="text-muted-foreground">Solde après paiement</span>
+                    <span className={`font-bold ${remainingAfter < 0 ? 'text-destructive' : 'text-primary'}`}>
+                      {formatCurrency(remainingAfter)}
+                    </span>
+                  </div>
+                </>
+              )}
+              {insufficientFunds && (
+                <div className="flex items-center gap-2 mt-2 text-destructive text-xs">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>Fonds insuffisants — l'enregistrement sera bloqué.</span>
+                </div>
+              )}
+            </div>
           </form>
         </ScrollableDialogBody>
 
@@ -216,7 +247,7 @@ export function AddPaymentDialog({ open, onOpenChange, preSelectedSupplierId, pr
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>
+          <Button onClick={handleSubmit(onSubmit)} disabled={isSubmitting || insufficientFunds}>
             {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
           </Button>
         </ScrollableDialogFooter>
