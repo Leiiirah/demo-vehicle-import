@@ -343,6 +343,10 @@ class ApiClient {
     return this.request<{ deleted: number }>('/api/caisse/purge/all', { method: 'DELETE' });
   }
 
+  async purgeBanque() {
+    return this.request<{ deleted: number }>('/api/caisse/purge/banque', { method: 'DELETE' });
+  }
+
   // Car Models
   async getCarModels(brand?: string) {
     const query = brand ? `?brand=${encodeURIComponent(brand)}` : '';

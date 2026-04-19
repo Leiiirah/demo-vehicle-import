@@ -253,6 +253,27 @@ export class CaisseService {
     return { deleted: count };
   }
 
+  /**
+   * Purge only banque (virement) entries — leaves cash caisse entries intact.
+   * Resets the banque balance to 0 since all virement movements are gone.
+   */
+  async purgeBanque(): Promise<{ deleted: number }> {
+    const virementEntries = await this.caisseRepo.find({
+      where: { paymentMethod: CaissePaymentMethod.VIREMENT },
+    });
+    const count = virementEntries.length;
+    if (count > 0) {
+      await this.caisseRepo
+        .createQueryBuilder()
+        .delete()
+        .from('caisse_entries')
+        .where('paymentMethod = :pm', { pm: CaissePaymentMethod.VIREMENT })
+        .execute();
+    }
+    await this.banqueBalanceService.setBalance(0);
+    return { deleted: count };
+  }
+
   async getSummary() {
     // Get all consolidated entries
     const allEntries = await this.findAll();
