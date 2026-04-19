@@ -120,7 +120,7 @@ export function BanqueBalanceCard() {
           <Loader2 className="h-5 w-5 animate-spin" />
         ) : (
           <>
-            <div className={`text-2xl font-bold ${balance >= 0 ? 'text-primary' : 'text-destructive'}`}>
+            <div className={`text-2xl font-bold ${balance >= 0 ? 'text-foreground' : 'text-destructive'}`}>
               {formatCurrency(balance)}
             </div>
             {balanceData?.updatedAt && (

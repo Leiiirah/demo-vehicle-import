@@ -155,7 +155,7 @@ const Index = () => {
               />
               <KPICard
                 title="Dettes total"
-                value={formatCurrency(stats?.dettesTotal || 0)}
+                value={<span className="text-destructive">{formatCurrency(stats?.dettesTotal || 0)}</span>}
                 icon={<AlertCircle className="h-5 w-5" />}
                 variant="danger"
                 subtitle="fournisseurs"
