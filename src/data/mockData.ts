@@ -1,4 +1,5 @@
-// Mock data for the vehicle import management platform
+// Legacy mock data for the dashboard demo. Kept for backward-compat with any
+// component still importing from here. Source of truth is `src/mocks/seedData.ts`.
 
 export interface Vehicle {
   id: string;
@@ -81,17 +82,17 @@ export interface Payment {
 
 export const exchangeRate = {
   USD_DZD: 134.50,
-  lastUpdated: '2026-02-02 09:30',
+  lastUpdated: '2026-04-15 09:30',
 };
 
 export const kpiData = {
-  totalInvested: 2450000,
-  totalProfit: 385000,
-  outstandingDebts: 125000,
-  vehiclesInTransit: 12,
-  vehiclesArrived: 8,
-  vehiclesSold: 45,
-  totalVehicles: 65,
+  totalInvested: 32500000,
+  totalProfit: 2592000,
+  outstandingDebts: 5750000,
+  vehiclesInTransit: 5,
+  vehiclesArrived: 4,
+  vehiclesSold: 2,
+  totalVehicles: 15,
 };
 
 export const vehicles: Vehicle[] = [

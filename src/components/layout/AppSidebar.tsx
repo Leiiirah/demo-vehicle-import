@@ -122,16 +122,16 @@ export function AppSidebar() {
         {!collapsed && (
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-lg bg-sidebar-primary flex items-center justify-center">
-              <span className="text-lg font-bold text-sidebar-primary-foreground">N</span>
+              <span className="text-lg font-bold text-sidebar-primary-foreground">V</span>
             </div>
-            <span className="text-lg font-bold text-sidebar-accent-foreground tracking-tight">
-              NGB
+            <span className="text-base font-bold text-sidebar-accent-foreground tracking-tight">
+              Vehicle Import Hub
             </span>
           </div>
         )}
         {collapsed && (
           <div className="h-9 w-9 rounded-lg bg-sidebar-primary flex items-center justify-center mx-auto">
-            <span className="text-lg font-bold text-sidebar-primary-foreground">N</span>
+            <span className="text-lg font-bold text-sidebar-primary-foreground">V</span>
           </div>
         )}
       </div>

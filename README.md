@@ -1,4 +1,18 @@
-# Welcome to your Lovable project
+# Vehicle Import Hub
+
+ERP complet pour l'importation et gestion automobile — Tableau de bord, suivi des véhicules, comptabilité et gestion fournisseurs.
+
+> **Frontend-only demo.** All data is mocked locally (in-memory + localStorage). No backend or API keys are required.
+
+## Démo / Comptes de connexion
+
+N'importe quel email/mot de passe fonctionne. Trois comptes pré-configurés sont disponibles avec des rôles différents :
+
+| Rôle    | Email                              | Mot de passe |
+|---------|------------------------------------|--------------|
+| Admin   | admin@vehicleimporthub.com         | demo1234     |
+| Manager | manager@vehicleimporthub.com       | demo1234     |
+| User    | user@vehicleimporthub.com          | demo1234     |
 
 ## Project info
 
