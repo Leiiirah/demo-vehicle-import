@@ -112,18 +112,28 @@ export const seedVehicles: Vehicle[] = [
 ];
 
 export const seedPayments: Payment[] = [
-  { id: 'pay-1',  date: '2026-04-15', amount: 45000,  currency: 'USD', exchangeRate: 134.5, type: 'supplier_payment', reference: 'GUANGZHOU-2026-001 / lot 1', status: 'completed', supplierId: 'sup-1', dossierId: 'dos-1' },
+  // ---- Dossier dos-1 (Guangzhou) — versements multiples → taux moyen pondéré ~134.40
+  { id: 'pay-1a', date: '2026-01-12', amount: 60000, currency: 'USD', exchangeRate: 134.20, type: 'supplier_payment', reference: 'GUANGZHOU-2026-001 / acompte 1', status: 'completed', supplierId: 'sup-1', dossierId: 'dos-1' },
+  { id: 'pay-1b', date: '2026-02-08', amount: 50000, currency: 'USD', exchangeRate: 134.50, type: 'supplier_payment', reference: 'GUANGZHOU-2026-001 / acompte 2', status: 'completed', supplierId: 'sup-1', dossierId: 'dos-1' },
+  { id: 'pay-1c', date: '2026-03-22', amount: 40000, currency: 'USD', exchangeRate: 134.60, type: 'supplier_payment', reference: 'GUANGZHOU-2026-001 / acompte 3', status: 'completed', supplierId: 'sup-1', dossierId: 'dos-1' },
   { id: 'pay-2',  date: '2026-04-12', amount: 320000, currency: 'DZD', exchangeRate: 134.5, type: 'fees',             reference: 'Frais douane CONT MSCU-1234567', status: 'completed' },
-  { id: 'pay-3',  date: '2026-04-08', amount: 62000,  currency: 'USD', exchangeRate: 134.2, type: 'supplier_payment', reference: 'SHANGHAI-2026-001 / lot 1', status: 'completed', supplierId: 'sup-2', dossierId: 'dos-2' },
+  // ---- Dossier dos-2 (Shanghai)
+  { id: 'pay-3a', date: '2026-01-22', amount: 75000, currency: 'USD', exchangeRate: 134.10, type: 'supplier_payment', reference: 'SHANGHAI-2026-001 / acompte 1', status: 'completed', supplierId: 'sup-2', dossierId: 'dos-2' },
+  { id: 'pay-3b', date: '2026-02-25', amount: 70000, currency: 'USD', exchangeRate: 134.40, type: 'supplier_payment', reference: 'SHANGHAI-2026-001 / acompte 2', status: 'completed', supplierId: 'sup-2', dossierId: 'dos-2' },
   { id: 'pay-4',  date: '2026-04-05', amount: 7200000,currency: 'DZD', exchangeRate: 134.5, type: 'client_payment',   reference: 'Règlement Toyota Land Cruiser', status: 'completed', clientId: 'cli-1' },
-  { id: 'pay-5',  date: '2026-04-02', amount: 30000,  currency: 'USD', exchangeRate: 134.0, type: 'supplier_payment', reference: 'BEIJING-2026-001 / lot 1', status: 'completed', supplierId: 'sup-4', dossierId: 'dos-4' },
+  // ---- Dossier dos-4 (Beijing) → SOLDÉ
+  { id: 'pay-5a', date: '2026-02-12', amount: 35000, currency: 'USD', exchangeRate: 133.90, type: 'supplier_payment', reference: 'BEIJING-2026-001 / acompte 1', status: 'completed', supplierId: 'sup-4', dossierId: 'dos-4' },
+  { id: 'pay-5b', date: '2026-03-18', amount: 25000, currency: 'USD', exchangeRate: 134.10, type: 'supplier_payment', reference: 'BEIJING-2026-001 / solde',     status: 'completed', supplierId: 'sup-4', dossierId: 'dos-4' },
   { id: 'pay-6',  date: '2026-03-28', amount: 5050000,currency: 'DZD', exchangeRate: 134.5, type: 'client_payment',   reference: 'Règlement Kia Sorento',         status: 'completed', clientId: 'cli-3' },
   { id: 'pay-7',  date: '2026-03-22', amount: 4750000,currency: 'DZD', exchangeRate: 134.5, type: 'client_payment',   reference: 'Règlement Hyundai Tucson',      status: 'completed', clientId: 'cli-1' },
   { id: 'pay-8',  date: '2026-03-18', amount: 4200,   currency: 'USD', exchangeRate: 134.5, type: 'transport',        reference: 'Transport CONT MSCU-1234567',   status: 'completed' },
-  { id: 'pay-9',  date: '2026-03-10', amount: 95000,  currency: 'USD', exchangeRate: 133.9, type: 'supplier_payment', reference: 'SHENZHEN-2026-001 / lot 1', status: 'completed', supplierId: 'sup-3', dossierId: 'dos-3' },
+  // ---- Dossier dos-3 (Shenzhen)
+  { id: 'pay-9',  date: '2026-03-10', amount: 70000, currency: 'USD', exchangeRate: 133.90, type: 'supplier_payment', reference: 'SHENZHEN-2026-001 / acompte 1', status: 'completed', supplierId: 'sup-3', dossierId: 'dos-3' },
   { id: 'pay-10', date: '2026-03-05', amount: 12500000,currency:'DZD', exchangeRate: 134.5, type: 'client_payment',   reference: 'Règlement Porsche Cayenne',     status: 'completed', clientId: 'cli-5' },
   { id: 'pay-11', date: '2026-02-28', amount: 3800,   currency: 'USD', exchangeRate: 134.0, type: 'transport',        reference: 'Transport CONT MSCU-1234568',   status: 'pending'   },
   { id: 'pay-12', date: '2026-02-20', amount: 410000, currency: 'DZD', exchangeRate: 134.5, type: 'fees',             reference: 'Frais portuaires GLE 450',      status: 'completed' },
+  // ---- Dossier dos-5 (Tianjin) → un acompte
+  { id: 'pay-13', date: '2026-03-12', amount: 50000, currency: 'USD', exchangeRate: 134.30, type: 'supplier_payment', reference: 'TIANJIN-2026-001 / acompte 1', status: 'completed', supplierId: 'sup-5', dossierId: 'dos-5' },
 ];
 
 export const seedCaisseEntries: CaisseEntry[] = [
