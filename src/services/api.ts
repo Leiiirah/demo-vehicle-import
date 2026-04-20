@@ -758,19 +758,30 @@ class ApiClient {
         const c = db.conteneurs.find((cn) => cn.id === v.conteneurId);
         return c?.dossierId === dossierId;
       });
-      const totalCost = dossierVehicles.reduce((s, v) => s + (v.purchasePrice ?? 0), 0);
-      const totalPaid = db.payments
-        .filter((p) => p.dossierId === dossierId && p.type === 'supplier_payment')
-        .reduce((s, p) => s + (p.currency === 'USD' ? p.amount : p.amount / (p.exchangeRate || 134.5)), 0);
-      const remaining = Math.max(0, totalCost - totalPaid);
-      const progress = totalCost > 0 ? Math.min(100, Math.round((totalPaid / totalCost) * 100)) : 0;
+      // Total dû en USD = somme (prix véhicule + transport) pour tous les véhicules du dossier
+      const totalDue = dossierVehicles.reduce(
+        (s, v) => s + (Number(v.purchasePrice) || 0) + (Number(v.transportCost) || 0),
+        0
+      );
+      // Paiements fournisseur du dossier (USD uniquement, type supplier_payment)
+      const supplierPayments = db.payments.filter(
+        (p) => p.dossierId === dossierId && p.type === 'supplier_payment' && p.currency === 'USD'
+      );
+      const totalPaid = supplierPayments.reduce((s, p) => s + Number(p.amount), 0);
+      const totalPaidDZD = supplierPayments.reduce(
+        (s, p) => s + Number(p.amount) * Number(p.exchangeRate || 0),
+        0
+      );
+      const remaining = totalDue - totalPaid; // peut être négatif (crédit)
+      const progress = totalDue > 0 ? Math.min(100, Math.round((totalPaid / totalDue) * 100)) : 0;
       return delay({
-        totalCost,
+        totalDue,
         totalPaid,
+        totalPaidDZD,
         remaining,
         progress,
         vehiclesCount: dossierVehicles.length,
-        payments: db.payments.filter((p) => p.dossierId === dossierId).map(hydratePayment),
+        payments: supplierPayments.map(hydratePayment),
       } as T);
     }
 
