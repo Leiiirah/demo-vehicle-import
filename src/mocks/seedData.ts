@@ -152,11 +152,12 @@ export const seedCaisseEntries: CaisseEntry[] = [
 
 export const seedSales: Sale[] = [
   // Vehicles linked back via vehicle.saleId — hydrateSale() resolves the array
-  { id: 'sal-1', clientId: 'cli-1', date: '2026-04-02', totalSellingPrice: 4750000,  totalCost: 4310000,  totalProfit: 440000,  amountPaid: 4750000,  debt: 0,       carriedDebt: 0,      vehicles: [], createdAt: '2026-04-02', updatedAt: '2026-04-02' },
-  { id: 'sal-2', clientId: 'cli-3', date: '2026-04-05', totalSellingPrice: 5050000,  totalCost: 4590000,  totalProfit: 460000,  amountPaid: 5050000,  debt: 0,       carriedDebt: 0,      vehicles: [], createdAt: '2026-04-05', updatedAt: '2026-04-05' },
-  { id: 'sal-3', clientId: 'cli-5', date: '2026-03-05', totalSellingPrice: 12500000, totalCost: 11460000, totalProfit: 1040000, amountPaid: 12500000, debt: 0,       carriedDebt: 0,      vehicles: [], createdAt: '2026-03-05', updatedAt: '2026-03-05' },
-  { id: 'sal-4', clientId: 'cli-2', date: '2026-03-22', totalSellingPrice: 9800000,  totalCost: 9148000,  totalProfit: 652000,  amountPaid: 4500000,  debt: 5300000, carriedDebt: 0,      vehicles: [], createdAt: '2026-03-22', updatedAt: '2026-03-22' },
-  { id: 'sal-5', clientId: 'cli-1', date: '2026-04-15', totalSellingPrice: 7200000,  totalCost: 6730000,  totalProfit: 470000,  amountPaid: 7200000,  debt: 0,       carriedDebt: 0,      vehicles: [], createdAt: '2026-04-15', updatedAt: '2026-04-15' },
+  // Totals match the corresponding vehicle.totalCost / sellingPrice exactly
+  { id: 'sal-1', clientId: 'cli-1', date: '2026-04-02', totalSellingPrice: 4750000,  totalCost: 4320200,  totalProfit: 429800,  amountPaid: 4750000,  debt: 0,       carriedDebt: 0, vehicles: [], createdAt: '2026-04-02', updatedAt: '2026-04-02' },
+  { id: 'sal-2', clientId: 'cli-3', date: '2026-04-05', totalSellingPrice: 5050000,  totalCost: 4598200,  totalProfit: 451800,  amountPaid: 5050000,  debt: 0,       carriedDebt: 0, vehicles: [], createdAt: '2026-04-05', updatedAt: '2026-04-05' },
+  { id: 'sal-3', clientId: 'cli-5', date: '2026-03-05', totalSellingPrice: 12500000, totalCost: 11450800, totalProfit: 1049200, amountPaid: 12500000, debt: 0,       carriedDebt: 0, vehicles: [], createdAt: '2026-03-05', updatedAt: '2026-03-05' },
+  { id: 'sal-4', clientId: 'cli-2', date: '2026-03-22', totalSellingPrice: 9800000,  totalCost: 9143200,  totalProfit: 656800,  amountPaid: 4500000,  debt: 5300000, carriedDebt: 0, vehicles: [], createdAt: '2026-03-22', updatedAt: '2026-03-22' },
+  { id: 'sal-5', clientId: 'cli-1', date: '2026-04-15', totalSellingPrice: 7200000,  totalCost: 6735000,  totalProfit: 465000,  amountPaid: 7200000,  debt: 0,       carriedDebt: 0, vehicles: [], createdAt: '2026-04-15', updatedAt: '2026-04-15' },
 ];
 
 export const seedCarModels: CarModel[] = [
