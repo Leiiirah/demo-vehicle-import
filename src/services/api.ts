@@ -119,11 +119,15 @@ function hydrateConteneur(c: Conteneur): Conteneur {
   };
 }
 function hydrateVehicle(v: Vehicle): Vehicle {
+  const conteneur = db.conteneurs.find((c) => c.id === v.conteneurId);
+  const conteneurHydrated = conteneur
+    ? { ...conteneur, dossier: db.dossiers.find((d) => d.id === conteneur.dossierId) }
+    : undefined;
   return {
     ...v,
     supplier: db.suppliers.find((s) => s.id === v.supplierId),
     client: v.clientId ? db.clients.find((c) => c.id === v.clientId) : undefined,
-    conteneur: db.conteneurs.find((c) => c.id === v.conteneurId),
+    conteneur: conteneurHydrated,
     passeport: v.passeportId ? db.passeports.find((p) => p.id === v.passeportId) : undefined,
   };
 }
