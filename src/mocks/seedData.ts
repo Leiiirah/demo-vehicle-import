@@ -85,10 +85,11 @@ export const seedPasseports: Passeport[] = [
   { id: 'pas-4', nom: 'Zerrouki', prenom: 'Fatima',  telephone: '+213 555 456 789', adresse: 'Annaba',        numeroPasseport: 'PA4567890', nin: '209850399345678', montantDu: 50000,  paye: false, createdAt: '2026-01-20', updatedAt: '2026-01-20' },
   { id: 'pas-5', nom: 'Bensalem', prenom: 'Omar',    telephone: '+213 555 567 890', adresse: 'Sétif',         numeroPasseport: 'PA5678901', nin: '109880499456789', montantDu: 50000,  paye: true,  createdAt: '2026-02-02', updatedAt: '2026-02-02' },
   { id: 'pas-6', nom: 'Khelifi',  prenom: 'Sara',    telephone: '+213 555 678 901', adresse: 'Tlemcen',       numeroPasseport: 'PA6789012', nin: '209910599567890', montantDu: 50000,  paye: false, createdAt: '2026-02-08', updatedAt: '2026-02-08' },
-  { id: 'pas-7', nom: 'Lamri',    prenom: 'Toufik',  telephone: '+213 555 789 012', adresse: 'Béjaïa',        numeroPasseport: 'PA7890123', nin: '109870699678901', montantDu: 50000,  paye: true,  createdAt: '2026-02-15', updatedAt: '2026-02-15' },
-  { id: 'pas-8', nom: 'Cherif',   prenom: 'Nadia',   telephone: '+213 555 890 123', adresse: 'Blida',         numeroPasseport: 'PA8901234', nin: '209840799789012', montantDu: 50000,  paye: false, createdAt: '2026-02-22', updatedAt: '2026-02-22' },
-  { id: 'pas-9', nom: 'Yahiaoui', prenom: 'Mehdi',   telephone: '+213 555 901 234', adresse: 'Tizi Ouzou',    numeroPasseport: 'PA9012345', nin: '109890899890123', montantDu: 50000,  paye: true,  createdAt: '2026-03-01', updatedAt: '2026-03-01' },
-  { id: 'pas-10',nom: 'Ouali',    prenom: 'Amina',   telephone: '+213 555 012 345', adresse: 'Médéa',         numeroPasseport: 'PA0123456', nin: '209860999901234', montantDu: 50000,  paye: false, createdAt: '2026-03-10', updatedAt: '2026-03-10' },
+  // Second-import passports — same identity as the client, distinct passport number / NIN
+  { id: 'pas-7', nom: 'Benali',   prenom: 'Ahmed',   telephone: '+213 555 123 456', adresse: 'Alger Centre',  numeroPasseport: 'PA7890123', nin: '109810199099001', montantDu: 50000,  paye: true,  createdAt: '2026-02-15', updatedAt: '2026-02-15' },
+  { id: 'pas-8', nom: 'Mansouri', prenom: 'Youcef',  telephone: '+213 555 345 678', adresse: 'Constantine',   numeroPasseport: 'PA8901234', nin: '109790299099002', montantDu: 50000,  paye: false, createdAt: '2026-02-22', updatedAt: '2026-02-22' },
+  { id: 'pas-9', nom: 'Hadj',     prenom: 'Karim',   telephone: '+213 555 234 567', adresse: 'Oran',          numeroPasseport: 'PA9012345', nin: '109820199099003', montantDu: 50000,  paye: true,  createdAt: '2026-03-01', updatedAt: '2026-03-01' },
+  { id: 'pas-10',nom: 'Zerrouki', prenom: 'Fatima',  telephone: '+213 555 456 789', adresse: 'Annaba',        numeroPasseport: 'PA0123456', nin: '209850399099004', montantDu: 50000,  paye: false, createdAt: '2026-03-10', updatedAt: '2026-03-10' },
 ];
 
 const photo = (q: string) => `https://images.unsplash.com/photo-${q}?auto=format&fit=crop&w=800&q=80`;
