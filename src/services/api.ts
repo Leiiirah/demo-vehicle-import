@@ -28,7 +28,7 @@ import {
 
 // ----------------------------- helpers --------------------------------------
 
-const LS_KEY = 'vih_mock_db_v2';
+const LS_KEY = 'vih_mock_db_v3';
 const LATENCY = () => 120 + Math.random() * 180;
 
 function delay<T>(value: T): Promise<T> {
