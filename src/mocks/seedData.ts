@@ -126,7 +126,7 @@ export const seedPayments: Payment[] = [
   { id: 'pay-4',  date: '2026-04-05', amount: 7200000,currency: 'DZD', exchangeRate: 134.5, type: 'client_payment',   reference: 'Règlement Toyota Land Cruiser', status: 'completed', clientId: 'cli-1' },
   // ---- Dossier dos-4 (Beijing) → SOLDÉ
   { id: 'pay-5a', date: '2026-02-12', amount: 35000, currency: 'USD', exchangeRate: 133.90, type: 'supplier_payment', reference: 'BEIJING-2026-001 / acompte 1', status: 'completed', supplierId: 'sup-4', dossierId: 'dos-4' },
-  { id: 'pay-5b', date: '2026-03-18', amount: 25000, currency: 'USD', exchangeRate: 134.10, type: 'supplier_payment', reference: 'BEIJING-2026-001 / solde',     status: 'completed', supplierId: 'sup-4', dossierId: 'dos-4' },
+  { id: 'pay-5b', date: '2026-03-18', amount: 27600, currency: 'USD', exchangeRate: 134.10, type: 'supplier_payment', reference: 'BEIJING-2026-001 / solde',     status: 'completed', supplierId: 'sup-4', dossierId: 'dos-4' },
   { id: 'pay-6',  date: '2026-03-28', amount: 5050000,currency: 'DZD', exchangeRate: 134.5, type: 'client_payment',   reference: 'Règlement Kia Sorento',         status: 'completed', clientId: 'cli-3' },
   { id: 'pay-7',  date: '2026-03-22', amount: 4750000,currency: 'DZD', exchangeRate: 134.5, type: 'client_payment',   reference: 'Règlement Hyundai Tucson',      status: 'completed', clientId: 'cli-1' },
   { id: 'pay-8',  date: '2026-03-18', amount: 4200,   currency: 'USD', exchangeRate: 134.5, type: 'transport',        reference: 'Transport CONT MSCU-1234567',   status: 'completed' },
