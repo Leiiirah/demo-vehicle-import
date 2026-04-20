@@ -9,8 +9,8 @@ import { Car, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { DEMO_ACCOUNTS } from '@/mocks/seedData';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@hub.com');
+  const [password, setPassword] = useState('demo1234');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
