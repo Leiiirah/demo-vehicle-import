@@ -1,445 +1,755 @@
-const API_URL = import.meta.env.VITE_API_URL || 'https://api.vhlimport.com';
+// ============================================================================
+// Vehicle Import Hub — Frontend-only mock API client.
+//
+// Preserves the EXACT same exported `api` shape as the original NestJS-backed
+// client so every page, hook, dialog, and react-query call keeps working
+// without modification. All data lives in memory and persists to localStorage.
+// ============================================================================
 
-interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
-  body?: unknown;
-  headers?: Record<string, string>;
+import {
+  seedUsers,
+  seedSuppliers,
+  seedDossiers,
+  seedConteneurs,
+  seedVehicles,
+  seedClients,
+  seedPasseports,
+  seedPayments,
+  seedCaisseEntries,
+  seedCarModels,
+  seedSales,
+  seedZakatRecords,
+  seedVehiclePayments,
+  seedVehicleCharges,
+  seedCaisseBalance,
+  seedBanqueBalance,
+  DEMO_ACCOUNTS,
+} from '@/mocks/seedData';
+
+// ----------------------------- helpers --------------------------------------
+
+const LS_KEY = 'vih_mock_db_v1';
+const LATENCY = () => 120 + Math.random() * 180;
+
+function delay<T>(value: T): Promise<T> {
+  return new Promise((resolve) => setTimeout(() => resolve(value), LATENCY()));
 }
 
-class ApiClient {
-  private baseUrl: string;
+function uid(prefix = 'id'): string {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
 
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
+interface DB {
+  users: User[];
+  suppliers: Supplier[];
+  dossiers: Dossier[];
+  conteneurs: Conteneur[];
+  vehicles: Vehicle[];
+  clients: Client[];
+  passeports: Passeport[];
+  payments: Payment[];
+  caisseEntries: CaisseEntry[];
+  carModels: CarModel[];
+  sales: Sale[];
+  zakatRecords: ZakatRecord[];
+  vehiclePayments: VehiclePayment[];
+  vehicleCharges: VehicleCharge[];
+  caisseBalance: number;
+  banqueBalance: number;
+}
+
+function loadDB(): DB {
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = window.localStorage.getItem(LS_KEY);
+      if (raw) return JSON.parse(raw) as DB;
+    } catch {
+      /* ignore */
+    }
   }
+  return {
+    users: [...seedUsers],
+    suppliers: [...seedSuppliers],
+    dossiers: [...seedDossiers],
+    conteneurs: [...seedConteneurs],
+    vehicles: [...seedVehicles],
+    clients: [...seedClients],
+    passeports: [...seedPasseports],
+    payments: [...seedPayments],
+    caisseEntries: [...seedCaisseEntries],
+    carModels: [...seedCarModels],
+    sales: [...seedSales],
+    zakatRecords: [...seedZakatRecords],
+    vehiclePayments: [...seedVehiclePayments],
+    vehicleCharges: [...seedVehicleCharges],
+    caisseBalance: seedCaisseBalance,
+    banqueBalance: seedBanqueBalance,
+  };
+}
 
-  private getToken(): string | null {
-    return localStorage.getItem('token');
+const db: DB = loadDB();
+
+function persist(): void {
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem(LS_KEY, JSON.stringify(db));
+    } catch {
+      /* quota or unavailable */
+    }
+  }
+}
+
+// Hydrate one-to-many relations on read so pages relying on `dossier.supplier`,
+// `vehicle.supplier`, etc. keep working transparently.
+function hydrateSupplier(s: Supplier): Supplier {
+  return { ...s, dossiers: db.dossiers.filter((d) => d.supplierId === s.id) };
+}
+function hydrateDossier(d: Dossier): Dossier {
+  return {
+    ...d,
+    supplier: db.suppliers.find((s) => s.id === d.supplierId),
+    conteneurs: db.conteneurs.filter((c) => c.dossierId === d.id).map(hydrateConteneur),
+  };
+}
+function hydrateConteneur(c: Conteneur): Conteneur {
+  return {
+    ...c,
+    dossier: db.dossiers.find((d) => d.id === c.dossierId),
+    vehicles: db.vehicles.filter((v) => v.conteneurId === c.id),
+  };
+}
+function hydrateVehicle(v: Vehicle): Vehicle {
+  return {
+    ...v,
+    supplier: db.suppliers.find((s) => s.id === v.supplierId),
+    client: v.clientId ? db.clients.find((c) => c.id === v.clientId) : undefined,
+    conteneur: db.conteneurs.find((c) => c.id === v.conteneurId),
+    passeport: v.passeportId ? db.passeports.find((p) => p.id === v.passeportId) : undefined,
+  };
+}
+function hydrateClient(c: Client): Client {
+  return { ...c, vehicles: db.vehicles.filter((v) => v.clientId === c.id) };
+}
+function hydratePayment(p: Payment): Payment {
+  return {
+    ...p,
+    supplier: p.supplierId ? db.suppliers.find((s) => s.id === p.supplierId) : undefined,
+    client: p.clientId ? db.clients.find((c) => c.id === p.clientId) : undefined,
+  };
+}
+function hydrateSale(s: Sale): Sale {
+  return {
+    ...s,
+    client: db.clients.find((c) => c.id === s.clientId),
+    vehicles: db.vehicles.filter((v) => v.saleId === s.id),
+  };
+}
+
+// ------------------------------ ApiClient -----------------------------------
+
+class ApiClient {
+  private currentUserId: string | null = null;
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this.currentUserId = window.localStorage.getItem('mock_user_id');
+    }
   }
 
   setToken(token: string): void {
-    localStorage.setItem('token', token);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('token', token);
+    }
   }
 
   removeToken(): void {
-    localStorage.removeItem('token');
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('token');
+      window.localStorage.removeItem('mock_user_id');
+    }
+    this.currentUserId = null;
   }
 
-  async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-    const { method = 'GET', body, headers = {} } = options;
-
-    const token = this.getToken();
-    const requestHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...headers,
-    };
-
-    if (token) {
-      requestHeaders['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method,
-      headers: requestHeaders,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Network error' }));
-      
-      if (response.status === 401) {
-        this.removeToken();
-        window.location.href = '/login';
-      }
-      
-      throw new Error(error.message || `HTTP error ${response.status}`);
-    }
-
-    return response.json();
-  }
-
-  // Auth
+  // ---- Auth ---------------------------------------------------------------
   async login(email: string, password: string) {
-    const data = await this.request<{ accessToken: string; user: User }>('/api/auth/login', {
-      method: 'POST',
-      body: { email, password },
-    });
-    this.setToken(data.accessToken);
-    return data;
+    await new Promise((r) => setTimeout(r, 800));
+    // Try to match a seeded demo account first
+    const demo = DEMO_ACCOUNTS.find((a) => a.email.toLowerCase() === email.toLowerCase());
+    let user: User;
+    if (demo) {
+      user = db.users.find((u) => u.email.toLowerCase() === demo.email.toLowerCase()) ?? db.users[0];
+    } else {
+      // Any other email/password also works → create / reuse a generic user
+      const existing = db.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+      if (existing) {
+        user = existing;
+      } else {
+        user = {
+          id: uid('usr'),
+          name: email.split('@')[0] || 'Utilisateur',
+          email,
+          role: 'user',
+          status: 'active',
+          createdAt: new Date().toISOString(),
+        };
+        db.users.push(user);
+        persist();
+      }
+    }
+    this.setToken('mock-token');
+    this.currentUserId = user.id;
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('mock_user_id', user.id);
+    }
+    void password;
+    return { accessToken: 'mock-token', user };
   }
 
   async logout() {
-    await this.request('/api/auth/logout', { method: 'POST' });
+    await delay(undefined);
     this.removeToken();
   }
 
-  async getMe() {
-    return this.request<User>('/api/auth/me');
+  async getMe(): Promise<User> {
+    await delay(undefined);
+    const user = this.currentUserId ? db.users.find((u) => u.id === this.currentUserId) : null;
+    if (!user) throw new Error('Not authenticated');
+    return user;
   }
 
-  // Users
-  async getUsers() {
-    return this.request<User[]>('/api/users');
-  }
-
+  // ---- Users --------------------------------------------------------------
+  async getUsers() { return delay(db.users.slice()); }
   async getUser(id: string) {
-    return this.request<User>(`/api/users/${id}`);
+    const u = db.users.find((x) => x.id === id);
+    if (!u) throw new Error('User introuvable');
+    return delay(u);
   }
-
   async createUser(data: CreateUserData) {
-    return this.request<User>('/api/users', { method: 'POST', body: data });
+    const u: User = {
+      id: uid('usr'),
+      name: data.name,
+      email: data.email,
+      role: data.role ?? 'user',
+      status: data.status ?? 'active',
+      createdAt: new Date().toISOString(),
+    };
+    db.users.push(u); persist(); return delay(u);
   }
-
   async updateUser(id: string, data: Partial<CreateUserData>) {
-    return this.request<User>(`/api/users/${id}`, { method: 'PATCH', body: data });
+    const i = db.users.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error('User introuvable');
+    db.users[i] = { ...db.users[i], ...data } as User; persist(); return delay(db.users[i]);
   }
-
   async deleteUser(id: string) {
-    return this.request(`/api/users/${id}`, { method: 'DELETE' });
+    db.users = db.users.filter((u) => u.id !== id); persist(); return delay({});
   }
 
-  // Suppliers
-  async getSuppliers() {
-    return this.request<Supplier[]>('/api/suppliers');
-  }
-
+  // ---- Suppliers ----------------------------------------------------------
+  async getSuppliers() { return delay(db.suppliers.map(hydrateSupplier)); }
   async getSupplier(id: string) {
-    return this.request<Supplier>(`/api/suppliers/${id}`);
+    const s = db.suppliers.find((x) => x.id === id);
+    if (!s) throw new Error('Fournisseur introuvable');
+    return delay(hydrateSupplier(s));
   }
-
   async createSupplier(data: CreateSupplierData) {
-    return this.request<Supplier>('/api/suppliers', { method: 'POST', body: data });
+    const s: Supplier = {
+      id: uid('sup'),
+      name: data.name,
+      location: data.location,
+      creditBalance: data.creditBalance ?? 0,
+      totalPaid: data.totalPaid ?? 0,
+      remainingDebt: data.remainingDebt ?? 0,
+      vehiclesSupplied: data.vehiclesSupplied ?? 0,
+      rating: data.rating ?? 0,
+    };
+    db.suppliers.push(s); persist(); return delay(s);
   }
-
   async updateSupplier(id: string, data: Partial<CreateSupplierData>) {
-    return this.request<Supplier>(`/api/suppliers/${id}`, { method: 'PATCH', body: data });
+    const i = db.suppliers.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error('Fournisseur introuvable');
+    db.suppliers[i] = { ...db.suppliers[i], ...data }; persist(); return delay(db.suppliers[i]);
   }
-
   async deleteSupplier(id: string) {
-    return this.request(`/api/suppliers/${id}`, { method: 'DELETE' });
+    db.suppliers = db.suppliers.filter((s) => s.id !== id); persist(); return delay({});
   }
 
-  // Dossiers
-  async getDossiers() {
-    return this.request<Dossier[]>('/api/dossiers');
-  }
-
+  // ---- Dossiers -----------------------------------------------------------
+  async getDossiers() { return delay(db.dossiers.map(hydrateDossier)); }
   async getDossier(id: string) {
-    return this.request<Dossier>(`/api/dossiers/${id}`);
+    const d = db.dossiers.find((x) => x.id === id);
+    if (!d) throw new Error('Dossier introuvable');
+    return delay(hydrateDossier(d));
   }
-
   async createDossier(data: CreateDossierData) {
-    return this.request<Dossier>('/api/dossiers', { method: 'POST', body: data });
+    const d: Dossier = {
+      id: uid('dos'),
+      reference: data.reference,
+      supplierId: data.supplierId,
+      dateCreation: data.dateCreation,
+      status: data.status ?? 'en_cours',
+    };
+    db.dossiers.push(d); persist(); return delay(hydrateDossier(d));
   }
-
   async updateDossier(id: string, data: Partial<CreateDossierData>) {
-    return this.request<Dossier>(`/api/dossiers/${id}`, { method: 'PATCH', body: data });
+    const i = db.dossiers.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error('Dossier introuvable');
+    db.dossiers[i] = { ...db.dossiers[i], ...data }; persist(); return delay(hydrateDossier(db.dossiers[i]));
   }
-
   async deleteDossier(id: string) {
-    return this.request(`/api/dossiers/${id}`, { method: 'DELETE' });
+    db.dossiers = db.dossiers.filter((d) => d.id !== id); persist(); return delay({});
   }
 
-  // Conteneurs
-  async getConteneurs() {
-    return this.request<Conteneur[]>('/api/conteneurs');
-  }
-
+  // ---- Conteneurs ---------------------------------------------------------
+  async getConteneurs() { return delay(db.conteneurs.map(hydrateConteneur)); }
   async getConteneur(id: string) {
-    return this.request<Conteneur>(`/api/conteneurs/${id}`);
+    const c = db.conteneurs.find((x) => x.id === id);
+    if (!c) throw new Error('Conteneur introuvable');
+    return delay(hydrateConteneur(c));
   }
-
   async createConteneur(data: CreateConteneurData) {
-    return this.request<Conteneur>('/api/conteneurs', { method: 'POST', body: data });
+    const c: Conteneur = {
+      id: uid('con'),
+      numero: data.numero,
+      dossierId: data.dossierId,
+      type: data.type ?? '40ft',
+      status: data.status ?? 'charge',
+      coutTransport: data.coutTransport ?? 0,
+      dateDepart: data.dateDepart,
+      dateArrivee: data.dateArrivee,
+    };
+    db.conteneurs.push(c); persist(); return delay(hydrateConteneur(c));
   }
-
   async updateConteneur(id: string, data: Partial<CreateConteneurData>) {
-    return this.request<Conteneur>(`/api/conteneurs/${id}`, { method: 'PATCH', body: data });
+    const i = db.conteneurs.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error('Conteneur introuvable');
+    db.conteneurs[i] = { ...db.conteneurs[i], ...data }; persist(); return delay(hydrateConteneur(db.conteneurs[i]));
   }
-
   async deleteConteneur(id: string) {
-    return this.request(`/api/conteneurs/${id}`, { method: 'DELETE' });
+    db.conteneurs = db.conteneurs.filter((c) => c.id !== id); persist(); return delay({});
   }
 
-  // Vehicles
-  async getVehicles() {
-    return this.request<Vehicle[]>('/api/vehicles');
-  }
-
+  // ---- Vehicles -----------------------------------------------------------
+  async getVehicles() { return delay(db.vehicles.map(hydrateVehicle)); }
   async getVehicle(id: string) {
-    return this.request<Vehicle>(`/api/vehicles/${id}`);
+    const v = db.vehicles.find((x) => x.id === id);
+    if (!v) throw new Error('Véhicule introuvable');
+    return delay(hydrateVehicle(v));
   }
-
   async createVehicle(data: CreateVehicleData) {
-    return this.request<Vehicle>('/api/vehicles', { method: 'POST', body: data });
+    const v: Vehicle = {
+      id: uid('veh'),
+      brand: data.brand,
+      model: data.model,
+      year: data.year,
+      vin: data.vin,
+      clientId: data.clientId,
+      supplierId: data.supplierId,
+      conteneurId: data.conteneurId,
+      passeportId: data.passeportId,
+      status: (data.status as Vehicle['status']) ?? 'in_transit',
+      purchasePrice: data.purchasePrice,
+      transportCost: 0,
+      theoreticalRate: data.theoreticalRate,
+      passeportCost: data.passeportCost ?? 0,
+      localFees: data.localFees ?? 0,
+      totalCost: data.totalCost ?? 0,
+      sellingPrice: data.sellingPrice,
+      photoUrl: data.photoUrl,
+      color: data.color,
+      transmission: data.transmission as Vehicle['transmission'],
+      paymentStatus: data.paymentStatus ?? null,
+      amountPaid: data.amountPaid ?? 0,
+      orderDate: data.orderDate,
+      arrivalDate: data.arrivalDate,
+      soldDate: data.soldDate,
+    };
+    db.vehicles.push(v); persist(); return delay(hydrateVehicle(v));
   }
-
   async updateVehicle(id: string, data: Partial<CreateVehicleData>) {
-    return this.request<Vehicle>(`/api/vehicles/${id}`, { method: 'PATCH', body: data });
+    const i = db.vehicles.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error('Véhicule introuvable');
+    db.vehicles[i] = { ...db.vehicles[i], ...data } as Vehicle; persist(); return delay(hydrateVehicle(db.vehicles[i]));
   }
-
   async deleteVehicle(id: string) {
-    return this.request(`/api/vehicles/${id}`, { method: 'DELETE' });
+    db.vehicles = db.vehicles.filter((v) => v.id !== id); persist(); return delay({});
   }
 
-  // Vehicle Payments
+  // ---- Vehicle Payments ---------------------------------------------------
   async getVehiclePayments(vehicleId: string) {
-    return this.request<VehiclePayment[]>(`/api/vehicles/${vehicleId}/payments`);
+    return delay(db.vehiclePayments.filter((p) => p.vehicleId === vehicleId));
   }
-
   async createVehiclePayment(vehicleId: string, data: CreateVehiclePaymentData) {
-    return this.request<VehiclePayment>(`/api/vehicles/${vehicleId}/payments`, {
-      method: 'POST',
-      body: data,
-    });
+    const p: VehiclePayment = { id: uid('vp'), vehicleId, ...data, createdAt: new Date().toISOString() };
+    db.vehiclePayments.push(p); persist(); return delay(p);
   }
-
   async updateVehiclePayment(id: string, data: Partial<CreateVehiclePaymentData>) {
-    return this.request<VehiclePayment>(`/api/vehicles/payments/${id}`, {
-      method: 'PATCH',
-      body: data,
-    });
+    const i = db.vehiclePayments.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error('Paiement introuvable');
+    db.vehiclePayments[i] = { ...db.vehiclePayments[i], ...data } as VehiclePayment; persist(); return delay(db.vehiclePayments[i]);
   }
-
   async deleteVehiclePayment(id: string) {
-    return this.request(`/api/vehicles/payments/${id}`, { method: 'DELETE' });
+    db.vehiclePayments = db.vehiclePayments.filter((p) => p.id !== id); persist(); return delay({});
   }
 
-  // Vehicle Charges
+  // ---- Vehicle Charges ----------------------------------------------------
   async getVehicleCharges(vehicleId: string) {
-    return this.request<VehicleCharge[]>(`/api/vehicles/${vehicleId}/charges`);
+    return delay(db.vehicleCharges.filter((c) => c.vehicleId === vehicleId));
   }
-
   async createVehicleCharge(vehicleId: string, data: CreateVehicleChargeData) {
-    return this.request<VehicleCharge>(`/api/vehicles/${vehicleId}/charges`, {
-      method: 'POST',
-      body: data,
-    });
+    const c: VehicleCharge = { id: uid('vc'), vehicleId, ...data, createdAt: new Date().toISOString() };
+    db.vehicleCharges.push(c); persist(); return delay(c);
   }
-
   async updateVehicleCharge(id: string, data: Partial<CreateVehicleChargeData>) {
-    return this.request<VehicleCharge>(`/api/vehicles/charges/${id}`, {
-      method: 'PATCH',
-      body: data,
-    });
+    const i = db.vehicleCharges.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error('Charge introuvable');
+    db.vehicleCharges[i] = { ...db.vehicleCharges[i], ...data } as VehicleCharge; persist(); return delay(db.vehicleCharges[i]);
   }
-
   async deleteVehicleCharge(id: string) {
-    return this.request(`/api/vehicles/charges/${id}`, { method: 'DELETE' });
+    db.vehicleCharges = db.vehicleCharges.filter((c) => c.id !== id); persist(); return delay({});
   }
 
-  // Clients
-  async getClients() {
-    return this.request<Client[]>('/api/clients');
-  }
-
+  // ---- Clients ------------------------------------------------------------
+  async getClients() { return delay(db.clients.map(hydrateClient)); }
   async getClient(id: string) {
-    return this.request<Client>(`/api/clients/${id}`);
+    const c = db.clients.find((x) => x.id === id);
+    if (!c) throw new Error('Client introuvable');
+    return delay(hydrateClient(c));
   }
-
   async createClient(data: CreateClientData) {
-    return this.request<Client>('/api/clients', { method: 'POST', body: data });
+    const c: Client = {
+      id: uid('cli'),
+      nom: data.nom,
+      prenom: data.prenom,
+      telephone: data.telephone,
+      adresse: data.adresse,
+      email: data.email,
+      company: data.company,
+      pourcentageBenefice: data.pourcentageBenefice ?? 0,
+      prixVente: data.prixVente ?? 0,
+      coutRevient: data.coutRevient ?? 0,
+      detteBenefice: data.detteBenefice ?? 0,
+      paye: data.paye ?? false,
+    };
+    db.clients.push(c); persist(); return delay(hydrateClient(c));
   }
-
   async updateClient(id: string, data: Partial<CreateClientData>) {
-    return this.request<Client>(`/api/clients/${id}`, { method: 'PATCH', body: data });
+    const i = db.clients.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error('Client introuvable');
+    db.clients[i] = { ...db.clients[i], ...data }; persist(); return delay(hydrateClient(db.clients[i]));
   }
-
   async deleteClient(id: string) {
-    return this.request(`/api/clients/${id}`, { method: 'DELETE' });
+    db.clients = db.clients.filter((c) => c.id !== id); persist(); return delay({});
   }
 
-  // Passeports
-  async getPasseports() {
-    return this.request<Passeport[]>('/api/passeports');
-  }
-
+  // ---- Passeports ---------------------------------------------------------
+  async getPasseports() { return delay(db.passeports.slice()); }
   async getPasseport(id: string) {
-    return this.request<Passeport>(`/api/passeports/${id}`);
+    const p = db.passeports.find((x) => x.id === id);
+    if (!p) throw new Error('Passeport introuvable');
+    return delay(p);
   }
-
   async createPasseport(data: CreatePasseportData) {
-    return this.request<Passeport>('/api/passeports', { method: 'POST', body: data });
+    const p: Passeport = {
+      id: uid('pas'),
+      nom: data.nom,
+      prenom: data.prenom,
+      telephone: data.telephone,
+      adresse: data.adresse,
+      numeroPasseport: data.numeroPasseport,
+      nin: data.nin,
+      pdfPasseport: data.pdfPasseport,
+      montantDu: data.montantDu ?? 0,
+      paye: data.paye ?? false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    db.passeports.push(p); persist(); return delay(p);
   }
-
   async updatePasseport(id: string, data: Partial<CreatePasseportData>) {
-    return this.request<Passeport>(`/api/passeports/${id}`, { method: 'PATCH', body: data });
+    const i = db.passeports.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error('Passeport introuvable');
+    db.passeports[i] = { ...db.passeports[i], ...data, updatedAt: new Date().toISOString() } as Passeport;
+    persist(); return delay(db.passeports[i]);
   }
-
   async deletePasseport(id: string) {
-    return this.request(`/api/passeports/${id}`, { method: 'DELETE' });
+    db.passeports = db.passeports.filter((p) => p.id !== id); persist(); return delay({});
   }
 
-  // Payments
+  // ---- Payments -----------------------------------------------------------
   async getPayments(dossierId?: string) {
-    const query = dossierId ? `?dossierId=${dossierId}` : '';
-    return this.request<Payment[]>(`/api/payments${query}`);
+    const list = dossierId ? db.payments.filter((p) => p.dossierId === dossierId) : db.payments;
+    return delay(list.map(hydratePayment));
   }
-
   async getPayment(id: string) {
-    return this.request<Payment>(`/api/payments/${id}`);
+    const p = db.payments.find((x) => x.id === id);
+    if (!p) throw new Error('Paiement introuvable');
+    return delay(hydratePayment(p));
   }
-
   async createPayment(data: CreatePaymentData) {
-    return this.request<Payment>('/api/payments', { method: 'POST', body: data });
+    const p: Payment = {
+      id: uid('pay'),
+      date: data.date,
+      amount: data.amount,
+      currency: data.currency ?? 'DZD',
+      exchangeRate: data.exchangeRate ?? 134.5,
+      type: data.type,
+      reference: data.reference,
+      status: data.status ?? 'completed',
+      supplierId: data.supplierId,
+      clientId: data.clientId,
+      dossierId: data.dossierId,
+    };
+    db.payments.push(p); persist(); return delay(hydratePayment(p));
   }
-
   async updatePayment(id: string, data: Partial<CreatePaymentData>) {
-    return this.request<Payment>(`/api/payments/${id}`, { method: 'PATCH', body: data });
+    const i = db.payments.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error('Paiement introuvable');
+    db.payments[i] = { ...db.payments[i], ...data } as Payment; persist(); return delay(hydratePayment(db.payments[i]));
   }
-
   async deletePayment(id: string) {
-    return this.request(`/api/payments/${id}`, { method: 'DELETE' });
+    db.payments = db.payments.filter((p) => p.id !== id); persist(); return delay({});
   }
 
-  // Caisse
-  async getCaisseEntries() {
-    return this.request<CaisseEntry[]>('/api/caisse');
-  }
-
+  // ---- Caisse -------------------------------------------------------------
+  async getCaisseEntries() { return delay(db.caisseEntries.slice()); }
   async getCaisseEntry(id: string) {
-    return this.request<CaisseEntry>(`/api/caisse/${id}`);
+    const e = db.caisseEntries.find((x) => x.id === id);
+    if (!e) throw new Error('Entrée introuvable');
+    return delay(e);
   }
-
-  async getCaisseSummary() {
-    return this.request<CaisseSummary>('/api/caisse/summary');
-  }
-
-  async getCaisseBalance() {
-    return this.request<CaisseBalanceData>('/api/caisse/balance');
-  }
-
-  async setCaisseBalance(balance: number) {
-    return this.request<CaisseBalanceData>('/api/caisse/balance', {
-      method: 'PUT',
-      body: { balance },
+  async getCaisseSummary(): Promise<CaisseSummary> {
+    const totalEntrees = db.caisseEntries.filter((e) => e.type === 'entree').reduce((s, e) => s + e.montant, 0);
+    const totalCharges = db.caisseEntries.filter((e) => e.type === 'charge').reduce((s, e) => s + e.montant, 0);
+    const totalBenefices = db.caisseEntries.filter((e) => e.type === 'vente_auto').reduce((s, e) => s + (e.benefice ?? 0), 0);
+    const totalVirements = db.caisseEntries.filter((e) => e.paymentMethod === 'virement').reduce((s, e) => s + e.montant, 0);
+    const totalSupplierPayments = db.payments.filter((p) => p.type === 'supplier_payment').reduce((s, p) => s + p.amount, 0);
+    return delay({
+      totalEntrees,
+      totalCharges,
+      totalBenefices,
+      soldeActuel: db.caisseBalance,
+      totalVirements,
+      totalSupplierPayments,
     });
   }
-
-  async getBanqueBalance() {
-    return this.request<CaisseBalanceData>('/api/caisse/banque-balance');
+  async getCaisseBalance(): Promise<CaisseBalanceData> {
+    return delay({ balance: db.caisseBalance, updatedAt: new Date().toISOString() });
   }
-
-  async setBanqueBalance(balance: number) {
-    return this.request<CaisseBalanceData>('/api/caisse/banque-balance', {
-      method: 'PUT',
-      body: { balance },
-    });
+  async setCaisseBalance(balance: number): Promise<CaisseBalanceData> {
+    db.caisseBalance = balance; persist(); return delay({ balance, updatedAt: new Date().toISOString() });
   }
-
+  async getBanqueBalance(): Promise<CaisseBalanceData> {
+    return delay({ balance: db.banqueBalance, updatedAt: new Date().toISOString() });
+  }
+  async setBanqueBalance(balance: number): Promise<CaisseBalanceData> {
+    db.banqueBalance = balance; persist(); return delay({ balance, updatedAt: new Date().toISOString() });
+  }
   async createCaisseEntry(data: CreateCaisseEntryData) {
-    return this.request<CaisseEntry>('/api/caisse', { method: 'POST', body: data });
+    const mapped: CaisseEntry = {
+      id: uid('cai'),
+      type: (data.type === 'retrait' ? 'charge' : data.type) as CaisseEntry['type'],
+      montant: data.montant,
+      date: data.date,
+      description: data.description,
+      reference: data.reference,
+      vehicleId: data.vehicleId,
+      paymentMethod: data.paymentMethod ?? 'versement',
+      createdAt: new Date().toISOString(),
+    };
+    db.caisseEntries.unshift(mapped);
+    if (mapped.type === 'entree') db.caisseBalance += mapped.montant;
+    else db.caisseBalance -= mapped.montant;
+    persist();
+    return delay(mapped);
   }
-
   async updateCaisseEntry(id: string, data: Partial<CreateCaisseEntryData>) {
-    return this.request<CaisseEntry>(`/api/caisse/${id}`, { method: 'PATCH', body: data });
+    const i = db.caisseEntries.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error('Entrée introuvable');
+    db.caisseEntries[i] = { ...db.caisseEntries[i], ...data } as CaisseEntry; persist(); return delay(db.caisseEntries[i]);
   }
-
   async deleteCaisseEntry(id: string) {
-    return this.request(`/api/caisse/${id}`, { method: 'DELETE' });
+    db.caisseEntries = db.caisseEntries.filter((e) => e.id !== id); persist(); return delay({});
   }
-
   async purgeCaisse() {
-    return this.request<{ deleted: number }>('/api/caisse/purge/all', { method: 'DELETE' });
+    const n = db.caisseEntries.length;
+    db.caisseEntries = []; persist(); return delay({ deleted: n });
   }
-
   async purgeBanque() {
-    return this.request<{ deleted: number }>('/api/caisse/purge/banque', { method: 'DELETE' });
+    const list = db.caisseEntries.filter((e) => e.paymentMethod === 'virement');
+    db.caisseEntries = db.caisseEntries.filter((e) => e.paymentMethod !== 'virement');
+    persist(); return delay({ deleted: list.length });
   }
 
-  // Car Models
+  // ---- Car Models ---------------------------------------------------------
   async getCarModels(brand?: string) {
-    const query = brand ? `?brand=${encodeURIComponent(brand)}` : '';
-    return this.request<CarModel[]>(`/api/car-models${query}`);
+    const list = brand ? db.carModels.filter((m) => m.brand.toLowerCase() === brand.toLowerCase()) : db.carModels;
+    return delay(list.slice());
   }
-
   async getCarModel(id: string) {
-    return this.request<CarModel>(`/api/car-models/${id}`);
+    const m = db.carModels.find((x) => x.id === id);
+    if (!m) throw new Error('Modèle introuvable');
+    return delay(m);
   }
-
   async createCarModel(data: CreateCarModelData) {
-    return this.request<CarModel>('/api/car-models', { method: 'POST', body: data });
+    const m: CarModel = { id: uid('mdl'), ...data, createdAt: new Date().toISOString() };
+    db.carModels.push(m); persist(); return delay(m);
   }
-
   async updateCarModel(id: string, data: Partial<CreateCarModelData>) {
-    return this.request<CarModel>(`/api/car-models/${id}`, { method: 'PATCH', body: data });
+    const i = db.carModels.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error('Modèle introuvable');
+    db.carModels[i] = { ...db.carModels[i], ...data, updatedAt: new Date().toISOString() } as CarModel; persist(); return delay(db.carModels[i]);
   }
-
   async deleteCarModel(id: string) {
-    return this.request(`/api/car-models/${id}`, { method: 'DELETE' });
+    db.carModels = db.carModels.filter((m) => m.id !== id); persist(); return delay({});
   }
 
-  // Dashboard
-  async getDashboardStats(params?: { month?: number; year?: number }) {
-    const query = this.buildDateQuery(params);
-    return this.request<DashboardStats>(`/api/dashboard/stats${query}`);
+  // ---- Dashboard ----------------------------------------------------------
+  async getDashboardStats(_params?: DashboardFilterParams): Promise<DashboardStats> {
+    const valeurStock = db.vehicles.filter((v) => v.status === 'arrived').reduce((s, v) => s + (v.totalCost ?? 0), 0);
+    const valeurChargees = db.vehicles
+      .filter((v) => v.status === 'in_transit' || v.status === 'ordered')
+      .reduce((s, v) => s + v.purchasePrice + v.transportCost, 0);
+    const creanceTotal = db.clients.reduce((s, c) => s + (c.detteBenefice ?? 0), 0);
+    const dettesTotal = db.suppliers.reduce((s, sp) => s + (sp.remainingDebt ?? 0), 0);
+    const totalCaisse = db.caisseBalance + db.banqueBalance;
+    const totalEverything = valeurStock + valeurChargees + creanceTotal + totalCaisse;
+    const totalProfit = db.sales.reduce((s, sa) => s + sa.totalProfit, 0);
+    const totalInvested = db.vehicles.reduce((s, v) => s + (v.totalCost ?? 0), 0);
+    const zakatBase = totalEverything - dettesTotal;
+    return delay({
+      valeurStock,
+      valeurChargees,
+      creanceTotal,
+      dettesTotal,
+      totalEverything,
+      totalCaisse,
+      totalInvested,
+      totalProfit,
+      outstandingDebts: dettesTotal,
+      vehiclesInTransit: db.vehicles.filter((v) => v.status === 'in_transit').length,
+      vehiclesArrived: db.vehicles.filter((v) => v.status === 'arrived').length,
+      vehiclesSold: db.vehicles.filter((v) => v.status === 'sold').length,
+      vehiclesOrdered: db.vehicles.filter((v) => v.status === 'ordered').length,
+      totalVehicles: db.vehicles.length,
+      zakatBase,
+      zakatAmount: Math.round(zakatBase * 0.025),
+    });
+  }
+  async getProfitHistory(_params?: { year?: number }): Promise<ProfitHistory[]> {
+    return delay([
+      { month: 'Nov', profit: 280000 },
+      { month: 'Déc', profit: 420000 },
+      { month: 'Jan', profit: 380000 },
+      { month: 'Fév', profit: 540000 },
+      { month: 'Mar', profit: 1040000 },
+      { month: 'Avr', profit: 900000 },
+    ]);
+  }
+  async getVehiclesByStatus(_params?: DashboardFilterParams): Promise<VehiclesByStatus[]> {
+    return delay([
+      { name: 'Commandé', value: db.vehicles.filter((v) => v.status === 'ordered').length,    color: 'hsl(0, 72%, 50%)' },
+      { name: 'Chargée',  value: db.vehicles.filter((v) => v.status === 'in_transit').length, color: 'hsl(38, 92%, 50%)' },
+      { name: 'Arrivé',   value: db.vehicles.filter((v) => v.status === 'arrived').length,    color: 'hsl(142, 71%, 45%)' },
+      { name: 'Vendu',    value: db.vehicles.filter((v) => v.status === 'sold').length,       color: 'hsl(0, 0%, 45%)' },
+    ]);
+  }
+  async getTopVehicles(_params?: DashboardFilterParams): Promise<TopVehicle[]> {
+    return delay(
+      db.vehicles
+        .filter((v) => v.sellingPrice && v.sellingPrice > 0)
+        .map((v) => {
+          const profit = (v.sellingPrice ?? 0) - (v.totalCost ?? 0);
+          const margin = v.sellingPrice ? Number(((profit / v.sellingPrice) * 100).toFixed(1)) : 0;
+          return { brand: v.brand, model: v.model, profit, margin };
+        })
+        .sort((a, b) => b.profit - a.profit)
+        .slice(0, 5)
+    );
   }
 
-  async getProfitHistory(params?: { year?: number }) {
-    const query = params?.year ? `?year=${params.year}` : '';
-    return this.request<ProfitHistory[]>(`/api/dashboard/profit-history${query}`);
-  }
-
-  async getVehiclesByStatus(params?: { month?: number; year?: number }) {
-    const query = this.buildDateQuery(params);
-    return this.request<VehiclesByStatus[]>(`/api/dashboard/vehicles-by-status${query}`);
-  }
-
-  async getTopVehicles(params?: { month?: number; year?: number }) {
-    const query = this.buildDateQuery(params);
-    return this.request<TopVehicle[]>(`/api/dashboard/top-vehicles${query}`);
-  }
-
-  private buildDateQuery(params?: { month?: number; year?: number }): string {
-    if (!params) return '';
-    const parts: string[] = [];
-    if (params.month) parts.push(`month=${params.month}`);
-    if (params.year) parts.push(`year=${params.year}`);
-    return parts.length > 0 ? `?${parts.join('&')}` : '';
-  }
-
-  // Zakat
-  async getZakatRecords() {
-    return this.request<ZakatRecord[]>('/api/zakat');
-  }
-
+  // ---- Zakat --------------------------------------------------------------
+  async getZakatRecords() { return delay(db.zakatRecords.slice()); }
   async createZakatRecord(data: CreateZakatRecordData) {
-    return this.request<ZakatRecord>('/api/zakat', { method: 'POST', body: data });
+    const r: ZakatRecord = {
+      id: uid('zak'),
+      year: data.year,
+      assetsTotal: data.assetsTotal,
+      debtsTotal: data.debtsTotal,
+      zakatBase: data.zakatBase,
+      zakatAmount: data.zakatAmount,
+      amountPaid: data.amountPaid ?? 0,
+      notes: data.notes ?? null,
+      createdAt: new Date().toISOString(),
+    };
+    db.zakatRecords.push(r); persist(); return delay(r);
   }
-
   async updateZakatRecord(id: string, data: UpdateZakatRecordData) {
-    return this.request<ZakatRecord>(`/api/zakat/${id}`, { method: 'PATCH', body: data });
+    const i = db.zakatRecords.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error('Enregistrement introuvable');
+    db.zakatRecords[i] = { ...db.zakatRecords[i], ...data } as ZakatRecord; persist(); return delay(db.zakatRecords[i]);
   }
-
   async deleteZakatRecord(id: string) {
-    return this.request<void>(`/api/zakat/${id}`, { method: 'DELETE' });
+    db.zakatRecords = db.zakatRecords.filter((r) => r.id !== id); persist(); return delay(undefined as unknown as void);
   }
 
-  // Sales
-  async getSales() {
-    return this.request<Sale[]>('/api/sales');
-  }
-
+  // ---- Sales --------------------------------------------------------------
+  async getSales() { return delay(db.sales.map(hydrateSale)); }
   async getSalesByClient(clientId: string) {
-    return this.request<Sale[]>(`/api/sales/client/${clientId}`);
+    return delay(db.sales.filter((s) => s.clientId === clientId).map(hydrateSale));
   }
-
   async getSale(id: string) {
-    return this.request<Sale>(`/api/sales/${id}`);
+    const s = db.sales.find((x) => x.id === id);
+    if (!s) throw new Error('Vente introuvable');
+    return delay(hydrateSale(s));
   }
-
   async createSale(data: CreateSaleData) {
-    return this.request<Sale>('/api/sales', { method: 'POST', body: data });
+    const totalSellingPrice = data.vehicles.reduce((s, v) => s + v.sellingPrice, 0);
+    const totalCost = data.vehicles.reduce((s, vv) => {
+      const veh = db.vehicles.find((x) => x.id === vv.vehicleId);
+      return s + (veh?.totalCost ?? 0);
+    }, 0);
+    const sale: Sale = {
+      id: uid('sal'),
+      clientId: data.clientId,
+      date: data.date ?? new Date().toISOString().slice(0, 10),
+      totalSellingPrice,
+      totalCost,
+      totalProfit: totalSellingPrice - totalCost,
+      amountPaid: 0,
+      debt: totalSellingPrice,
+      carriedDebt: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    db.sales.push(sale);
+    data.vehicles.forEach(({ vehicleId, sellingPrice }) => {
+      const v = db.vehicles.find((x) => x.id === vehicleId);
+      if (v) {
+        v.saleId = sale.id;
+        v.sellingPrice = sellingPrice;
+        v.status = 'sold';
+        v.soldDate = sale.date;
+      }
+    });
+    persist(); return delay(hydrateSale(sale));
   }
-
   async addSalePayment(saleId: string, amount: number) {
-    return this.request<Sale>(`/api/sales/${saleId}/payment`, { method: 'POST', body: { amount } });
+    const s = db.sales.find((x) => x.id === saleId);
+    if (!s) throw new Error('Vente introuvable');
+    s.amountPaid += amount;
+    s.debt = Math.max(0, s.totalSellingPrice - s.amountPaid);
+    s.updatedAt = new Date().toISOString();
+    persist(); return delay(hydrateSale(s));
   }
-
   async deleteSale(id: string) {
-    return this.request(`/api/sales/${id}`, { method: 'DELETE' });
+    db.sales = db.sales.filter((s) => s.id !== id); persist(); return delay({});
   }
 }
+
+// ============================================================================
+// Types — kept identical to the previous backend-bound client so all consumers
+// (hooks, dialogs, pages) continue to compile without any modification.
+// ============================================================================
 
 // Types
 export interface User {
@@ -846,4 +1156,5 @@ export interface CreateSaleData {
   vehicles: { vehicleId: string; sellingPrice: number }[];
 }
 
-export const api = new ApiClient(API_URL);
+
+export const api = new ApiClient();
