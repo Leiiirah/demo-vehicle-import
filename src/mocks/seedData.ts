@@ -27,9 +27,9 @@ export interface DemoAccount {
 }
 
 export const DEMO_ACCOUNTS: DemoAccount[] = [
-  { email: 'admin@vehicleimporthub.com',   password: 'demo1234', role: 'admin',   name: 'Sofiane Belkacem' },
-  { email: 'manager@vehicleimporthub.com', password: 'demo1234', role: 'manager', name: 'Lina Boudjedra' },
-  { email: 'user@vehicleimporthub.com',    password: 'demo1234', role: 'user',    name: 'Riad Cherifi' },
+  { email: 'admin@vehicleimporthub.com',   password: 'demo1234', role: 'admin',   name: 'Administrateur 1' },
+  { email: 'manager@vehicleimporthub.com', password: 'demo1234', role: 'manager', name: 'Manager 1' },
+  { email: 'user@vehicleimporthub.com',    password: 'demo1234', role: 'user',    name: 'Utilisateur 1' },
 ];
 
 export const seedUsers: User[] = DEMO_ACCOUNTS.map((acc, i) => ({
