@@ -744,6 +744,61 @@ class ApiClient {
   async deleteSale(id: string) {
     db.sales = db.sales.filter((s) => s.id !== id); persist(); return delay({});
   }
+
+  // ---- Generic request shim ------------------------------------------------
+  // Some pages still call `api.request<T>('/api/...')` directly for endpoints
+  // that didn't get wrapped in dedicated methods. We route them here against
+  // the in-memory store so those pages keep working unmodified.
+  async request<T = unknown>(endpoint: string, options?: { method?: string }): Promise<T> {
+    // Dossier payment stats: /api/payments/dossier/:id/stats
+    const dossierStats = endpoint.match(/^\/api\/payments\/dossier\/([^/]+)\/stats/);
+    if (dossierStats) {
+      const dossierId = dossierStats[1];
+      const dossierVehicles = db.vehicles.filter((v) => {
+        const c = db.conteneurs.find((cn) => cn.id === v.conteneurId);
+        return c?.dossierId === dossierId;
+      });
+      const totalCost = dossierVehicles.reduce((s, v) => s + (v.purchasePrice ?? 0), 0);
+      const totalPaid = db.payments
+        .filter((p) => p.dossierId === dossierId && p.type === 'supplier_payment')
+        .reduce((s, p) => s + (p.currency === 'USD' ? p.amount : p.amount / (p.exchangeRate || 134.5)), 0);
+      const remaining = Math.max(0, totalCost - totalPaid);
+      const progress = totalCost > 0 ? Math.min(100, Math.round((totalPaid / totalCost) * 100)) : 0;
+      return delay({
+        totalCost,
+        totalPaid,
+        remaining,
+        progress,
+        vehiclesCount: dossierVehicles.length,
+        payments: db.payments.filter((p) => p.dossierId === dossierId).map(hydratePayment),
+      } as T);
+    }
+
+    // Global search: /api/search?q=...
+    if (endpoint.startsWith('/api/search')) {
+      const q = decodeURIComponent(endpoint.split('q=')[1] ?? '').toLowerCase();
+      return delay({
+        dossiers: db.dossiers.filter((d) => d.reference.toLowerCase().includes(q)).map(hydrateDossier),
+        clients: db.clients.filter((c) =>
+          `${c.nom} ${c.prenom} ${c.email ?? ''} ${c.company ?? ''}`.toLowerCase().includes(q)
+        ).map(hydrateClient),
+        vehicles: db.vehicles.filter((v) =>
+          v.vin.toLowerCase().includes(q) ||
+          `${v.brand} ${v.model}`.toLowerCase().includes(q)
+        ).map(hydrateVehicle),
+      } as T);
+    }
+
+    // Recalculate-all-costs: no-op in the mock (mutation only)
+    if (endpoint.includes('/payments/recalculate-all-costs')) {
+      void options;
+      return delay({ ok: true, recalculated: db.vehicles.length } as T);
+    }
+
+    // Unknown endpoint — return an empty payload to avoid crashes.
+    console.warn('[mock-api] Unhandled endpoint:', endpoint);
+    return delay({} as T);
+  }
 }
 
 // ============================================================================
