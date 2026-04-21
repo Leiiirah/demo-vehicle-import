@@ -38,7 +38,7 @@ export const seedUsers: User[] = [
     name: acc.name,
     email: acc.email,
     role: acc.role,
-    status: 'active',
+    status: 'active' as const,
     lastActive: '2026-04-19',
     createdAt: '2025-09-01',
   })),
@@ -47,7 +47,7 @@ export const seedUsers: User[] = [
     name: 'ArslaneTest',
     email: 'test@local.dev',
     role: 'user' as const,
-    status: 'active',
+    status: 'active' as const,
     lastActive: '2026-04-19',
     createdAt: '2025-09-01',
   }
