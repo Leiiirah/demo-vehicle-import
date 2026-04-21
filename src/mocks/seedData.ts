@@ -32,15 +32,26 @@ export const DEMO_ACCOUNTS: DemoAccount[] = [
   { email: 'user@vehicleimporthub.com',    password: 'demo1234', role: 'user',    name: 'Utilisateur 1' },
 ];
 
-export const seedUsers: User[] = DEMO_ACCOUNTS.map((acc, i) => ({
-  id: `usr-${i + 1}`,
-  name: acc.name,
-  email: acc.email,
-  role: acc.role,
-  status: 'active',
-  lastActive: '2026-04-19',
-  createdAt: '2025-09-01',
-}));
+export const seedUsers: User[] = [
+  ...DEMO_ACCOUNTS.map((acc, i) => ({
+    id: `usr-${i + 1}`,
+    name: acc.name,
+    email: acc.email,
+    role: acc.role,
+    status: 'active',
+    lastActive: '2026-04-19',
+    createdAt: '2025-09-01',
+  })),
+  {
+    id: 'usr-test',
+    name: 'ArslaneTest',
+    email: 'test@local.dev',
+    role: 'user' as const,
+    status: 'active',
+    lastActive: '2026-04-19',
+    createdAt: '2025-09-01',
+  }
+];
 
 export const seedSuppliers: Supplier[] = [
   { id: 'sup-1', name: 'Guangzhou Auto Export',  location: 'Guangzhou, Chine', creditBalance: 12000,  totalPaid: 420000, remainingDebt: 35000, vehiclesSupplied: 4, rating: 4.8 },
