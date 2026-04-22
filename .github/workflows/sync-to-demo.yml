@@ -20,6 +20,23 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: Verify token can access destination
+        env:
+          DEMO_REPO_TOKEN: ${{ secrets.DEMO_REPO_TOKEN }}
+        run: |
+          if [ -z "$DEMO_REPO_TOKEN" ]; then
+            echo "::error::DEMO_REPO_TOKEN secret is empty or not exposed to this workflow."
+            exit 1
+          fi
+          status=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${DEMO_REPO_TOKEN}" \
+            https://api.github.com/repos/avalonlabsteam/demo-vehicle-import)
+          echo "GitHub API status: $status"
+          if [ "$status" != "200" ]; then
+            echo "::error::Token cannot access destination repo (HTTP $status). Check token scopes, SSO authorization, and repo permissions."
+            exit 1
+          fi
+
       - name: Add destination remote
         env:
           DEMO_REPO_TOKEN: ${{ secrets.DEMO_REPO_TOKEN }}
