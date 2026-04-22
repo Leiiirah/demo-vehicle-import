@@ -54,11 +54,11 @@ export const seedUsers: User[] = [
 ];
 
 export const seedSuppliers: Supplier[] = [
-  { id: 'sup-1', name: 'Guangzhou Auto Export',  location: 'Guangzhou, Chine', creditBalance: 12000,  totalPaid: 420000, remainingDebt: 35000, vehiclesSupplied: 4, rating: 4.8 },
-  { id: 'sup-2', name: 'Shanghai Motors Ltd',    location: 'Shanghai, Chine',  creditBalance: 18500,  totalPaid: 580000, remainingDebt: 22000, vehiclesSupplied: 5, rating: 4.9 },
-  { id: 'sup-3', name: 'Shenzhen Auto Hub',      location: 'Shenzhen, Chine',  creditBalance: 6500,   totalPaid: 295000, remainingDebt: 18000, vehiclesSupplied: 3, rating: 4.6 },
-  { id: 'sup-4', name: 'Beijing Premium Cars',   location: 'Beijing, Chine',   creditBalance: 9000,   totalPaid: 340000, remainingDebt: 12500, vehiclesSupplied: 2, rating: 4.7 },
-  { id: 'sup-5', name: 'Tianjin Trade Co',       location: 'Tianjin, Chine',   creditBalance: 4200,   totalPaid: 180000, remainingDebt: 8000,  vehiclesSupplied: 1, rating: 4.5 },
+  { id: 'sup-1', name: 'Guangzhou Auto Export',  location: 'Guangzhou, Chine', creditBalance: 12000,  totalPaid: 150000, remainingDebt: 54300,  vehiclesSupplied: 4, rating: 4.8 },
+  { id: 'sup-2', name: 'Shanghai Motors Ltd',    location: 'Shanghai, Chine',  creditBalance: 18500,  totalPaid: 145000, remainingDebt: 85300,  vehiclesSupplied: 3, rating: 4.9 },
+  { id: 'sup-3', name: 'Shenzhen Auto Hub',      location: 'Shenzhen, Chine',  creditBalance: 6500,   totalPaid: 70000,  remainingDebt: 61600,  vehiclesSupplied: 2, rating: 4.6 },
+  { id: 'sup-4', name: 'Beijing Premium Cars',   location: 'Beijing, Chine',   creditBalance: 9000,   totalPaid: 62600,  remainingDebt: 0,      vehiclesSupplied: 2, rating: 4.7 },
+  { id: 'sup-5', name: 'Tianjin Trade Co',       location: 'Tianjin, Chine',   creditBalance: 4200,   totalPaid: 50000,  remainingDebt: 152000, vehiclesSupplied: 4, rating: 4.5 },
 ];
 
 export const seedDossiers: Dossier[] = [
