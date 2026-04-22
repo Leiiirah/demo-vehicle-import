@@ -50,15 +50,24 @@ export const seedUsers: User[] = [
     status: 'active' as const,
     lastActive: '2026-04-19',
     createdAt: '2025-09-01',
-  }
+  },
+  {
+    id: 'usr-inactive',
+    name: 'Compte Désactivé',
+    email: 'inactive@vehicleimporthub.com',
+    role: 'user' as const,
+    status: 'inactive' as const,
+    lastActive: '2025-11-15',
+    createdAt: '2025-08-10',
+  },
 ];
 
 export const seedSuppliers: Supplier[] = [
-  { id: 'sup-1', name: 'Guangzhou Auto Export',  location: 'Guangzhou, Chine', creditBalance: 12000,  totalPaid: 150000, remainingDebt: 54300,  vehiclesSupplied: 4, rating: 4.8 },
-  { id: 'sup-2', name: 'Shanghai Motors Ltd',    location: 'Shanghai, Chine',  creditBalance: 18500,  totalPaid: 145000, remainingDebt: 85300,  vehiclesSupplied: 3, rating: 4.9 },
-  { id: 'sup-3', name: 'Shenzhen Auto Hub',      location: 'Shenzhen, Chine',  creditBalance: 6500,   totalPaid: 70000,  remainingDebt: 61600,  vehiclesSupplied: 2, rating: 4.6 },
+  { id: 'sup-1', name: 'Guangzhou Auto Export',  location: 'Guangzhou, Chine', creditBalance: 12000,  totalPaid: 150000, remainingDebt: 52000,  vehiclesSupplied: 4, rating: 4.8 },
+  { id: 'sup-2', name: 'Shanghai Motors Ltd',    location: 'Shanghai, Chine',  creditBalance: 18500,  totalPaid: 145000, remainingDebt: 84200,  vehiclesSupplied: 3, rating: 4.9 },
+  { id: 'sup-3', name: 'Shenzhen Auto Hub',      location: 'Shenzhen, Chine',  creditBalance: 6500,   totalPaid: 70000,  remainingDebt: 82600,  vehiclesSupplied: 3, rating: 4.6 },
   { id: 'sup-4', name: 'Beijing Premium Cars',   location: 'Beijing, Chine',   creditBalance: 9000,   totalPaid: 62600,  remainingDebt: 0,      vehiclesSupplied: 2, rating: 4.7 },
-  { id: 'sup-5', name: 'Tianjin Trade Co',       location: 'Tianjin, Chine',   creditBalance: 4200,   totalPaid: 50000,  remainingDebt: 152000, vehiclesSupplied: 4, rating: 4.5 },
+  { id: 'sup-5', name: 'Tianjin Trade Co',       location: 'Tianjin, Chine',   creditBalance: 4200,   totalPaid: 50000,  remainingDebt: 147900, vehiclesSupplied: 4, rating: 4.5 },
 ];
 
 export const seedDossiers: Dossier[] = [
@@ -67,6 +76,7 @@ export const seedDossiers: Dossier[] = [
   { id: 'dos-3', reference: 'SHENZHEN-2026-001',  supplierId: 'sup-3', dateCreation: '2026-02-02', status: 'en_cours' },
   { id: 'dos-4', reference: 'BEIJING-2026-001',   supplierId: 'sup-4', dateCreation: '2026-02-10', status: 'solde'   },
   { id: 'dos-5', reference: 'TIANJIN-2026-001',   supplierId: 'sup-5', dateCreation: '2026-03-01', status: 'en_cours' },
+  { id: 'dos-6', reference: 'GUANGZHOU-2026-002', supplierId: 'sup-1', dateCreation: '2026-03-15', status: 'annule'   },
 ];
 
 export const seedConteneurs: Conteneur[] = [
@@ -119,10 +129,12 @@ export const seedVehicles: Vehicle[] = [
   { id: 'veh-9',  brand: 'Hyundai',  model: 'Tucson',       year: 2024, vin: 'KMHJ281AGNU012345', clientId: 'cli-1', supplierId: 'sup-4', conteneurId: 'con-6', passeportId: 'pas-7',  saleId: 'sal-1', status: 'sold',       purchasePrice: 28000, transportCost: 2150, theoreticalRate: 134, passeportCost: 50000, localFees: 210000, totalCost: 4300100,  sellingPrice: 4750000,  photoUrl: photo('1552519507-da3b142c6e3d'), color: 'Argent', transmission: 'automatic', paymentStatus: 'solde',     amountPaid: 4750000,  orderDate: '2026-02-10', arrivalDate: '2026-03-25', soldDate: '2026-04-02' },
   { id: 'veh-10', brand: 'Kia',      model: 'Sorento',      year: 2024, vin: 'KNDPM3AC9N7012345', clientId: 'cli-3', supplierId: 'sup-4', conteneurId: 'con-6', passeportId: 'pas-8',  saleId: 'sal-2', status: 'sold',       purchasePrice: 30000, transportCost: 2150, theoreticalRate: 134, passeportCost: 50000, localFees: 220000, totalCost: 4578100,  sellingPrice: 5050000,  photoUrl: photo('1606664515524-ed2f786a0bd6'), color: 'Bleu',   transmission: 'automatic', paymentStatus: 'solde',     amountPaid: 5050000,  orderDate: '2026-02-10', arrivalDate: '2026-03-25', soldDate: '2026-04-05' },
   { id: 'veh-11', brand: 'Nissan',   model: 'Patrol',       year: 2024, vin: 'JN8AY2NC0N9012345', clientId: undefined, supplierId: 'sup-5', conteneurId: 'con-7', passeportId: undefined, status: 'ordered',    purchasePrice: 72000, transportCost: 1800, theoreticalRate: 134, passeportCost: 0,     localFees: 470000, totalCost: 10359200, sellingPrice: undefined,    photoUrl: photo('1503376780353-7e6692767b70'), color: 'Blanc',  transmission: 'automatic', paymentStatus: null,        amountPaid: 0,        orderDate: '2026-03-08' },
-  { id: 'veh-12', brand: 'Mazda',    model: 'CX-5',         year: 2024, vin: 'JM3KFBCM5N0012345', clientId: undefined, supplierId: 'sup-5', conteneurId: 'con-7', passeportId: undefined, status: 'ordered',    purchasePrice: 27000, transportCost: 1800, theoreticalRate: 134, passeportCost: 0,     localFees: 200000, totalCost: 3859200,  sellingPrice: undefined,    photoUrl: photo('1568605114967-8130f3a36994'), color: 'Rouge',  transmission: 'automatic', paymentStatus: null,        amountPaid: 0,        orderDate: '2026-03-08' },
+  { id: 'veh-12', brand: 'Mazda',    model: 'CX-5',         year: 2024, vin: 'JM3KFBCM5N0012345', clientId: undefined, supplierId: 'sup-5', conteneurId: 'con-7', passeportId: undefined, status: 'ordered',    purchasePrice: 27000, transportCost: 1800, theoreticalRate: 134, passeportCost: 0,     localFees: 200000, totalCost: 4059200,  sellingPrice: undefined,    photoUrl: photo('1568605114967-8130f3a36994'), color: 'Rouge',  transmission: 'automatic', paymentStatus: null,        amountPaid: 0,        orderDate: '2026-03-08' },
   { id: 'veh-13', brand: 'Volkswagen', model: 'Touareg',    year: 2024, vin: 'WVGZZZCRZNW012345', clientId: 'cli-2', supplierId: 'sup-5', conteneurId: 'con-8', passeportId: 'pas-9',  status: 'sold',       purchasePrice: 52000, transportCost: 1150, theoreticalRate: 134, passeportCost: 50000, localFees: 360000, totalCost: 7532100,  sellingPrice: 8400000,  photoUrl: photo('1606664515524-ed2f786a0bd6'), color: 'Gris',   transmission: 'automatic', paymentStatus: 'versement', amountPaid: 2000000,  orderDate: '2026-03-10', soldDate: '2026-04-10' },
   { id: 'veh-14', brand: 'Ford',     model: 'Explorer',     year: 2024, vin: '1FM5K8D87NG012345', clientId: 'cli-4', supplierId: 'sup-5', conteneurId: 'con-8', passeportId: 'pas-10', status: 'sold',       purchasePrice: 41000, transportCost: 1150, theoreticalRate: 134, passeportCost: 50000, localFees: 290000, totalCost: 5988100,  sellingPrice: 6650000,  photoUrl: photo('1552519507-da3b142c6e3d'), color: 'Noir',   transmission: 'automatic', paymentStatus: 'versement', amountPaid: 1500000,  orderDate: '2026-03-10', soldDate: '2026-04-10' },
   { id: 'veh-15', brand: 'Honda',    model: 'CR-V',         year: 2024, vin: '7FARW2H80NE012345', clientId: undefined, supplierId: 'sup-1', conteneurId: 'con-2', passeportId: undefined, status: 'in_transit', purchasePrice: 29000, transportCost: 1900, theoreticalRate: 134, passeportCost: 0,     localFees: 220000, totalCost: 4360600,  sellingPrice: undefined,    photoUrl: photo('1568605114967-8130f3a36994'), color: 'Blanc',  transmission: 'automatic', paymentStatus: null,        amountPaid: 0,        orderDate: '2026-02-01' },
+  // Vendu bare — vendu sans passeport ni client formel (cession en l'état)
+  { id: 'veh-16', brand: 'Suzuki',   model: 'Vitara',       year: 2024, vin: 'TSMLY21S00G012345', clientId: undefined, supplierId: 'sup-3', conteneurId: 'con-5', passeportId: undefined, status: 'vendu_bare' as Vehicle['status'], purchasePrice: 22000, transportCost: 1200, theoreticalRate: 134, passeportCost: 0, localFees: 180000, totalCost: 3288800, sellingPrice: 3600000, photoUrl: photo('1503376780353-7e6692767b70'), color: 'Vert', transmission: 'manual', paymentStatus: 'solde', amountPaid: 3600000, orderDate: '2026-02-15', soldDate: '2026-04-18' },
 ];
 
 export const seedPayments: Payment[] = [
@@ -159,6 +171,10 @@ export const seedCaisseEntries: CaisseEntry[] = [
   { id: 'cai-6', type: 'entree',     montant: 12500000,date: '2026-03-05', description: 'Versement client Bensalem',       reference: 'CLI-5', clientId: 'cli-5', paymentMethod: 'virement',  createdAt: '2026-03-05' },
   { id: 'cai-7', type: 'charge',     montant: 95000,   date: '2026-02-25', description: 'Salaires équipe',                 paymentMethod: 'virement',  createdAt: '2026-02-25' },
   { id: 'cai-8', type: 'entree',     montant: 3000000, date: '2026-02-18', description: 'Acompte client Mansouri',         reference: 'CLI-3', clientId: 'cli-3', paymentMethod: 'versement', createdAt: '2026-02-18' },
+  // Retrait manuel — l'API stocke les retraits comme 'charge' (cf. createCaisseEntry)
+  { id: 'cai-9', type: 'charge',     montant: 500000,  date: '2026-04-18', description: 'Retrait caisse — frais divers',  paymentMethod: 'versement', createdAt: '2026-04-18' },
+  // Vente bare Suzuki Vitara (veh-16) — entrée de caisse
+  { id: 'cai-10', type: 'vente_auto', montant: 3600000, date: '2026-04-18', description: 'Vente bare Suzuki Vitara',       vehicleId: 'veh-16', prixVente: 3600000, prixRevient: 3288800, benefice: 311200, paymentMethod: 'versement', createdAt: '2026-04-18' },
 ];
 
 export const seedSales: Sale[] = [
@@ -191,6 +207,8 @@ export const seedCarModels: CarModel[] = [
 
 export const seedZakatRecords: ZakatRecord[] = [
   { id: 'zak-1', year: 2025, assetsTotal: 48000000, debtsTotal: 8500000, zakatBase: 39500000, zakatAmount: 987500, amountPaid: 987500, notes: 'Zakat 2025 acquittée', createdAt: '2025-12-31' },
+  // Zakat 2026 — non encore acquittée (En cours)
+  { id: 'zak-2', year: 2026, assetsTotal: 56000000, debtsTotal: 9200000, zakatBase: 46800000, zakatAmount: 1170000, amountPaid: 0, notes: 'Zakat 2026 en cours', createdAt: '2026-04-01' },
 ];
 
 export const seedVehiclePayments: VehiclePayment[] = [
@@ -211,5 +229,5 @@ export const seedVehicleCharges: VehicleCharge[] = [
   { id: 'vc-6', vehicleId: 'veh-9', label: 'Charges Transit (DZD)', amount: 90000,  createdAt: '2026-03-28' },
 ];
 
-export const seedCaisseBalance = 31905000;
+export const seedCaisseBalance = 22780000;
 export const seedBanqueBalance = 18500000;
