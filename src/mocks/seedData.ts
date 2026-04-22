@@ -153,8 +153,8 @@ export const seedPayments: Payment[] = [
 export const seedCaisseEntries: CaisseEntry[] = [
   { id: 'cai-1', type: 'entree',     montant: 7200000, date: '2026-04-15', description: 'Versement client Benali',         reference: 'CLI-1', clientId: 'cli-1', paymentMethod: 'versement', createdAt: '2026-04-15' },
   { id: 'cai-2', type: 'charge',     montant: 320000,  date: '2026-04-12', description: 'Frais de douane CONT MSCU-1234567', paymentMethod: 'versement', createdAt: '2026-04-12' },
-  { id: 'cai-3', type: 'vente_auto', montant: 5050000, date: '2026-04-05', description: 'Vente Kia Sorento',               vehicleId: 'veh-10', clientId: 'cli-3', prixVente: 5050000, prixRevient: 4598200, benefice: 451800, paymentMethod: 'versement', createdAt: '2026-04-05' },
-  { id: 'cai-4', type: 'vente_auto', montant: 4750000, date: '2026-04-02', description: 'Vente Hyundai Tucson',            vehicleId: 'veh-9',  clientId: 'cli-1', prixVente: 4750000, prixRevient: 4320200, benefice: 429800, paymentMethod: 'versement', createdAt: '2026-04-02' },
+  { id: 'cai-3', type: 'vente_auto', montant: 5050000, date: '2026-04-05', description: 'Vente Kia Sorento',               vehicleId: 'veh-10', clientId: 'cli-3', prixVente: 5050000, prixRevient: 4578100, benefice: 471900, paymentMethod: 'versement', createdAt: '2026-04-05' },
+  { id: 'cai-4', type: 'vente_auto', montant: 4750000, date: '2026-04-02', description: 'Vente Hyundai Tucson',            vehicleId: 'veh-9',  clientId: 'cli-1', prixVente: 4750000, prixRevient: 4300100, benefice: 449900, paymentMethod: 'versement', createdAt: '2026-04-02' },
   { id: 'cai-5', type: 'charge',     montant: 180000,  date: '2026-03-30', description: 'Loyer entrepôt Mars',             paymentMethod: 'virement',  createdAt: '2026-03-30' },
   { id: 'cai-6', type: 'entree',     montant: 12500000,date: '2026-03-05', description: 'Versement client Bensalem',       reference: 'CLI-5', clientId: 'cli-5', paymentMethod: 'virement',  createdAt: '2026-03-05' },
   { id: 'cai-7', type: 'charge',     montant: 95000,   date: '2026-02-25', description: 'Salaires équipe',                 paymentMethod: 'virement',  createdAt: '2026-02-25' },
@@ -164,11 +164,11 @@ export const seedCaisseEntries: CaisseEntry[] = [
 export const seedSales: Sale[] = [
   // Vehicles linked back via vehicle.saleId — hydrateSale() resolves the array
   // Totals match the corresponding vehicle.totalCost / sellingPrice exactly
-  { id: 'sal-1', clientId: 'cli-1', date: '2026-04-02', totalSellingPrice: 4750000,  totalCost: 4320200,  totalProfit: 429800,  amountPaid: 4750000,  debt: 0,       carriedDebt: 0, vehicles: [], createdAt: '2026-04-02', updatedAt: '2026-04-02' },
-  { id: 'sal-2', clientId: 'cli-3', date: '2026-04-05', totalSellingPrice: 5050000,  totalCost: 4598200,  totalProfit: 451800,  amountPaid: 5050000,  debt: 0,       carriedDebt: 0, vehicles: [], createdAt: '2026-04-05', updatedAt: '2026-04-05' },
-  { id: 'sal-3', clientId: 'cli-5', date: '2026-03-05', totalSellingPrice: 12500000, totalCost: 11450800, totalProfit: 1049200, amountPaid: 12500000, debt: 0,       carriedDebt: 0, vehicles: [], createdAt: '2026-03-05', updatedAt: '2026-03-05' },
-  { id: 'sal-4', clientId: 'cli-2', date: '2026-03-22', totalSellingPrice: 9800000,  totalCost: 9143200,  totalProfit: 656800,  amountPaid: 4500000,  debt: 5300000, carriedDebt: 0, vehicles: [], createdAt: '2026-03-22', updatedAt: '2026-03-22' },
-  { id: 'sal-5', clientId: 'cli-1', date: '2026-04-15', totalSellingPrice: 7200000,  totalCost: 6735000,  totalProfit: 465000,  amountPaid: 7200000,  debt: 0,       carriedDebt: 0, vehicles: [], createdAt: '2026-04-15', updatedAt: '2026-04-15' },
+  { id: 'sal-1', clientId: 'cli-1', date: '2026-04-02', totalSellingPrice: 4750000,  totalCost: 4300100,  totalProfit: 449900,  amountPaid: 4750000,  debt: 0,       carriedDebt: 0, vehicles: [], createdAt: '2026-04-02', updatedAt: '2026-04-02' },
+  { id: 'sal-2', clientId: 'cli-3', date: '2026-04-05', totalSellingPrice: 5050000,  totalCost: 4578100,  totalProfit: 471900,  amountPaid: 5050000,  debt: 0,       carriedDebt: 0, vehicles: [], createdAt: '2026-04-05', updatedAt: '2026-04-05' },
+  { id: 'sal-3', clientId: 'cli-5', date: '2026-03-05', totalSellingPrice: 12500000, totalCost: 11323500, totalProfit: 1176500, amountPaid: 12500000, debt: 0,       carriedDebt: 0, vehicles: [], createdAt: '2026-03-05', updatedAt: '2026-03-05' },
+  { id: 'sal-4', clientId: 'cli-2', date: '2026-03-22', totalSellingPrice: 9800000,  totalCost: 9049400,  totalProfit: 750600,  amountPaid: 4500000,  debt: 5300000, carriedDebt: 0, vehicles: [], createdAt: '2026-03-22', updatedAt: '2026-03-22' },
+  { id: 'sal-5', clientId: 'cli-1', date: '2026-04-15', totalSellingPrice: 7200000,  totalCost: 6681400,  totalProfit: 518600,  amountPaid: 7200000,  debt: 0,       carriedDebt: 0, vehicles: [], createdAt: '2026-04-15', updatedAt: '2026-04-15' },
 ];
 
 export const seedCarModels: CarModel[] = [
@@ -211,5 +211,5 @@ export const seedVehicleCharges: VehicleCharge[] = [
   { id: 'vc-6', vehicleId: 'veh-9', label: 'Charges Transit (DZD)', amount: 90000,  createdAt: '2026-03-28' },
 ];
 
-export const seedCaisseBalance = 8200000;
+export const seedCaisseBalance = 31905000;
 export const seedBanqueBalance = 18500000;
