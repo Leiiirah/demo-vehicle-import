@@ -207,6 +207,8 @@ export const seedCarModels: CarModel[] = [
 
 export const seedZakatRecords: ZakatRecord[] = [
   { id: 'zak-1', year: 2025, assetsTotal: 48000000, debtsTotal: 8500000, zakatBase: 39500000, zakatAmount: 987500, amountPaid: 987500, notes: 'Zakat 2025 acquittée', createdAt: '2025-12-31' },
+  // Zakat 2026 — non encore acquittée (En cours)
+  { id: 'zak-2', year: 2026, assetsTotal: 56000000, debtsTotal: 9200000, zakatBase: 46800000, zakatAmount: 1170000, amountPaid: 0, notes: 'Zakat 2026 en cours', createdAt: '2026-04-01' },
 ];
 
 export const seedVehiclePayments: VehiclePayment[] = [
@@ -227,5 +229,5 @@ export const seedVehicleCharges: VehicleCharge[] = [
   { id: 'vc-6', vehicleId: 'veh-9', label: 'Charges Transit (DZD)', amount: 90000,  createdAt: '2026-03-28' },
 ];
 
-export const seedCaisseBalance = 31905000;
+export const seedCaisseBalance = 22780000;
 export const seedBanqueBalance = 18500000;
