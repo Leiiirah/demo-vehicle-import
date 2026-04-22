@@ -446,7 +446,13 @@ class ApiClient {
   }
 
   // ---- Passeports ---------------------------------------------------------
-  async getPasseports() { return delay(db.passeports.slice()); }
+  async getPasseports() {
+    const enriched = db.passeports.map((p) => ({
+      ...p,
+      vehicleCount: db.vehicles.filter((v) => v.passeportId === p.id).length,
+    }));
+    return delay(enriched);
+  }
   async getPasseport(id: string) {
     const p = db.passeports.find((x) => x.id === id);
     if (!p) throw new Error('Passeport introuvable');
