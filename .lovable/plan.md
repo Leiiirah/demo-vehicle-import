@@ -1,75 +1,78 @@
 
 
-## Fix data mismatches in seed dataset
+## Fix "denied to github-actions[bot]" on sync workflow
 
-The audit revealed inconsistencies between stored values and the values that should derive from the documented business formulas. Goal: align stored fields with the formulas, without changing any logic, components, or routes.
+The error tells us exactly what's happening: the push is being authenticated as `github-actions[bot]` (the default `GITHUB_TOKEN`), not as your PAT. That means `${{ secrets.DEMO_REPO_TOKEN }}` is empty at runtime, so the remote URL falls back to no credentials and Git uses the default token, which has no access to the destination repo.
 
-### What gets fixed in `src/mocks/seedData.ts`
+The workflow YAML itself is correct. The fix is to make sure the secret is actually present and readable by this workflow run.
 
-**1. Vehicle `transportCost` (15 vehicles)** — formula: `transportCost = container.coutTransport / vehicleCountInContainer`. Recompute and update `transportCost`, then recompute `totalCost = (purchasePrice + transportCost) * theoreticalRate + localFees + passeportCost` so the stored `totalCost` stays correct after the change.
+### Why this happens
 
-| Vehicle | Container | New transport | New totalCost |
-|---|---|---|---|
-| veh-1 | con-1 (4200/2) | 2100 | 6 681 400 |
-| veh-2 | con-1 (4200/2) | 2100 | 9 049 400 |
-| veh-3 | con-2 (3800/2) | 1900 | 8 456 600 |
-| veh-4 | con-3 (4500/2) | 2250 | 8 111 500 |
-| veh-5 | con-3 (4500/2) | 2250 | 11 323 500 |
-| veh-6 | con-4 (3700/1) | 3700 | 12 827 800 |
-| veh-7 | con-5 (2400/2) | 1200 | 13 520 800 |
-| veh-8 | con-5 (2400/2) | 1200 | 4 688 800 |
-| veh-9 | con-6 (4300/2) | 2150 | 4 300 100 |
-| veh-10 | con-6 (4300/2) | 2150 | 4 578 100 |
-| veh-11 | con-7 (3600/2) | 1800 | 10 359 200 |
-| veh-12 | con-7 (3600/2) | 1800 | 3 859 200 |
-| veh-13 | con-8 (2300/2) | 1150 | 7 532 100 |
-| veh-14 | con-8 (2300/2) | 1150 | 5 988 100 |
-| veh-15 | con-2 (3800/2) | 1900 | 4 360 600 |
+When `${DEMO_REPO_TOKEN}` is empty, the remote URL becomes:
+`https://x-access-token:@github.com/avalonlabsteam/demo-vehicle-import.git`
+Git then falls back to the ambient credential helper (the `GITHUB_TOKEN` injected by Actions, which authenticates as `github-actions[bot]`) — exactly what the error shows.
 
-**2. Sale `totalCost` / `totalProfit` (5 sales)** — recompute from each sale's vehicles using the new vehicle `totalCost`:
-- `sal-1` (veh-9): cost 4 300 100, profit 449 900
-- `sal-2` (veh-10): cost 4 578 100, profit 471 900
-- `sal-3` (veh-5): cost 11 323 500, profit 1 176 500
-- `sal-4` (veh-2): cost 9 049 400, profit 750 600
-- `sal-5` (veh-1): cost 6 681 400, profit 518 600
+### Checklist (do in order)
 
-**3. Caisse `vente_auto` margins (`cai-3`, `cai-4`)** — `prixRevient` and `benefice` re-aligned to the new vehicle `totalCost`:
-- `cai-3` (veh-10): prixRevient 4 578 100, benefice 471 900
-- `cai-4` (veh-9): prixRevient 4 300 100, benefice 449 900
+**1. Confirm the secret exists on the SOURCE repo (this one)**
+- Source repo on GitHub → Settings → Secrets and variables → **Actions** tab → **Repository secrets**.
+- A secret named exactly `DEMO_REPO_TOKEN` must be listed. Name is case-sensitive.
+- If it's under "Environment secrets" or "Dependabot secrets" instead of "Actions → Repository secrets", it won't be available — move it.
+- If the source repo is in an organization that restricts secret usage, ensure Actions are allowed: Org/Repo Settings → Actions → General → "Allow all actions".
 
-**4. Supplier metrics (5 suppliers)** — recompute from related vehicles + dossier payments:
+**2. Confirm the token itself is valid and has push rights**
+Quick local test (replace `YOUR_TOKEN`):
+```
+git clone https://x-access-token:YOUR_TOKEN@github.com/avalonlabsteam/demo-vehicle-import.git /tmp/test-clone
+```
+- If clone fails with 403/404 → token is wrong/expired/lacks access. Regenerate it.
+- If clone works but push later fails → token is read-only; recreate with write scope.
 
-| Supplier | vehiclesSupplied | totalPaid (USD) | remainingDebt (USD) |
-|---|---|---|---|
-| sup-1 | 4 | 150 000 | 54 300 |
-| sup-2 | 3 | 145 000 | 85 300 |
-| sup-3 | 2 | 70 000 | 61 600 |
-| sup-4 | 2 | 62 600 | 0 |
-| sup-5 | 4 | 50 000 | 152 000 |
+**3. Recreate the token the simple way (classic PAT)**
+Fine-grained PATs often silently lack visibility on org repos. Use a classic PAT to remove that variable:
+- GitHub → avatar → Settings → Developer settings → Personal access tokens → **Tokens (classic)** → **Generate new token (classic)**.
+- Scope: check **`repo`** (full control of private repositories — also covers public).
+- Generate, copy the value (starts with `ghp_…`).
+- If `avalonlabsteam` is an org with SSO, after creation click **Configure SSO** next to the token and **Authorize** it for `avalonlabsteam`. Without this, the token is rejected silently.
 
-(`creditBalance` and `rating` left untouched — they're not derivable from the dataset.)
+**4. Re-add the secret on the source repo**
+- Source repo → Settings → Secrets and variables → Actions → click `DEMO_REPO_TOKEN` → **Update secret** (or delete and re-create) → paste the new classic PAT → Save.
 
-**5. `seedCaisseBalance`** — change `8 200 000` → `31 905 000` (sum of 3 entrées + 2 ventes − 3 charges).
+**5. Confirm the token's user has write access on the destination**
+- `avalonlabsteam/demo-vehicle-import` → Settings → Collaborators and teams → token-owning user listed with **Write** or **Admin**. If it's an org repo, the user must be an org member with write on this repo (directly or via a team).
 
-**6. Status coherence (`veh-13`, `veh-14`)** — both have a `clientId` + `passeportId` + `paymentStatus: 'versement'` but `status: 'ordered'`. Per the rule "a vehicle assigned to a client must be `sold`", flip to `status: 'sold'` and add a `soldDate: '2026-04-10'` so they appear correctly in the Stock/Sales filters. (Their containers stay `charge` — no cascade needed since the rule only requires the vehicle to be marked sold once a client is attached; sale aggregation isn't impacted because they aren't yet linked to a `Sale` record, matching the "partial sale" pattern already present elsewhere.)
+**6. Re-run the workflow**
+- Source repo → Actions tab → **Sync to demo repo** → **Run workflow** → branch `main` → Run.
 
-   Alternative considered: drop the `clientId` to make them true "ordered" stock. Rejected because removing the assignment also wipes the existing `amountPaid` history and reduces sales coverage.
+### Optional diagnostic step (recommended)
 
-### Cache invalidation in `src/services/api.ts`
+To prevent guessing next time, add a step that fails fast with a clear message if the secret is missing or can't see the repo. This is the only code change in the plan, and it's purely diagnostic — no behavior change to the push.
 
-Bump `LS_KEY` from `vih_mock_db_v5` → `vih_mock_db_v6` so every browser session picks up the corrected seed on next load.
+Add this step in `.github/workflows/sync-to-demo.yml` BEFORE "Add destination remote":
+
+```yaml
+      - name: Verify token can access destination
+        env:
+          DEMO_REPO_TOKEN: ${{ secrets.DEMO_REPO_TOKEN }}
+        run: |
+          if [ -z "$DEMO_REPO_TOKEN" ]; then
+            echo "::error::DEMO_REPO_TOKEN secret is empty or not exposed to this workflow."
+            exit 1
+          fi
+          status=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${DEMO_REPO_TOKEN}" \
+            https://api.github.com/repos/avalonlabsteam/demo-vehicle-import)
+          echo "GitHub API status: $status"
+          if [ "$status" != "200" ]; then
+            echo "::error::Token cannot access destination repo (HTTP $status). Check token scopes, SSO authorization, and repo permissions."
+            exit 1
+          fi
+```
+
+Future failures will then say either "secret is empty" or "HTTP 401/403/404" instead of the misleading `github-actions[bot]` message.
 
 ### Out of scope
 
-- No component, hook, route, or type signature changes.
-- `creditBalance` (suppliers) and `rating` are presentational seed values — kept as-is.
-- `cai-3` / `cai-4` keep type `vente_auto`: it is a valid documented enum value used by the API itself when a sale is recorded, and these entries correctly mirror `sal-1` / `sal-2`.
-- Coverage gaps flagged in the audit (no `vendu_bare`, no `annule` dossier, no `inactive` user, no `retrait` caisse) are NOT addressed here — adding them would expand the dataset rather than fix the existing mismatch. Can be done in a follow-up if desired.
-
-### Verification after changes
-
-After reload (forced by the LS key bump), sanity-check three pages:
-- `/vehicles/veh-1` — totalCost shows 6 681 400 DZD.
-- `/suppliers` — Total payé column sums to 477 600 USD; net dette to 353 200 USD.
-- `/caisse` — header balance shows 31 905 000 DZD matching the entries below.
+- No app code, route, component, or data changes.
+- The push step itself stays as-is — the root cause is the secret/token, not the YAML.
 
