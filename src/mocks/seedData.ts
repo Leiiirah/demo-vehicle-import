@@ -171,6 +171,10 @@ export const seedCaisseEntries: CaisseEntry[] = [
   { id: 'cai-6', type: 'entree',     montant: 12500000,date: '2026-03-05', description: 'Versement client Bensalem',       reference: 'CLI-5', clientId: 'cli-5', paymentMethod: 'virement',  createdAt: '2026-03-05' },
   { id: 'cai-7', type: 'charge',     montant: 95000,   date: '2026-02-25', description: 'Salaires équipe',                 paymentMethod: 'virement',  createdAt: '2026-02-25' },
   { id: 'cai-8', type: 'entree',     montant: 3000000, date: '2026-02-18', description: 'Acompte client Mansouri',         reference: 'CLI-3', clientId: 'cli-3', paymentMethod: 'versement', createdAt: '2026-02-18' },
+  // Retrait manuel — l'API stocke les retraits comme 'charge' (cf. createCaisseEntry)
+  { id: 'cai-9', type: 'charge',     montant: 500000,  date: '2026-04-18', description: 'Retrait caisse — frais divers',  paymentMethod: 'versement', createdAt: '2026-04-18' },
+  // Vente bare Suzuki Vitara (veh-16) — entrée de caisse
+  { id: 'cai-10', type: 'vente_auto', montant: 3600000, date: '2026-04-18', description: 'Vente bare Suzuki Vitara',       vehicleId: 'veh-16', prixVente: 3600000, prixRevient: 3288800, benefice: 311200, paymentMethod: 'versement', createdAt: '2026-04-18' },
 ];
 
 export const seedSales: Sale[] = [
