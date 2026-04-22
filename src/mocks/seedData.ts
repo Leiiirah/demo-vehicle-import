@@ -76,6 +76,7 @@ export const seedDossiers: Dossier[] = [
   { id: 'dos-3', reference: 'SHENZHEN-2026-001',  supplierId: 'sup-3', dateCreation: '2026-02-02', status: 'en_cours' },
   { id: 'dos-4', reference: 'BEIJING-2026-001',   supplierId: 'sup-4', dateCreation: '2026-02-10', status: 'solde'   },
   { id: 'dos-5', reference: 'TIANJIN-2026-001',   supplierId: 'sup-5', dateCreation: '2026-03-01', status: 'en_cours' },
+  { id: 'dos-6', reference: 'GUANGZHOU-2026-002', supplierId: 'sup-1', dateCreation: '2026-03-15', status: 'annule'   },
 ];
 
 export const seedConteneurs: Conteneur[] = [
