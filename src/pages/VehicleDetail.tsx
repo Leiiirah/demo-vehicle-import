@@ -536,9 +536,13 @@ const VehicleDetailPage = () => {
                           type="number"
                           className="pl-7"
                           value={prixTransport}
-                          onChange={(e) => handlePrixTransportChange(Number(e.target.value))}
+                          readOnly
+                          disabled
                         />
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        Calculé automatiquement : coût total du conteneur ÷ nombre de véhicules.
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
