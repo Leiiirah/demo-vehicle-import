@@ -339,12 +339,18 @@ class ApiClient {
       dateDepart: data.dateDepart,
       dateArrivee: data.dateArrivee,
     };
-    db.conteneurs.push(c); persist(); return delay(hydrateConteneur(c));
+    db.conteneurs.push(c);
+    redistributeContainerTransport(c.id);
+    persist();
+    return delay(hydrateConteneur(c));
   }
   async updateConteneur(id: string, data: Partial<CreateConteneurData>) {
     const i = db.conteneurs.findIndex((x) => x.id === id);
     if (i < 0) throw new Error('Conteneur introuvable');
-    db.conteneurs[i] = { ...db.conteneurs[i], ...data }; persist(); return delay(hydrateConteneur(db.conteneurs[i]));
+    db.conteneurs[i] = { ...db.conteneurs[i], ...data };
+    redistributeContainerTransport(db.conteneurs[i].id);
+    persist();
+    return delay(hydrateConteneur(db.conteneurs[i]));
   }
   async deleteConteneur(id: string) {
     db.conteneurs = db.conteneurs.filter((c) => c.id !== id); persist(); return delay({});
