@@ -545,7 +545,29 @@ class ApiClient {
     db.payments[i] = { ...db.payments[i], ...data } as Payment; persist(); return delay(hydratePayment(db.payments[i]));
   }
   async deletePayment(id: string) {
-    db.payments = db.payments.filter((p) => p.id !== id); persist(); return delay({});
+    const p = db.payments.find((x) => x.id === id);
+    if (p && p.type === 'supplier_payment' && p.status === 'completed') {
+      const amountDZD = p.currency === 'USD'
+        ? Number(p.amount) * Number(p.exchangeRate || 0)
+        : Number(p.amount);
+      db.banqueBalance = Number(db.banqueBalance || 0) + amountDZD;
+      if (p.supplierId) {
+        const sIdx = db.suppliers.findIndex((s) => s.id === p.supplierId);
+        if (sIdx >= 0) {
+          const amountUSD = p.currency === 'USD'
+            ? Number(p.amount)
+            : Number(p.exchangeRate) > 0 ? Number(p.amount) / Number(p.exchangeRate) : 0;
+          db.suppliers[sIdx] = {
+            ...db.suppliers[sIdx],
+            totalPaid: Number(db.suppliers[sIdx].totalPaid || 0) - amountUSD,
+            remainingDebt: Number(db.suppliers[sIdx].remainingDebt || 0) + amountUSD,
+          };
+        }
+      }
+    }
+    db.payments = db.payments.filter((x) => x.id !== id);
+    persist();
+    return delay({});
   }
 
   // ---- Caisse -------------------------------------------------------------
