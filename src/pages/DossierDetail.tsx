@@ -64,6 +64,18 @@ export default function DossierDetailPage() {
     enabled: !!id,
   });
   const isDossierFullyPaid = (dossierPaymentStats?.progress ?? 0) >= 100;
+
+  // Taux de change moyen pondéré au niveau dossier (arrondi à l'entier)
+  const dossierWeightedRate = (() => {
+    const payments: any[] = (dossierPaymentStats as any)?.payments || [];
+    const totalPaidUSD = payments.reduce((s, p) => s + Number(p.amount || 0), 0);
+    if (totalPaidUSD === 0) return 0;
+    const weighted = payments.reduce(
+      (s, p) => s + Number(p.amount || 0) * Number(p.exchangeRate || 0),
+      0
+    );
+    return Math.round(weighted / totalPaidUSD);
+  })();
   const deleteConteneur = useDeleteConteneur();
   const updateConteneur = useUpdateConteneur();
   const { toast } = useToast();
@@ -215,7 +227,7 @@ export default function DossierDetailPage() {
                     <TableHead>Départ</TableHead>
                     <TableHead>Arrivée</TableHead>
                     <TableHead>Total Achat (USD)</TableHead>
-                    {isDossierFullyPaid && <TableHead>Prix Total</TableHead>}
+                    <TableHead>Prix Total</TableHead>
                     <TableHead className="text-center">Véhicules</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead className="w-20"></TableHead>
@@ -256,7 +268,19 @@ export default function DossierDetailPage() {
                           <TableCell>
                             {((conteneur.vehicles || []).reduce((sum: number, v: any) => sum + Number(v.purchasePrice || 0) + Number(v.transportCost || 0), 0)).toLocaleString('fr-FR')} USD
                           </TableCell>
-                          {isDossierFullyPaid && <TableCell>{formatCurrencyDZD((conteneur.vehicles || []).reduce((sum: number, v: any) => sum + Number(v.totalCost || 0), 0))}</TableCell>}
+                          <TableCell>
+                            {dossierWeightedRate > 0
+                              ? formatCurrencyDZD(
+                                  (conteneur.vehicles || []).reduce(
+                                    (sum: number, v: any) =>
+                                      sum +
+                                      (Number(v.purchasePrice || 0) + Number(v.transportCost || 0)) * dossierWeightedRate +
+                                      Number(v.localFees || 0),
+                                    0
+                                  )
+                                )
+                              : '-'}
+                          </TableCell>
                           <TableCell className="text-center">{conteneur.vehicles?.length || 0}</TableCell>
                           <TableCell>
                             <Select
