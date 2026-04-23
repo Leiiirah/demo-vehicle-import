@@ -28,7 +28,7 @@ import {
 
 // ----------------------------- helpers --------------------------------------
 
-const LS_KEY = 'vih_mock_db_v7';
+const LS_KEY = 'vih_mock_db_v8';
 const LATENCY = () => 120 + Math.random() * 180;
 
 function delay<T>(value: T): Promise<T> {
@@ -147,6 +147,24 @@ function hydrateSale(s: Sale): Sale {
     client: db.clients.find((c) => c.id === s.clientId),
     vehicles: db.vehicles.filter((v) => v.saleId === s.id),
   };
+}
+
+/**
+ * Recalcule et applique le coût de transport unitaire pour tous les véhicules
+ * d'un conteneur. Le `coutTransport` total (USD) du conteneur est réparti
+ * équitablement entre les véhicules qui y sont affectés.
+ * Sans véhicules, ne fait rien. Mute `db.vehicles` en place.
+ */
+function redistributeContainerTransport(conteneurId?: string): void {
+  if (!conteneurId) return;
+  const conteneur = db.conteneurs.find((c) => c.id === conteneurId);
+  if (!conteneur) return;
+  const vehiclesInContainer = db.vehicles.filter((v) => v.conteneurId === conteneurId);
+  if (vehiclesInContainer.length === 0) return;
+  const perVehicle = Number(conteneur.coutTransport || 0) / vehiclesInContainer.length;
+  for (const v of vehiclesInContainer) {
+    v.transportCost = perVehicle;
+  }
 }
 
 // ------------------------------ ApiClient -----------------------------------
@@ -321,12 +339,18 @@ class ApiClient {
       dateDepart: data.dateDepart,
       dateArrivee: data.dateArrivee,
     };
-    db.conteneurs.push(c); persist(); return delay(hydrateConteneur(c));
+    db.conteneurs.push(c);
+    redistributeContainerTransport(c.id);
+    persist();
+    return delay(hydrateConteneur(c));
   }
   async updateConteneur(id: string, data: Partial<CreateConteneurData>) {
     const i = db.conteneurs.findIndex((x) => x.id === id);
     if (i < 0) throw new Error('Conteneur introuvable');
-    db.conteneurs[i] = { ...db.conteneurs[i], ...data }; persist(); return delay(hydrateConteneur(db.conteneurs[i]));
+    db.conteneurs[i] = { ...db.conteneurs[i], ...data };
+    redistributeContainerTransport(db.conteneurs[i].id);
+    persist();
+    return delay(hydrateConteneur(db.conteneurs[i]));
   }
   async deleteConteneur(id: string) {
     db.conteneurs = db.conteneurs.filter((c) => c.id !== id); persist(); return delay({});
@@ -367,15 +391,33 @@ class ApiClient {
       arrivalDate: data.arrivalDate,
       soldDate: data.soldDate,
     };
-    db.vehicles.push(v); persist(); return delay(hydrateVehicle(v));
+    db.vehicles.push(v);
+    // Auto-réparation du coût transport pour le conteneur d'affectation.
+    redistributeContainerTransport(v.conteneurId);
+    persist();
+    return delay(hydrateVehicle(v));
   }
   async updateVehicle(id: string, data: Partial<CreateVehicleData>) {
     const i = db.vehicles.findIndex((x) => x.id === id);
     if (i < 0) throw new Error('Véhicule introuvable');
-    db.vehicles[i] = { ...db.vehicles[i], ...data } as Vehicle; persist(); return delay(hydrateVehicle(db.vehicles[i]));
+    const previousConteneurId = db.vehicles[i].conteneurId;
+    db.vehicles[i] = { ...db.vehicles[i], ...data } as Vehicle;
+    const newConteneurId = db.vehicles[i].conteneurId;
+    // Si le véhicule change de conteneur (ou y entre / en sort), recalculer
+    // les deux conteneurs concernés.
+    if (previousConteneurId !== newConteneurId) {
+      redistributeContainerTransport(previousConteneurId);
+    }
+    redistributeContainerTransport(newConteneurId);
+    persist();
+    return delay(hydrateVehicle(db.vehicles[i]));
   }
   async deleteVehicle(id: string) {
-    db.vehicles = db.vehicles.filter((v) => v.id !== id); persist(); return delay({});
+    const removed = db.vehicles.find((v) => v.id === id);
+    db.vehicles = db.vehicles.filter((v) => v.id !== id);
+    redistributeContainerTransport(removed?.conteneurId);
+    persist();
+    return delay({});
   }
 
   // ---- Vehicle Payments ---------------------------------------------------
@@ -510,7 +552,34 @@ class ApiClient {
       clientId: data.clientId,
       dossierId: data.dossierId,
     };
-    db.payments.push(p); persist(); return delay(hydratePayment(p));
+    db.payments.push(p);
+
+    // Side effects for completed supplier payments:
+    //  1) Décrémenter le solde de la banque (montant converti en DZD si USD).
+    //  2) Décrémenter la dette restante du fournisseur (en USD) et incrémenter son total payé.
+    if (p.type === 'supplier_payment' && p.status === 'completed') {
+      const amountDZD = p.currency === 'USD'
+        ? Number(p.amount) * Number(p.exchangeRate || 0)
+        : Number(p.amount);
+      db.banqueBalance = Number(db.banqueBalance || 0) - amountDZD;
+
+      if (p.supplierId) {
+        const sIdx = db.suppliers.findIndex((s) => s.id === p.supplierId);
+        if (sIdx >= 0) {
+          const amountUSD = p.currency === 'USD'
+            ? Number(p.amount)
+            : Number(p.exchangeRate) > 0 ? Number(p.amount) / Number(p.exchangeRate) : 0;
+          db.suppliers[sIdx] = {
+            ...db.suppliers[sIdx],
+            totalPaid: Number(db.suppliers[sIdx].totalPaid || 0) + amountUSD,
+            remainingDebt: Number(db.suppliers[sIdx].remainingDebt || 0) - amountUSD,
+          };
+        }
+      }
+    }
+
+    persist();
+    return delay(hydratePayment(p));
   }
   async updatePayment(id: string, data: Partial<CreatePaymentData>) {
     const i = db.payments.findIndex((x) => x.id === id);
@@ -518,7 +587,29 @@ class ApiClient {
     db.payments[i] = { ...db.payments[i], ...data } as Payment; persist(); return delay(hydratePayment(db.payments[i]));
   }
   async deletePayment(id: string) {
-    db.payments = db.payments.filter((p) => p.id !== id); persist(); return delay({});
+    const p = db.payments.find((x) => x.id === id);
+    if (p && p.type === 'supplier_payment' && p.status === 'completed') {
+      const amountDZD = p.currency === 'USD'
+        ? Number(p.amount) * Number(p.exchangeRate || 0)
+        : Number(p.amount);
+      db.banqueBalance = Number(db.banqueBalance || 0) + amountDZD;
+      if (p.supplierId) {
+        const sIdx = db.suppliers.findIndex((s) => s.id === p.supplierId);
+        if (sIdx >= 0) {
+          const amountUSD = p.currency === 'USD'
+            ? Number(p.amount)
+            : Number(p.exchangeRate) > 0 ? Number(p.amount) / Number(p.exchangeRate) : 0;
+          db.suppliers[sIdx] = {
+            ...db.suppliers[sIdx],
+            totalPaid: Number(db.suppliers[sIdx].totalPaid || 0) - amountUSD,
+            remainingDebt: Number(db.suppliers[sIdx].remainingDebt || 0) + amountUSD,
+          };
+        }
+      }
+    }
+    db.payments = db.payments.filter((x) => x.id !== id);
+    persist();
+    return delay({});
   }
 
   // ---- Caisse -------------------------------------------------------------
