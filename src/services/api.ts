@@ -510,7 +510,34 @@ class ApiClient {
       clientId: data.clientId,
       dossierId: data.dossierId,
     };
-    db.payments.push(p); persist(); return delay(hydratePayment(p));
+    db.payments.push(p);
+
+    // Side effects for completed supplier payments:
+    //  1) Décrémenter le solde de la banque (montant converti en DZD si USD).
+    //  2) Décrémenter la dette restante du fournisseur (en USD) et incrémenter son total payé.
+    if (p.type === 'supplier_payment' && p.status === 'completed') {
+      const amountDZD = p.currency === 'USD'
+        ? Number(p.amount) * Number(p.exchangeRate || 0)
+        : Number(p.amount);
+      db.banqueBalance = Number(db.banqueBalance || 0) - amountDZD;
+
+      if (p.supplierId) {
+        const sIdx = db.suppliers.findIndex((s) => s.id === p.supplierId);
+        if (sIdx >= 0) {
+          const amountUSD = p.currency === 'USD'
+            ? Number(p.amount)
+            : Number(p.exchangeRate) > 0 ? Number(p.amount) / Number(p.exchangeRate) : 0;
+          db.suppliers[sIdx] = {
+            ...db.suppliers[sIdx],
+            totalPaid: Number(db.suppliers[sIdx].totalPaid || 0) + amountUSD,
+            remainingDebt: Number(db.suppliers[sIdx].remainingDebt || 0) - amountUSD,
+          };
+        }
+      }
+    }
+
+    persist();
+    return delay(hydratePayment(p));
   }
   async updatePayment(id: string, data: Partial<CreatePaymentData>) {
     const i = db.payments.findIndex((x) => x.id === id);
