@@ -391,15 +391,33 @@ class ApiClient {
       arrivalDate: data.arrivalDate,
       soldDate: data.soldDate,
     };
-    db.vehicles.push(v); persist(); return delay(hydrateVehicle(v));
+    db.vehicles.push(v);
+    // Auto-réparation du coût transport pour le conteneur d'affectation.
+    redistributeContainerTransport(v.conteneurId);
+    persist();
+    return delay(hydrateVehicle(v));
   }
   async updateVehicle(id: string, data: Partial<CreateVehicleData>) {
     const i = db.vehicles.findIndex((x) => x.id === id);
     if (i < 0) throw new Error('Véhicule introuvable');
-    db.vehicles[i] = { ...db.vehicles[i], ...data } as Vehicle; persist(); return delay(hydrateVehicle(db.vehicles[i]));
+    const previousConteneurId = db.vehicles[i].conteneurId;
+    db.vehicles[i] = { ...db.vehicles[i], ...data } as Vehicle;
+    const newConteneurId = db.vehicles[i].conteneurId;
+    // Si le véhicule change de conteneur (ou y entre / en sort), recalculer
+    // les deux conteneurs concernés.
+    if (previousConteneurId !== newConteneurId) {
+      redistributeContainerTransport(previousConteneurId);
+    }
+    redistributeContainerTransport(newConteneurId);
+    persist();
+    return delay(hydrateVehicle(db.vehicles[i]));
   }
   async deleteVehicle(id: string) {
-    db.vehicles = db.vehicles.filter((v) => v.id !== id); persist(); return delay({});
+    const removed = db.vehicles.find((v) => v.id === id);
+    db.vehicles = db.vehicles.filter((v) => v.id !== id);
+    redistributeContainerTransport(removed?.conteneurId);
+    persist();
+    return delay({});
   }
 
   // ---- Vehicle Payments ---------------------------------------------------
