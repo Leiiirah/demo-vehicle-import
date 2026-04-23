@@ -149,6 +149,24 @@ function hydrateSale(s: Sale): Sale {
   };
 }
 
+/**
+ * Recalcule et applique le coût de transport unitaire pour tous les véhicules
+ * d'un conteneur. Le `coutTransport` total (USD) du conteneur est réparti
+ * équitablement entre les véhicules qui y sont affectés.
+ * Sans véhicules, ne fait rien. Mute `db.vehicles` en place.
+ */
+function redistributeContainerTransport(conteneurId?: string): void {
+  if (!conteneurId) return;
+  const conteneur = db.conteneurs.find((c) => c.id === conteneurId);
+  if (!conteneur) return;
+  const vehiclesInContainer = db.vehicles.filter((v) => v.conteneurId === conteneurId);
+  if (vehiclesInContainer.length === 0) return;
+  const perVehicle = Number(conteneur.coutTransport || 0) / vehiclesInContainer.length;
+  for (const v of vehiclesInContainer) {
+    v.transportCost = perVehicle;
+  }
+}
+
 // ------------------------------ ApiClient -----------------------------------
 
 class ApiClient {
